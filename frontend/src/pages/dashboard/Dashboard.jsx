@@ -242,7 +242,9 @@ export default function Dashboard() {
     ADMIN: 'Admin Dashboard',
     FACULTY: 'Faculty Dashboard',
     STUDENT: 'Student Dashboard',
-    STAFF: 'Staff Dashboard'
+    STAFF: 'Staff Dashboard',
+    PARENT: 'Parent Dashboard',
+    ALUMNI: 'Alumni Dashboard'
   }
 
   return (
@@ -257,9 +259,8 @@ export default function Dashboard() {
       </div>
 
       {role === 'ADMIN' && <AdminDashboard />}
-      {role === 'FACULTY' && <FacultyDashboard />}
-      {role === 'STUDENT' && <StudentDashboard />}
-      {role === 'STAFF' && <StaffDashboard />}
+      {(role === 'FACULTY' || role === 'STAFF') && <FacultyDashboard />}
+      {(role === 'STUDENT' || role === 'PARENT' || role === 'ALUMNI') && <StudentDashboard />}
     </div>
   )
 }

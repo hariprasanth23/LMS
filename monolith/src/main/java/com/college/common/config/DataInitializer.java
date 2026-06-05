@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +21,6 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-@Profile("local")
 @RequiredArgsConstructor
 public class DataInitializer implements ApplicationRunner {
 
@@ -32,7 +30,7 @@ public class DataInitializer implements ApplicationRunner {
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
 
-    private static final String DEFAULT_PASSWORD = "Demo@1234";
+    private static final String DEFAULT_PASSWORD = "Demo@123";
 
     @Override
     public void run(ApplicationArguments args) {
@@ -54,19 +52,23 @@ public class DataInitializer implements ApplicationRunner {
                 .name("Business Administration").code("MBA")
                 .description("Department of Business Administration").build());
 
-        // ── Users ─────────────────────────────────────────────────────────────────
-        User admin = createUser("Admin User", "admin@college.edu", "9000000001", User.Role.ADMIN);
-        User faculty1 = createUser("Dr. Priya Sharma", "priya.sharma@college.edu", "9000000002", User.Role.FACULTY);
-        User faculty2 = createUser("Prof. Rajan Kumar", "rajan.kumar@college.edu", "9000000003", User.Role.FACULTY);
-        User student1 = createUser("Arun Krishnan", "arun.krishnan@college.edu", "9000000004", User.Role.STUDENT);
-        User student2 = createUser("Meena Devi", "meena.devi@college.edu", "9000000005", User.Role.STUDENT);
-        User student3 = createUser("Vikram Singh", "vikram.singh@college.edu", "9000000006", User.Role.STUDENT);
-        User staff1 = createUser("Ramesh Babu", "ramesh.babu@college.edu", "9000000007", User.Role.STAFF);
+        // ── Demo Portal Users (matches frontend demo credentials) ─────────────────
+        User admin   = createUser("Admin User",        "admin@demo.com",   "9000000001", User.Role.ADMIN);
+        User student = createUser("Arjun Kumar",       "student@demo.com", "9000000002", User.Role.STUDENT);
+        User staff   = createUser("Dr. Priya Sharma",  "staff@demo.com",   "9000000003", User.Role.FACULTY);
+        User parent  = createUser("Parent User",       "parent@demo.com",  "9000000004", User.Role.PARENT);
+        User alumni  = createUser("Alumni User",       "alumni@demo.com",  "9000000005", User.Role.ALUMNI);
 
-        // ── Employees (Faculty + Staff) ───────────────────────────────────────────
+        // ── Additional College Users ──────────────────────────────────────────────
+        User faculty2  = createUser("Prof. Rajan Kumar",  "rajan.kumar@college.edu",   "9000000006", User.Role.FACULTY);
+        User student2  = createUser("Meena Devi",         "meena.devi@college.edu",    "9000000007", User.Role.STUDENT);
+        User student3  = createUser("Vikram Singh",       "vikram.singh@college.edu",  "9000000008", User.Role.STUDENT);
+        User staff2    = createUser("Ramesh Babu",        "ramesh.babu@college.edu",   "9000000009", User.Role.STAFF);
+
+        // ── Employees ────────────────────────────────────────────────────────────
         employeeRepository.save(Employee.builder()
-                .userId(faculty1.getId()).empCode("FAC001").name(faculty1.getName())
-                .email(faculty1.getEmail()).phone(faculty1.getPhone())
+                .userId(staff.getId()).empCode("FAC001").name(staff.getName())
+                .email(staff.getEmail()).phone(staff.getPhone())
                 .departmentId(csDept.getId()).designation("Associate Professor")
                 .employeeType("FACULTY").joinDate(LocalDate.of(2018, 7, 1))
                 .baseSalary(new BigDecimal("85000")).status("ACTIVE")
@@ -81,18 +83,18 @@ public class DataInitializer implements ApplicationRunner {
                 .qualifications("PhD in Electronics, Anna University").build());
 
         employeeRepository.save(Employee.builder()
-                .userId(staff1.getId()).empCode("STF001").name(staff1.getName())
-                .email(staff1.getEmail()).phone(staff1.getPhone())
+                .userId(staff2.getId()).empCode("STF001").name(staff2.getName())
+                .email(staff2.getEmail()).phone(staff2.getPhone())
                 .departmentId(mbaDept.getId()).designation("Admin Staff")
                 .employeeType("STAFF").joinDate(LocalDate.of(2020, 1, 15))
                 .baseSalary(new BigDecimal("35000")).status("ACTIVE").build());
 
         // ── Students ─────────────────────────────────────────────────────────────
         studentRepository.save(Student.builder()
-                .id(UUID.randomUUID()).userId(student1.getId())
+                .id(UUID.randomUUID()).userId(student.getId())
                 .rollNumber("CSE2022001").department(csDept)
-                .semester(5).batch("2022-26").joinDate(LocalDate.of(2022, 8, 1))
-                .status("ACTIVE").guardianName("Mr. Krishnan").guardianPhone("9111111111")
+                .semester(6).batch("2022-26").joinDate(LocalDate.of(2022, 8, 1))
+                .status("ACTIVE").guardianName("Mr. Kumar").guardianPhone("9111111111")
                 .address("12, Gandhi Street, Chennai - 600001").build());
 
         studentRepository.save(Student.builder()
@@ -110,14 +112,19 @@ public class DataInitializer implements ApplicationRunner {
                 .address("78, Adyar, Chennai - 600020").build());
 
         log.info("[DataInitializer] ✓ Demo data seeded successfully");
-        log.info("[DataInitializer] Login credentials (password: Demo@1234):");
-        log.info("  ADMIN   → admin@college.edu");
-        log.info("  FACULTY → priya.sharma@college.edu  (CSE)");
-        log.info("  FACULTY → rajan.kumar@college.edu   (ECE)");
-        log.info("  STUDENT → arun.krishnan@college.edu (CSE, sem 5)");
-        log.info("  STUDENT → meena.devi@college.edu    (CSE, sem 5)");
-        log.info("  STUDENT → vikram.singh@college.edu  (ECE, sem 3)");
+        log.info("──────────────────────────────────────────────");
+        log.info("  DEMO CREDENTIALS (password: Demo@123)");
+        log.info("  ADMIN   → admin@demo.com");
+        log.info("  STUDENT → student@demo.com");
+        log.info("  STAFF   → staff@demo.com");
+        log.info("  PARENT  → parent@demo.com");
+        log.info("  ALUMNI  → alumni@demo.com");
+        log.info("──────────────────────────────────────────────");
+        log.info("  ADMIN   → admin@college.edu   (role: ADMIN)");
+        log.info("  FACULTY → rajan.kumar@college.edu");
+        log.info("  STUDENT → meena.devi@college.edu");
         log.info("  STAFF   → ramesh.babu@college.edu");
+        log.info("──────────────────────────────────────────────");
     }
 
     private User createUser(String name, String email, String phone, User.Role role) {

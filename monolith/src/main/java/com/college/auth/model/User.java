@@ -62,7 +62,7 @@ public class User implements UserDetails {
     private LocalDateTime updatedAt;
 
     public enum Role {
-        ADMIN, FACULTY, STUDENT, STAFF
+        ADMIN, FACULTY, STUDENT, STAFF, PARENT, ALUMNI
     }
 
     // --- UserDetails ---
