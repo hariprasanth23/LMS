@@ -19,7 +19,9 @@ import {
   MdFeedback,
   MdKeyboardArrowDown,
   MdKeyboardArrowRight,
-  MdLogout
+  MdLogout,
+  MdSupervisorAccount,
+  MdEvent
 } from 'react-icons/md'
 
 const FONT = 'system-ui, -apple-system, sans-serif'
@@ -125,6 +127,81 @@ const STUDENT_SECTIONS = [
   }
 ]
 
+const FACULTY_SECTIONS = [
+  {
+    key: 'academics', label: 'Academics', icon: MdMenuBook, color: '#6366f1',
+    items: [
+      { label: 'General', to: '/faculty/academics/general' },
+      { label: 'Outcome Set Conference', to: '/faculty/academics/outcome-set-conference' },
+      { label: 'SET Conference', to: '/faculty/academics/set-conference' },
+      { label: 'Course', to: '/faculty/academics/course' },
+      { label: 'Attendance', to: '/faculty/academics/attendance' },
+      { label: 'Council', to: '/faculty/academics/council' },
+      { label: 'QC Meeting', to: '/faculty/academics/qc-meeting' },
+      { label: 'Outcome & Course Plan', to: '/faculty/academics/outcome-course-plan' },
+      { label: 'Extra Curricular Activity', to: '/faculty/academics/extra-curricular' },
+      { label: 'Project Registration', to: '/faculty/academics/project-registration' },
+    ]
+  },
+  {
+    key: 'examinations', label: 'Examinations', icon: MdAssignment, color: '#ef4444',
+    items: [
+      { label: 'General', to: '/faculty/examinations/general' },
+      { label: 'Evaluations', to: '/faculty/examinations/evaluations' },
+      { label: 'Question Paper', to: '/faculty/examinations/question-paper' },
+      { label: 'Invigilation', to: '/faculty/examinations/invigilation' },
+    ]
+  },
+  {
+    key: 'proctor', label: 'Proctor', icon: MdSupervisorAccount, color: '#f97316',
+    items: [
+      { label: 'General', to: '/faculty/proctor/general' },
+      { label: 'Student Medical Info', to: '/faculty/proctor/medical-info' },
+      { label: 'Students Info', to: '/faculty/proctor/students-info' },
+    ]
+  },
+  {
+    key: 'research', label: 'Research', icon: MdScience, color: '#8b5cf6',
+    items: [
+      { label: 'General', to: '/faculty/research/general' },
+      { label: 'Coursework Allocation', to: '/faculty/research/coursework-allocation' },
+    ]
+  },
+  {
+    key: 'events', label: 'Events', icon: MdEvent, color: '#10b981',
+    items: [
+      { label: 'TLCE FDP', to: '/faculty/events/tlce-fdp' },
+      { label: 'Event Pre-Proposal', to: '/faculty/events/pre-proposal' },
+      { label: 'SW Events', to: '/faculty/events/sw-events' },
+    ]
+  },
+  {
+    key: 'hr', label: 'Human Resource', icon: MdPeople, color: '#0ea5e9',
+    items: [
+      { label: 'General', to: '/faculty/hr/general' },
+    ]
+  },
+  {
+    key: 'services', label: 'Services', icon: MdMiscellaneousServices, color: '#f59e0b',
+    items: [
+      { label: 'General', to: '/faculty/services/general' },
+      { label: 'My Account', to: '/faculty/services/my-account' },
+      { label: 'Biometric Info', to: '/faculty/services/biometric-info' },
+      { label: 'Library', to: '/faculty/services/library' },
+      { label: 'Finance', to: '/faculty/services/finance' },
+      { label: 'Info Corner', to: '/faculty/services/info-corner' },
+      { label: 'Physical Education', to: '/faculty/services/physical-education' },
+      { label: 'International Relations', to: '/faculty/services/international-relations' },
+    ]
+  },
+  {
+    key: 'feedback', label: 'Feedback', icon: MdFeedback, color: '#14b8a6',
+    items: [
+      { label: 'General', to: '/faculty/feedback/general' },
+    ]
+  },
+]
+
 function StudentAccordionSection({ section, isOpen, onToggle }) {
   const SectionIcon = section.icon
   const ArrowIcon = isOpen ? MdKeyboardArrowDown : MdKeyboardArrowRight
@@ -154,7 +231,7 @@ function StudentAccordionSection({ section, isOpen, onToggle }) {
         onMouseEnter={(e) => { e.currentTarget.style.background = BG }}
         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
       >
-        <SectionIcon style={{ fontSize: 18, color: section.iconColor, flexShrink: 0 }} />
+        <SectionIcon style={{ fontSize: 18, color: section.iconColor || section.color, flexShrink: 0 }} />
         <span style={{ flex: 1 }}>{section.label}</span>
         <ArrowIcon style={{ fontSize: 16, color: MUTED, flexShrink: 0 }} />
       </button>
@@ -200,7 +277,9 @@ export default function Sidebar() {
   const { user, logout } = useAuth()
   const role = user?.role
 
-  // Accordion state: default first section ('academics') is open
+  const isFaculty = role === 'FACULTY'
+
+  // Accordion state: default first section ('academics') is open for both STUDENT and FACULTY
   const [openSections, setOpenSections] = useState(['academics'])
 
   const toggleSection = (key) => {
@@ -247,6 +326,7 @@ export default function Sidebar() {
   }
 
   const isStudent = role === 'STUDENT'
+  const isAccordionRole = isStudent || isFaculty
   const specificItems = roleItems[role] || []
 
   return (
@@ -313,10 +393,10 @@ export default function Sidebar() {
       <nav style={{
         flex: 1,
         overflowY: 'auto',
-        padding: isStudent ? '4px 0' : '4px 12px'
+        padding: isAccordionRole ? '4px 0' : '4px 12px'
       }}>
         {/* Dashboard — always visible */}
-        {isStudent ? (
+        {isAccordionRole ? (
           <div style={{ padding: '0 12px', marginBottom: 4 }}>
             <NavLink
               to="/dashboard"
@@ -346,8 +426,22 @@ export default function Sidebar() {
           </div>
         )}
 
-        {/* ── Non-student role-specific items ── */}
-        {!isStudent && specificItems.length > 0 && (
+        {/* ── FACULTY accordion menu ── */}
+        {isFaculty && (
+          <div style={{ marginTop: 8, padding: '0 8px' }}>
+            {FACULTY_SECTIONS.map((section) => (
+              <StudentAccordionSection
+                key={section.key}
+                section={section}
+                isOpen={openSections.includes(section.key)}
+                onToggle={() => toggleSection(section.key)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* ── Non-accordion role-specific items ── */}
+        {!isAccordionRole && specificItems.length > 0 && (
           <div style={{ marginTop: 8 }}>
             <div style={{
               padding: '8px 4px 4px',
@@ -366,8 +460,8 @@ export default function Sidebar() {
           </div>
         )}
 
-        {/* ── Profile link (non-student) ── */}
-        {!isStudent && (
+        {/* ── Profile link (non-accordion roles) ── */}
+        {!isAccordionRole && (
           <div style={{ marginTop: 8 }}>
             <div style={{
               padding: '8px 4px 4px',
@@ -391,7 +485,7 @@ export default function Sidebar() {
         borderTop: '1px solid #f1f5f9',
         flexShrink: 0
       }}>
-        {isStudent && (
+        {isAccordionRole && (
           <NavLink
             to="/profile"
             style={({ isActive }) => ({
