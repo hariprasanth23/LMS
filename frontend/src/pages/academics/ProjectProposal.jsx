@@ -5,7 +5,7 @@ const MUTED = '#64748b'
 const ACCENT = '#6366f1'
 const BG = '#f8fafc'
 
-const ITEMS = ['Faculty Open Projects']
+const ITEMS = ['Faculty Open Project']
 
 const DOMAIN_COLORS = {
   'Machine Learning': ['#eef2ff', '#6366f1'],

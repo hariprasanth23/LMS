@@ -6,7 +6,7 @@ const ACCENT = '#6366f1'
 const BG = '#f8fafc'
 
 const ITEMS = [
-  'My Curriculum', 'HOD & Dean Info', 'Faculty Info', 'Biometric Info', 'Class Messages',
+  'My Curriculum', 'HOD and Dean Info', 'Faculty Info', 'Biometric Info', 'Class Messages',
   'Regulation', 'Minor / Honour', 'Time Table', 'Class Attendance', 'Course Page Consolidated',
   'Digital Assignment Upload', 'QCM View', 'Outcome SET Conference', 'Co-Extra Curricular',
   'Academics Calendar', 'Course Registration Allocation', 'Project Course', 'Project Mark View',

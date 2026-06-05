@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 import {
@@ -10,6 +10,13 @@ import {
   MdVisibility,
   MdVisibilityOff
 } from 'react-icons/md'
+
+const DEMO_CREDENTIALS_MAP = {
+  student: { identifier: 'student@demo.com', password: 'Demo@123' },
+  staff: { identifier: 'staff@demo.com', password: 'Demo@123' },
+  parent: { identifier: 'parent@demo.com', password: 'Demo@123' },
+  alumni: { identifier: 'alumni@demo.com', password: 'Demo@123' }
+}
 
 const PORTALS = [
   {
@@ -52,16 +59,36 @@ const IDENTIFIER_LABELS = {
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [selectedPortal, setSelectedPortal] = useState(null)
   const [form, setForm] = useState({ identifier: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [demoActive, setDemoActive] = useState(false)
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+  useEffect(() => {
+    const portalParam = searchParams.get('portal')
+    const demoParam = searchParams.get('demo')
+    const validPortals = PORTALS.map((p) => p.key)
+    if (portalParam && validPortals.includes(portalParam)) {
+      setSelectedPortal(portalParam)
+      if (demoParam === 'true' && DEMO_CREDENTIALS_MAP[portalParam]) {
+        const creds = DEMO_CREDENTIALS_MAP[portalParam]
+        setForm({ identifier: creds.identifier, password: creds.password })
+        setDemoActive(true)
+      }
+    }
+  }, [])
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+    setDemoActive(false)
+  }
 
   const handlePortalSelect = (key) => {
     setSelectedPortal(key)
     setForm({ identifier: '', password: '' })
+    setDemoActive(false)
   }
 
   const activePortal = PORTALS.find((p) => p.key === selectedPortal)
@@ -252,6 +279,25 @@ export default function Login() {
               background: '#e2e8f0',
               margin: '0 0 24px'
             }} />
+
+            {demoActive && (
+              <div style={{
+                background: '#f0fdf4',
+                border: '1px solid #86efac',
+                borderRadius: 8,
+                padding: '10px 14px',
+                marginBottom: 18,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: 13,
+                color: '#166534',
+                fontFamily: 'system-ui, -apple-system, sans-serif'
+              }}>
+                <span style={{ fontSize: 16 }}>✅</span>
+                Demo credentials pre-filled. Click Sign In to explore.
+              </div>
+            )}
 
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: 18 }}>
