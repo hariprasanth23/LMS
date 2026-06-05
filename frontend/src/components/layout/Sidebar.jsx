@@ -13,13 +13,23 @@ import {
   MdPayment,
   MdPerson,
   MdApartment,
-  MdQuiz
+  MdMenuBook,
+  MdMiscellaneousServices,
+  MdScience,
+  MdFeedback,
+  MdKeyboardArrowDown,
+  MdKeyboardArrowRight,
+  MdLogout
 } from 'react-icons/md'
 
+const FONT = 'system-ui, -apple-system, sans-serif'
 const ACCENT = '#6366f1'
 const ACCENT_LIGHT = '#eef2ff'
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
+const BG = '#f8fafc'
+
+// ─── Non-student nav link style ──────────────────────────────────────────────
 
 const navLinkStyle = (isActive) => ({
   display: 'flex',
@@ -28,7 +38,7 @@ const navLinkStyle = (isActive) => ({
   padding: '10px 16px',
   borderRadius: 8,
   textDecoration: 'none',
-  fontFamily: 'system-ui, -apple-system, sans-serif',
+  fontFamily: FONT,
   fontSize: 14,
   fontWeight: isActive ? 600 : 400,
   color: isActive ? ACCENT : TEXT,
@@ -46,9 +56,160 @@ function NavItem({ to, icon, label }) {
   )
 }
 
+// ─── Student accordion sections ──────────────────────────────────────────────
+
+const STUDENT_SECTIONS = [
+  {
+    key: 'academics',
+    label: 'Academics',
+    icon: MdMenuBook,
+    iconColor: '#6366f1',
+    items: [
+      { label: 'General', to: '/academics/general' },
+      { label: 'Course Registration', to: '/academics/course-registration' },
+      { label: 'Project Proposal', to: '/academics/project-proposal' }
+    ]
+  },
+  {
+    key: 'examinations',
+    label: 'Examinations',
+    icon: MdAssignment,
+    iconColor: '#ef4444',
+    items: [
+      { label: 'General', to: '/examinations/general' },
+      { label: 'Arrear', to: '/examinations/arrear' },
+      { label: 'Online Examinations', to: '/examinations/online' },
+      { label: 'Make-up Exam', to: '/examinations/makeup' }
+    ]
+  },
+  {
+    key: 'finance',
+    label: 'Finance',
+    icon: MdPayment,
+    iconColor: '#10b981',
+    items: [
+      { label: 'Online Payments', to: '/finance/payments' }
+    ]
+  },
+  {
+    key: 'services',
+    label: 'Services',
+    icon: MdMiscellaneousServices,
+    iconColor: '#f59e0b',
+    items: [
+      { label: 'General', to: '/services/general' },
+      { label: 'My Info', to: '/services/my-info' },
+      { label: 'My Account', to: '/services/my-account' },
+      { label: 'Bonafide', to: '/services/bonafide' },
+      { label: 'Library', to: '/services/library' },
+      { label: 'Info Corner', to: '/services/info-corner' }
+    ]
+  },
+  {
+    key: 'research',
+    label: 'Research',
+    icon: MdScience,
+    iconColor: '#8b5cf6',
+    items: [
+      { label: 'General', to: '/research/general' }
+    ]
+  },
+  {
+    key: 'feedback',
+    label: 'Feedback',
+    icon: MdFeedback,
+    iconColor: '#14b8a6',
+    items: [
+      { label: 'General', to: '/feedback/general' }
+    ]
+  }
+]
+
+function StudentAccordionSection({ section, isOpen, onToggle }) {
+  const SectionIcon = section.icon
+  const ArrowIcon = isOpen ? MdKeyboardArrowDown : MdKeyboardArrowRight
+
+  return (
+    <div style={{ marginBottom: 2 }}>
+      {/* Section header */}
+      <button
+        onClick={onToggle}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          width: '100%',
+          padding: '10px 16px',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          fontFamily: FONT,
+          fontSize: 13,
+          fontWeight: 700,
+          color: TEXT,
+          textAlign: 'left',
+          borderRadius: 8,
+          transition: 'background 0.15s ease'
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = BG }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+      >
+        <SectionIcon style={{ fontSize: 18, color: section.iconColor, flexShrink: 0 }} />
+        <span style={{ flex: 1 }}>{section.label}</span>
+        <ArrowIcon style={{ fontSize: 16, color: MUTED, flexShrink: 0 }} />
+      </button>
+
+      {/* Sub-items */}
+      <div style={{ display: isOpen ? 'flex' : 'none', flexDirection: 'column' }}>
+        {section.items.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            style={({ isActive }) => ({
+              display: 'block',
+              padding: '8px 16px 8px 44px',
+              textDecoration: 'none',
+              fontFamily: FONT,
+              fontSize: 13,
+              fontWeight: isActive ? 600 : 400,
+              color: isActive ? ACCENT : '#475569',
+              background: isActive ? ACCENT_LIGHT : 'transparent',
+              borderLeft: isActive ? `3px solid ${ACCENT}` : '3px solid transparent',
+              transition: 'all 0.15s ease'
+            })}
+            onMouseEnter={(e) => {
+              if (!e.currentTarget.classList.contains('active')) {
+                e.currentTarget.style.background = BG
+              }
+            }}
+            onMouseLeave={(e) => {
+              // Let React Router's style function handle the final background
+            }}
+          >
+            {item.label}
+          </NavLink>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
+
 export default function Sidebar() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const role = user?.role
+
+  // Accordion state: default first section ('academics') is open
+  const [openSections, setOpenSections] = useState(['academics'])
+
+  const toggleSection = (key) => {
+    setOpenSections((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    )
+  }
+
+  // ── Role-specific items for non-student roles ──
 
   const adminItems = [
     { to: '/students', icon: <MdPeople />, label: 'Students' },
@@ -67,12 +228,6 @@ export default function Sidebar() {
     { to: '/leaves', icon: <MdBeachAccess />, label: 'Leaves' }
   ]
 
-  const studentItems = [
-    { to: '/courses', icon: <MdBook />, label: 'My Courses' },
-    { to: '/assignments', icon: <MdAssignment />, label: 'Assignments' },
-    { to: '/attendance', icon: <MdEventNote />, label: 'My Attendance' }
-  ]
-
   const staffItems = [
     { to: '/leaves', icon: <MdBeachAccess />, label: 'Leaves' },
     { to: '/attendance', icon: <MdEventNote />, label: 'Attendance' }
@@ -81,7 +236,6 @@ export default function Sidebar() {
   const roleItems = {
     ADMIN: adminItems,
     FACULTY: facultyItems,
-    STUDENT: studentItems,
     STAFF: staffItems
   }
 
@@ -92,11 +246,12 @@ export default function Sidebar() {
     STAFF: '#f59e0b'
   }
 
+  const isStudent = role === 'STUDENT'
   const specificItems = roleItems[role] || []
 
   return (
     <aside style={{
-      width: 240,
+      width: 260,
       minHeight: '100vh',
       background: '#fff',
       borderRight: '1px solid #e2e8f0',
@@ -104,10 +259,11 @@ export default function Sidebar() {
       flexDirection: 'column',
       flexShrink: 0
     }}>
-      {/* Logo */}
+      {/* Logo / Brand */}
       <div style={{
         padding: '20px 20px 16px',
-        borderBottom: '1px solid #f1f5f9'
+        borderBottom: '1px solid #f1f5f9',
+        flexShrink: 0
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
@@ -117,15 +273,16 @@ export default function Sidebar() {
             borderRadius: 10,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            flexShrink: 0
           }}>
             <MdSchool style={{ color: '#fff', fontSize: 20 }} />
           </div>
           <div>
-            <div style={{ fontFamily: 'system-ui, sans-serif', fontWeight: 700, fontSize: 14, color: TEXT }}>
+            <div style={{ fontFamily: FONT, fontWeight: 700, fontSize: 14, color: TEXT }}>
               College ERP
             </div>
-            <div style={{ fontFamily: 'system-ui, sans-serif', fontSize: 11, color: MUTED }}>
+            <div style={{ fontFamily: FONT, fontSize: 11, color: MUTED }}>
               Management System
             </div>
           </div>
@@ -133,7 +290,7 @@ export default function Sidebar() {
       </div>
 
       {/* Role badge */}
-      <div style={{ padding: '12px 16px 8px' }}>
+      <div style={{ padding: '12px 16px 8px', flexShrink: 0 }}>
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -144,7 +301,7 @@ export default function Sidebar() {
           padding: '4px 10px',
           fontSize: 11,
           fontWeight: 700,
-          fontFamily: 'system-ui, sans-serif',
+          fontFamily: FONT,
           letterSpacing: 0.5,
           textTransform: 'uppercase'
         }}>
@@ -152,18 +309,52 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Nav items */}
-      <nav style={{ padding: '4px 12px', flex: 1 }}>
-        <NavItem to="/dashboard" icon={<MdDashboard />} label="Dashboard" />
+      {/* Nav area — scrollable */}
+      <nav style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: isStudent ? '4px 0' : '4px 12px'
+      }}>
+        {/* Dashboard — always visible */}
+        {isStudent ? (
+          <div style={{ padding: '0 12px', marginBottom: 4 }}>
+            <NavLink
+              to="/dashboard"
+              style={({ isActive }) => navLinkStyle(isActive)}
+            >
+              <span style={{ fontSize: 18, display: 'flex', alignItems: 'center' }}>
+                <MdDashboard />
+              </span>
+              <span>Dashboard</span>
+            </NavLink>
+          </div>
+        ) : (
+          <NavItem to="/dashboard" icon={<MdDashboard />} label="Dashboard" />
+        )}
 
-        {specificItems.length > 0 && (
+        {/* ── STUDENT accordion menu ── */}
+        {isStudent && (
+          <div style={{ marginTop: 8, padding: '0 8px' }}>
+            {STUDENT_SECTIONS.map((section) => (
+              <StudentAccordionSection
+                key={section.key}
+                section={section}
+                isOpen={openSections.includes(section.key)}
+                onToggle={() => toggleSection(section.key)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* ── Non-student role-specific items ── */}
+        {!isStudent && specificItems.length > 0 && (
           <div style={{ marginTop: 8 }}>
             <div style={{
               padding: '8px 4px 4px',
               fontSize: 10,
               fontWeight: 700,
               color: MUTED,
-              fontFamily: 'system-ui, sans-serif',
+              fontFamily: FONT,
               letterSpacing: 1,
               textTransform: 'uppercase'
             }}>
@@ -175,32 +366,73 @@ export default function Sidebar() {
           </div>
         )}
 
-        <div style={{ marginTop: 8 }}>
-          <div style={{
-            padding: '8px 4px 4px',
-            fontSize: 10,
-            fontWeight: 700,
-            color: MUTED,
-            fontFamily: 'system-ui, sans-serif',
-            letterSpacing: 1,
-            textTransform: 'uppercase'
-          }}>
-            Account
+        {/* ── Profile link (non-student) ── */}
+        {!isStudent && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{
+              padding: '8px 4px 4px',
+              fontSize: 10,
+              fontWeight: 700,
+              color: MUTED,
+              fontFamily: FONT,
+              letterSpacing: 1,
+              textTransform: 'uppercase'
+            }}>
+              Account
+            </div>
+            <NavItem to="/profile" icon={<MdPerson />} label="Profile" />
           </div>
-          <NavItem to="/profile" icon={<MdPerson />} label="Profile" />
-        </div>
+        )}
       </nav>
 
-      {/* Footer */}
+      {/* Bottom bar — Profile + Logout (student) or just Logout (others) */}
       <div style={{
-        padding: '12px 16px',
+        padding: '8px 12px 12px',
         borderTop: '1px solid #f1f5f9',
-        fontFamily: 'system-ui, sans-serif',
-        fontSize: 11,
-        color: MUTED,
-        textAlign: 'center'
+        flexShrink: 0
       }}>
-        College ERP v1.0
+        {isStudent && (
+          <NavLink
+            to="/profile"
+            style={({ isActive }) => ({
+              ...navLinkStyle(isActive),
+              marginBottom: 4
+            })}
+          >
+            <span style={{ fontSize: 18, display: 'flex', alignItems: 'center' }}>
+              <MdPerson />
+            </span>
+            <span>Profile</span>
+          </NavLink>
+        )}
+
+        <button
+          onClick={logout}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            width: '100%',
+            padding: '10px 16px',
+            background: 'transparent',
+            border: 'none',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontFamily: FONT,
+            fontSize: 14,
+            fontWeight: 400,
+            color: '#ef4444',
+            textAlign: 'left',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#fef2f2' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+        >
+          <span style={{ fontSize: 18, display: 'flex', alignItems: 'center' }}>
+            <MdLogout />
+          </span>
+          <span>Logout</span>
+        </button>
       </div>
     </aside>
   )

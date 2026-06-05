@@ -17,12 +17,14 @@ function parseJwtPayload(token) {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(null)
+  const [portalType, setPortalType] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
     const storedToken = localStorage.getItem('college_token')
     const storedUser = localStorage.getItem('college_user')
+    const storedPortal = localStorage.getItem('college_portal')
     if (storedToken && storedUser) {
       setToken(storedToken)
       try {
@@ -31,10 +33,13 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('college_user')
       }
     }
+    if (storedPortal) {
+      setPortalType(storedPortal)
+    }
     setLoading(false)
   }, [])
 
-  const login = async (identifier, password) => {
+  const login = async (identifier, password, portal) => {
     const response = await api.post('/auth/login', {
       identifier,
       password
@@ -44,6 +49,10 @@ export function AuthProvider({ children }) {
 
     localStorage.setItem('college_token', newToken)
     localStorage.setItem('college_user', JSON.stringify(userData))
+    if (portal) {
+      localStorage.setItem('college_portal', portal)
+      setPortalType(portal)
+    }
     setToken(newToken)
     setUser(userData)
     return userData
@@ -52,12 +61,14 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem('college_token')
     localStorage.removeItem('college_user')
+    localStorage.removeItem('college_portal')
     setToken(null)
     setUser(null)
+    setPortalType(null)
     navigate('/login')
   }
 
-  const value = { user, token, login, logout, loading, isAuthenticated: !!token }
+  const value = { user, token, portalType, login, logout, loading, isAuthenticated: !!token }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

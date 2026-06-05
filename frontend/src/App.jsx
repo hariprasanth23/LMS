@@ -17,6 +17,28 @@ import Leaves from './pages/leave/Leaves'
 import Payroll from './pages/payroll/Payroll'
 import Profile from './pages/profile/Profile'
 
+import AcademicsGeneral from './pages/academics/AcademicsGeneral'
+import CourseRegistration from './pages/academics/CourseRegistration'
+import ProjectProposal from './pages/academics/ProjectProposal'
+
+import ExamGeneral from './pages/examinations/ExamGeneral'
+import ArrearExam from './pages/examinations/ArrearExam'
+import OnlineExam from './pages/examinations/OnlineExam'
+import MakeupExam from './pages/examinations/MakeupExam'
+
+import OnlinePayments from './pages/finance/OnlinePayments'
+
+import ServicesGeneral from './pages/services/ServicesGeneral'
+import MyInfo from './pages/services/MyInfo'
+import MyAccount from './pages/services/MyAccount'
+import Bonafide from './pages/services/Bonafide'
+import Library from './pages/services/Library'
+import InfoCorner from './pages/services/InfoCorner'
+
+import ResearchGeneral from './pages/research/ResearchGeneral'
+
+import FeedbackGeneral from './pages/feedback/FeedbackGeneral'
+
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth()
   if (loading) {
@@ -54,6 +76,28 @@ function AppRoutes() {
         <Route path="leaves" element={<Leaves />} />
         <Route path="payroll" element={<Payroll />} />
         <Route path="profile" element={<Profile />} />
+
+        <Route path="academics/general" element={<AcademicsGeneral />} />
+        <Route path="academics/course-registration" element={<CourseRegistration />} />
+        <Route path="academics/project-proposal" element={<ProjectProposal />} />
+
+        <Route path="examinations/general" element={<ExamGeneral />} />
+        <Route path="examinations/arrear" element={<ArrearExam />} />
+        <Route path="examinations/online" element={<OnlineExam />} />
+        <Route path="examinations/makeup" element={<MakeupExam />} />
+
+        <Route path="finance/payments" element={<OnlinePayments />} />
+
+        <Route path="services/general" element={<ServicesGeneral />} />
+        <Route path="services/my-info" element={<MyInfo />} />
+        <Route path="services/my-account" element={<MyAccount />} />
+        <Route path="services/bonafide" element={<Bonafide />} />
+        <Route path="services/library" element={<Library />} />
+        <Route path="services/info-corner" element={<InfoCorner />} />
+
+        <Route path="research/general" element={<ResearchGeneral />} />
+
+        <Route path="feedback/general" element={<FeedbackGeneral />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
