@@ -49,7 +49,7 @@ function ProtectedRoute({ children }) {
       </div>
     )
   }
-  return isAuthenticated ? children : <Navigate to="/login" replace />
+  return isAuthenticated ? children : <Navigate to="/auth/login" replace />
 }
 
 function LandingOrDashboard() {
@@ -58,11 +58,17 @@ function LandingOrDashboard() {
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />
 }
 
+function CatchAll() {
+  const { isAuthenticated, loading } = useAuth()
+  if (loading) return null
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/" replace />
+}
+
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/auth/login" element={<Login />} />
+      <Route path="/auth/register" element={<Register />} />
       <Route path="/" element={<LandingOrDashboard />} />
       <Route
         path="/"
@@ -107,7 +113,7 @@ function AppRoutes() {
 
         <Route path="feedback/general" element={<FeedbackGeneral />} />
       </Route>
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<CatchAll />} />
     </Routes>
   )
 }

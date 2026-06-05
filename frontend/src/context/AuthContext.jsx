@@ -65,7 +65,7 @@ export function AuthProvider({ children }) {
     setToken(null)
     setUser(null)
     setPortalType(null)
-    navigate('/login')
+    navigate('/auth/login')
   }
 
   const value = { user, token, portalType, login, logout, loading, isAuthenticated: !!token }

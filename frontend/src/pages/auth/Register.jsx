@@ -45,7 +45,7 @@ export default function Register() {
         role: form.role
       })
       toast.success('Registration successful! Please login.')
-      navigate('/login')
+      navigate('/auth/login')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed')
     } finally {
@@ -173,7 +173,7 @@ export default function Register() {
 
         <p style={{ textAlign: 'center', marginTop: 18, fontSize: 13, fontFamily: 'system-ui, sans-serif', color: '#64748b' }}>
           Already have an account?{' '}
-          <Link to="/login" style={{ color: ACCENT, fontWeight: 600, textDecoration: 'none' }}>
+          <Link to="/auth/login" style={{ color: ACCENT, fontWeight: 600, textDecoration: 'none' }}>
             Sign In
           </Link>
         </p>

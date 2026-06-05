@@ -22,7 +22,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('college_token')
       localStorage.removeItem('college_user')
-      window.location.href = '/login'
+      window.location.href = '/auth/login'
     }
     return Promise.reject(error)
   }
