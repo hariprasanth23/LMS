@@ -12,6 +12,17 @@ import {
   MdVisibilityOff
 } from 'react-icons/md'
 
+// Mobile breakpoint hook
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return isMobile
+}
+
 const PORTALS = [
   { key: 'admin',   label: 'Admin',   color: '#dc2626', icon: MdAdminPanelSettings, description: 'System administration', idLabel: 'Admin ID / Email' },
   { key: 'student', label: 'Student', color: '#3b82f6', icon: MdSchool,             description: 'Academic portal',        idLabel: 'Roll Number / Email' },
@@ -40,6 +51,7 @@ export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const isMobile = useIsMobile()
   const [selectedPortal, setSelectedPortal] = useState(null)
   const [form, setForm] = useState({ identifier: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
@@ -129,6 +141,61 @@ export default function Login() {
   const adminPortal = PORTALS.find((p) => p.key === 'admin')
   const row2 = PORTALS.filter((p) => p.key === 'student' || p.key === 'staff')
   const row3 = PORTALS.filter((p) => p.key === 'parent' || p.key === 'alumni')
+
+  const renderDemoCard = (portal) => {
+    const { key, label, color, icon: Icon } = portal
+    return (
+      <button
+        key={key}
+        type="button"
+        onClick={() => {
+          handlePortalSelect(key)
+          setForm({ identifier: DEMO_CREDS[key].identifier, password: DEMO_CREDS[key].password })
+          setDemoActive(true)
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px)'
+          e.currentTarget.style.boxShadow = `0 4px 12px ${color}20`
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)'
+          e.currentTarget.style.boxShadow = 'none'
+        }}
+        style={{
+          background: `${color}10`,
+          border: `1.5px solid ${color}30`,
+          borderRadius: 10,
+          padding: '10px 12px',
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 6,
+          transition: 'all 0.15s ease',
+          outline: 'none',
+          fontFamily: ff,
+          textAlign: 'center',
+        }}
+      >
+        <div style={{
+          width: 24,
+          height: 24,
+          borderRadius: '50%',
+          background: color,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          <Icon style={{ fontSize: 13, color: '#fff' }} />
+        </div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: color, lineHeight: 1.2 }}>{label}</div>
+        <div style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace', lineHeight: 1.3, wordBreak: 'break-all' }}>
+          {DEMO_CREDS[key].identifier}
+        </div>
+      </button>
+    )
+  }
 
   const renderPortalButton = (portal, fullWidth = false) => {
     const { key, label, color, icon: Icon, description } = portal
@@ -224,11 +291,11 @@ export default function Login() {
         style={{
           position: 'fixed', top: 20, left: 24, zIndex: 200,
           display: 'flex', alignItems: 'center', gap: 6,
-          color: 'rgba(255,255,255,0.75)',
+          color: isMobile ? '#1e293b' : 'rgba(255,255,255,0.75)',
           textDecoration: 'none',
           fontSize: 13, fontWeight: 600,
-          background: 'rgba(255,255,255,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)',
+          background: isMobile ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.1)',
+          border: isMobile ? '1px solid rgba(0,0,0,0.12)' : '1px solid rgba(255,255,255,0.2)',
           borderRadius: 8, padding: '8px 14px',
           backdropFilter: 'blur(8px)',
           transition: 'all 0.2s',
@@ -243,7 +310,7 @@ export default function Login() {
         width: '42%',
         background: 'linear-gradient(145deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%)',
         padding: '48px 40px',
-        display: 'flex',
+        display: isMobile ? 'none' : 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
         color: '#fff',
@@ -342,9 +409,9 @@ export default function Login() {
 
       {/* ── RIGHT PANEL ── */}
       <div style={{
-        width: '58%',
+        width: isMobile ? '100%' : '58%',
         background: '#fff',
-        padding: '48px 48px',
+        padding: isMobile ? '32px 20px' : '48px 48px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -387,6 +454,60 @@ export default function Login() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
             {row3.map((p) => renderPortalButton(p))}
           </div>
+
+          {/* ── Demo Accounts Section (always visible, shown when no portal selected) ── */}
+          {!selectedPortal && (
+            <>
+              {/* Divider: OR TRY A DEMO ACCOUNT */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                margin: '20px 0 16px',
+              }}>
+                <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+                <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', whiteSpace: 'nowrap', letterSpacing: 0.5, fontFamily: ff }}>
+                  OR TRY A DEMO ACCOUNT
+                </span>
+                <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+              </div>
+
+              {/* Demo section label */}
+              <div style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: '#94a3b8',
+                letterSpacing: 0.5,
+                textTransform: 'uppercase',
+                marginBottom: 10,
+                fontFamily: ff,
+              }}>
+                Quick Demo Login
+              </div>
+
+              {/* Demo cards grid — all 5 portals, responsive */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))',
+                gap: 8,
+                marginBottom: 4,
+              }}>
+                {PORTALS.map(renderDemoCard)}
+              </div>
+
+              {/* Password hint */}
+              <p style={{
+                fontSize: 11,
+                color: '#94a3b8',
+                textAlign: 'center',
+                marginTop: 8,
+                marginBottom: 0,
+                fontFamily: ff,
+              }}>
+                Password for all: <strong>Demo@123</strong>
+              </p>
+            </>
+          )}
 
           {/* Login form — fades in after portal selected */}
           {selectedPortal && (
@@ -537,6 +658,58 @@ export default function Login() {
 
                 {/* Divider */}
                 <div style={{ height: 1, background: '#e2e8f0', margin: '22px 0 16px' }} />
+
+                {/* ── Demo Accounts Section (shown when portal is selected) ── */}
+                <div>
+                  {/* Divider: OR TRY A DEMO ACCOUNT */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    margin: '0 0 14px',
+                  }}>
+                    <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', whiteSpace: 'nowrap', letterSpacing: 0.5, fontFamily: ff }}>
+                      OR TRY A DEMO ACCOUNT
+                    </span>
+                    <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+                  </div>
+
+                  {/* Demo section label */}
+                  <div style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: '#94a3b8',
+                    letterSpacing: 0.5,
+                    textTransform: 'uppercase',
+                    marginBottom: 10,
+                    fontFamily: ff,
+                  }}>
+                    Quick Demo Login
+                  </div>
+
+                  {/* All 5 portals, responsive grid */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))',
+                    gap: 8,
+                    marginBottom: 4,
+                  }}>
+                    {PORTALS.map(renderDemoCard)}
+                  </div>
+
+                  {/* Password hint */}
+                  <p style={{
+                    fontSize: 11,
+                    color: '#94a3b8',
+                    textAlign: 'center',
+                    marginTop: 8,
+                    marginBottom: 16,
+                    fontFamily: ff,
+                  }}>
+                    Password for all: <strong>Demo@123</strong>
+                  </p>
+                </div>
 
                 {/* Register link */}
                 <p style={{
