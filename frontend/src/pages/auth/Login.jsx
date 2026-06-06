@@ -9,55 +9,15 @@ import {
   MdStar,
   MdAdminPanelSettings,
   MdVisibility,
-  MdVisibilityOff,
-  MdCheck,
+  MdVisibilityOff
 } from 'react-icons/md'
 
-/* ─── Constants ─────────────────────────────────────────────────────────── */
-
-const FF = "'Inter', system-ui, sans-serif"
-
 const PORTALS = [
-  {
-    key: 'admin',
-    label: 'Administrator',
-    color: '#DC2626',
-    bg: '#FEF2F2',
-    icon: MdAdminPanelSettings,
-    desc: 'Full system access',
-  },
-  {
-    key: 'student',
-    label: 'Student',
-    color: '#7C3AED',
-    bg: '#F5F3FF',
-    icon: MdSchool,
-    desc: 'Academic portal',
-  },
-  {
-    key: 'staff',
-    label: 'Faculty / Staff',
-    color: '#0EA5E9',
-    bg: '#F0F9FF',
-    icon: MdBadge,
-    desc: 'Teaching tools',
-  },
-  {
-    key: 'parent',
-    label: 'Parent',
-    color: '#F59E0B',
-    bg: '#FFFBEB',
-    icon: MdPeople,
-    desc: "Ward's progress",
-  },
-  {
-    key: 'alumni',
-    label: 'Alumni',
-    color: '#10B981',
-    bg: '#F0FDF4',
-    icon: MdStar,
-    desc: 'Alumni network',
-  },
+  { key: 'admin',   label: 'Admin',   color: '#dc2626', icon: MdAdminPanelSettings, description: 'System administration', idLabel: 'Admin ID / Email' },
+  { key: 'student', label: 'Student', color: '#3b82f6', icon: MdSchool,             description: 'Academic portal',        idLabel: 'Roll Number / Email' },
+  { key: 'staff',   label: 'Staff',   color: '#8b5cf6', icon: MdBadge,              description: 'Faculty & staff',        idLabel: 'Employee ID / Email' },
+  { key: 'parent',  label: 'Parent',  color: '#f59e0b', icon: MdPeople,             description: "Ward's progress",        idLabel: 'Phone / Email' },
+  { key: 'alumni',  label: 'Alumni',  color: '#14b8a6', icon: MdStar,               description: 'Alumni network',         idLabel: 'Alumni ID / Email' },
 ]
 
 const DEMO_CREDS = {
@@ -68,29 +28,24 @@ const DEMO_CREDS = {
   alumni:  { identifier: 'alumni@demo.com',  password: 'Demo@123' },
 }
 
-const ID_LABEL = {
-  admin:   'Admin ID / Email',
-  student: 'Roll Number / Email',
-  staff:   'Employee ID / Email',
-  parent:  'Phone / Email',
-  alumni:  'Alumni ID / Email',
-}
-
-/* ─── Main Component ────────────────────────────────────────────────────── */
+const FEATURES = [
+  'Complete Academic Management',
+  'Real-time Exam & Grade Tracking',
+  'Online Fee Payment & Receipts',
+  'Research & Project Portal',
+  '24/7 Feedback System',
+]
 
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-
   const [selectedPortal, setSelectedPortal] = useState(null)
   const [form, setForm] = useState({ identifier: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [demoActive, setDemoActive] = useState(false)
-  const [hoveredPortal, setHoveredPortal] = useState(null)
 
-  /* URL params: ?portal=&demo=true */
   useEffect(() => {
     const portalParam = searchParams.get('portal')
     const demoParam = searchParams.get('demo')
@@ -111,7 +66,6 @@ export default function Login() {
   }
 
   const handlePortalSelect = (key) => {
-    if (selectedPortal === key) return
     setSelectedPortal(key)
     setForm({ identifier: '', password: '' })
     setDemoActive(false)
@@ -119,7 +73,7 @@ export default function Login() {
   }
 
   const activePortal = PORTALS.find((p) => p.key === selectedPortal)
-  const activeColor = activePortal ? activePortal.color : '#7C3AED'
+  const activeColor = activePortal ? activePortal.color : '#6366f1'
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -143,534 +97,453 @@ export default function Login() {
     }
   }
 
+  const ff = 'system-ui, -apple-system, sans-serif'
+
+  const inputStyle = {
+    width: '100%',
+    padding: '11px 14px',
+    border: '1.5px solid #e2e8f0',
+    borderRadius: 8,
+    fontSize: 14,
+    fontFamily: ff,
+    color: '#1e293b',
+    outline: 'none',
+    boxSizing: 'border-box',
+    background: '#fff',
+    transition: 'border-color 0.2s',
+  }
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: 13,
+    fontWeight: 600,
+    color: '#374151',
+    marginBottom: 6,
+    fontFamily: ff,
+  }
+
+  // Portal grid layout:
+  // Row 1: Admin (full width)
+  // Row 2: Student | Staff
+  // Row 3: Parent  | Alumni
+  const adminPortal = PORTALS.find((p) => p.key === 'admin')
+  const row2 = PORTALS.filter((p) => p.key === 'student' || p.key === 'staff')
+  const row3 = PORTALS.filter((p) => p.key === 'parent' || p.key === 'alumni')
+
+  const renderPortalButton = (portal, fullWidth = false) => {
+    const { key, label, color, icon: Icon, description } = portal
+    const isSelected = selectedPortal === key
+    const isAdmin = key === 'admin'
+
+    return (
+      <button
+        key={key}
+        type="button"
+        onClick={() => handlePortalSelect(key)}
+        style={{
+          background: isSelected ? `${color}10` : '#f8fafc',
+          border: isSelected ? `2px solid ${color}` : '2px solid #e2e8f0',
+          borderRadius: 10,
+          padding: '10px 14px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          transition: 'all 0.15s ease',
+          outline: 'none',
+          width: fullWidth ? '100%' : undefined,
+          textAlign: 'left',
+          fontFamily: ff,
+        }}
+      >
+        {/* Icon box */}
+        <div style={{
+          width: 28,
+          height: 28,
+          borderRadius: 6,
+          background: isSelected ? color : `${color}20`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          <Icon style={{ fontSize: 16, color: isSelected ? '#fff' : color }} />
+        </div>
+
+        {/* Text */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: isSelected ? color : '#1e293b', lineHeight: 1.2 }}>
+            {isAdmin ? 'Administrator' : label}
+          </div>
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{description}</div>
+        </div>
+
+        {/* Admin badge */}
+        {isAdmin && (
+          <span style={{
+            background: '#fff7ed',
+            color: '#c2410c',
+            border: '1px solid #fed7aa',
+            borderRadius: 20,
+            padding: '2px 8px',
+            fontSize: 10,
+            fontWeight: 700,
+            flexShrink: 0,
+          }}>
+            System Admin
+          </span>
+        )}
+      </button>
+    )
+  }
+
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: `
-          radial-gradient(ellipse at 15% 30%, rgba(124,58,237,0.18) 0%, transparent 50%),
-          radial-gradient(ellipse at 85% 70%, rgba(14,165,233,0.15) 0%, transparent 50%),
-          radial-gradient(ellipse at 50% 50%, rgba(245,158,11,0.08) 0%, transparent 60%),
-          #F8FAFC
-        `,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        fontFamily: FF,
-        position: 'relative',
-      }}
-    >
-      {/* CSS Animations */}
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      fontFamily: ff,
+    }}>
       <style>{`
-        @keyframes shimmer {
-          0%   { background-position: 0% 50%; }
-          100% { background-position: 200% 50%; }
-        }
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-8px); }
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(10px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .prism-form-section {
-          animation: slideDown 0.28s ease forwards;
-        }
-        .prism-sign-btn:hover:not(:disabled) {
-          filter: brightness(1.08);
-          transform: translateY(-1px);
-        }
-        .prism-sign-btn:active:not(:disabled) {
-          transform: translateY(0px);
-        }
-        .prism-back:hover {
-          color: #7C3AED !important;
-        }
-        .prism-forgot:hover {
-          opacity: 0.75;
+        .login-form-appear {
+          animation: fadeSlideIn 0.25s ease forwards;
         }
       `}</style>
 
-      {/* Background decoration blob — top left */}
-      <div
-        style={{
-          position: 'fixed',
-          top: -60,
-          left: -60,
-          width: 300,
-          height: 300,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%)',
-          pointerEvents: 'none',
-          zIndex: 0,
-        }}
-      />
-      {/* Background decoration blob — bottom right */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: -50,
-          right: -50,
-          width: 250,
-          height: 250,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(14,165,233,0.10) 0%, transparent 70%)',
-          pointerEvents: 'none',
-          zIndex: 0,
-        }}
-      />
+      {/* ── LEFT PANEL ── */}
+      <div style={{
+        width: '42%',
+        background: 'linear-gradient(145deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%)',
+        padding: '48px 40px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        color: '#fff',
+        flexShrink: 0,
+      }}>
 
-      {/* Main card */}
-      <div
-        style={{
-          background: '#FFFFFF',
-          borderRadius: 28,
-          boxShadow: '0 8px 60px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
-          width: '100%',
-          maxWidth: 480,
-          overflow: 'hidden',
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
-        {/* Card top shimmer strip */}
-        <div
-          style={{
-            height: 8,
-            background: 'linear-gradient(90deg, #7C3AED, #0EA5E9, #10B981, #F59E0B, #7C3AED)',
-            backgroundSize: '200% 100%',
-            animation: 'shimmer 3.5s linear infinite',
-          }}
-        />
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 40,
+            height: 40,
+            background: '#fff',
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <MdSchool style={{ fontSize: 22, color: '#312e81' }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.1, fontFamily: ff }}>College ERP</div>
+            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2, fontFamily: ff }}>Student Management System</div>
+          </div>
+        </div>
 
-        {/* Card content */}
-        <div
-          style={{
-            padding: '36px',
-          }}
-        >
-          {/* Header row: logo + brand */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 12,
-                background: '#7C3AED',
+        {/* Middle */}
+        <div>
+          <h2 style={{
+            margin: 0,
+            fontSize: 32,
+            fontWeight: 800,
+            lineHeight: 1.3,
+            fontFamily: ff,
+            whiteSpace: 'pre-line',
+          }}>
+            {'Welcome\nBack'}
+          </h2>
+          <p style={{
+            fontSize: 14,
+            opacity: 0.75,
+            marginTop: 12,
+            marginBottom: 0,
+            lineHeight: 1.6,
+            fontFamily: ff,
+          }}>
+            Sign in to access your personalized portal. All your academic tools in one place.
+          </p>
+
+          {/* Feature list */}
+          <ul style={{ listStyle: 'none', margin: '32px 0 0', padding: 0 }}>
+            {FEATURES.map((feat, i) => (
+              <li key={i} style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <MdSchool style={{ fontSize: 26, color: '#fff' }} />
-            </div>
-            <div>
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 900,
-                  color: '#18181B',
-                  letterSpacing: -0.5,
-                  lineHeight: 1,
-                  fontFamily: FF,
-                }}
-              >
-                College ERP
-              </div>
-              <div
-                style={{
-                  fontSize: 14,
-                  color: '#71717A',
-                  marginTop: 4,
-                  fontFamily: FF,
-                }}
-              >
-                Sign in to your portal
-              </div>
-            </div>
-          </div>
+                gap: 12,
+                fontSize: 13,
+                opacity: 0.85,
+                padding: '8px 0',
+                borderBottom: '1px solid rgba(255,255,255,0.08)',
+                fontFamily: ff,
+              }}>
+                <span style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  background: '#4f46e5',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}>✓</span>
+                {feat}
+              </li>
+            ))}
+          </ul>
+        </div>
 
-          {/* Divider */}
-          <div style={{ height: 1, background: '#F4F4F5', margin: '24px 0' }} />
-
-          {/* Portal section label */}
-          <div
-            style={{
+        {/* Security badges */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {['🔒 SSL Secured', '🛡️ JWT Auth', '⚡ Live Data'].map((badge) => (
+            <span key={badge} style={{
+              background: 'rgba(255,255,255,0.1)',
+              borderRadius: 20,
+              padding: '6px 12px',
               fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: 1.5,
-              color: '#A1A1AA',
-              textTransform: 'uppercase',
-              marginBottom: 12,
-              fontFamily: FF,
-            }}
-          >
-            Select Your Portal
+              fontFamily: ff,
+            }}>
+              {badge}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ── RIGHT PANEL ── */}
+      <div style={{
+        width: '58%',
+        background: '#fff',
+        padding: '48px 48px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        overflowY: 'auto',
+      }}>
+        <div style={{ maxWidth: 520, width: '100%', margin: '0 auto' }}>
+
+          {/* Heading */}
+          <h1 style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 800, color: '#1e293b', fontFamily: ff }}>
+            Sign In
+          </h1>
+          <p style={{ margin: '0 0 28px', fontSize: 14, color: '#64748b', fontFamily: ff }}>
+            Select your portal and enter credentials
+          </p>
+
+          {/* Portal selector label */}
+          <div style={{
+            fontSize: 12,
+            fontWeight: 700,
+            color: '#374151',
+            letterSpacing: 0.5,
+            textTransform: 'uppercase',
+            marginBottom: 10,
+            fontFamily: ff,
+          }}>
+            Select Portal
           </div>
 
-          {/* Portal vertical list */}
-          <div>
-            {PORTALS.map((portal) => {
-              const isSelected = selectedPortal === portal.key
-              const isHovered = hoveredPortal === portal.key && !isSelected
-              const Icon = portal.icon
+          {/* Row 1: Admin (full width) */}
+          <div style={{ marginBottom: 8 }}>
+            {renderPortalButton(adminPortal, true)}
+          </div>
 
-              return (
-                <div
-                  key={portal.key}
-                  onClick={() => handlePortalSelect(portal.key)}
-                  onMouseEnter={() => setHoveredPortal(portal.key)}
-                  onMouseLeave={() => setHoveredPortal(null)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 14,
-                    padding: '13px 16px',
-                    borderRadius: 14,
-                    cursor: 'pointer',
-                    border: isSelected
-                      ? `1.5px solid ${portal.color}40`
-                      : isHovered
-                      ? `1.5px solid ${portal.color}30`
-                      : '1.5px solid #F4F4F5',
-                    marginBottom: 8,
-                    background: isSelected
-                      ? portal.bg
-                      : isHovered
-                      ? portal.bg
-                      : '#FAFAFA',
-                    boxShadow: isSelected
-                      ? `0 0 0 3px ${portal.color}15`
-                      : 'none',
-                    transition: 'all 0.15s ease',
-                    userSelect: 'none',
-                  }}
-                >
-                  {/* Icon box */}
-                  <div
-                    style={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: 10,
-                      background: isSelected ? portal.color : '#F4F4F5',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      transition: 'background 0.15s ease',
-                    }}
-                  >
-                    <Icon
-                      style={{
-                        fontSize: 20,
-                        color: isSelected ? '#fff' : portal.color,
-                        transition: 'color 0.15s ease',
-                      }}
+          {/* Row 2: Student | Staff */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+            {row2.map((p) => renderPortalButton(p))}
+          </div>
+
+          {/* Row 3: Parent | Alumni */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+            {row3.map((p) => renderPortalButton(p))}
+          </div>
+
+          {/* Login form — fades in after portal selected */}
+          {selectedPortal && (
+            <div className="login-form-appear">
+
+              {/* Divider with label */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                margin: '28px 0 20px',
+              }}>
+                <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', whiteSpace: 'nowrap', fontFamily: ff }}>
+                  Enter Credentials
+                </span>
+                <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+              </div>
+
+              {/* Demo banner */}
+              {demoActive && (
+                <div style={{
+                  background: '#f0fdf4',
+                  border: '1px solid #86efac',
+                  borderRadius: 8,
+                  padding: '10px 14px',
+                  marginBottom: 18,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 13,
+                  color: '#166534',
+                  fontFamily: ff,
+                }}>
+                  <span style={{ fontSize: 16 }}>✅</span>
+                  Demo credentials pre-filled — click Sign In to explore
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit}>
+                {/* Identifier */}
+                <div style={{ marginBottom: 16 }}>
+                  <label style={labelStyle}>{activePortal?.idLabel}</label>
+                  <input
+                    type="text"
+                    name="identifier"
+                    value={form.identifier}
+                    onChange={handleChange}
+                    placeholder={`Enter ${activePortal?.idLabel?.toLowerCase()}`}
+                    style={inputStyle}
+                    onFocus={(e) => (e.target.style.borderColor = activeColor)}
+                    onBlur={(e) => (e.target.style.borderColor = '#e2e8f0')}
+                  />
+                </div>
+
+                {/* Password */}
+                <div style={{ marginBottom: 16 }}>
+                  <label style={labelStyle}>Password</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      value={form.password}
+                      onChange={handleChange}
+                      placeholder="Enter password"
+                      style={{ ...inputStyle, paddingRight: 44 }}
+                      onFocus={(e) => (e.target.style.borderColor = activeColor)}
+                      onBlur={(e) => (e.target.style.borderColor = '#e2e8f0')}
                     />
-                  </div>
-
-                  {/* Text */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
                       style={{
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: isSelected ? portal.color : '#18181B',
-                        fontFamily: FF,
-                        lineHeight: 1.3,
-                        transition: 'color 0.15s ease',
-                      }}
-                    >
-                      {portal.label}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: '#71717A',
-                        fontFamily: FF,
-                        marginTop: 1,
-                      }}
-                    >
-                      {portal.desc}
-                    </div>
-                  </div>
-
-                  {/* Right indicator */}
-                  {isSelected ? (
-                    <div
-                      style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: '50%',
-                        background: portal.color,
+                        position: 'absolute',
+                        right: 12,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: '#64748b',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
+                        padding: 0,
                       }}
                     >
-                      <MdCheck style={{ fontSize: 12, color: '#fff' }} />
-                    </div>
-                  ) : (
-                    <span
-                      style={{
-                        fontSize: 16,
-                        color: '#D4D4D8',
-                        lineHeight: 1,
-                        flexShrink: 0,
-                      }}
-                    >
-                      →
-                    </span>
-                  )}
+                      {showPassword ? <MdVisibilityOff size={18} /> : <MdVisibility size={18} />}
+                    </button>
+                  </div>
                 </div>
-              )
-            })}
-          </div>
 
-          {/* Form section — slides in when portal selected */}
-          <div
-            style={{
-              maxHeight: selectedPortal ? 520 : 0,
-              opacity: selectedPortal ? 1 : 0,
-              overflow: 'hidden',
-              transition: 'max-height 0.35s ease, opacity 0.3s ease',
-            }}
-          >
-            {selectedPortal && (
-              <div className="prism-form-section">
-                {/* Divider with "Enter credentials" label */}
-                <div
-                  style={{
+                {/* Remember me + Forgot password */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 22,
+                }}>
+                  <label style={{
                     display: 'flex',
                     alignItems: 'center',
-                    margin: '20px 0 18px',
-                  }}
-                >
-                  <div style={{ flexGrow: 1, height: 1, background: '#F4F4F5' }} />
-                  <span
-                    style={{
-                      fontSize: 11,
-                      color: '#A1A1AA',
-                      padding: '0 12px',
-                      fontFamily: FF,
-                      whiteSpace: 'nowrap',
-                      letterSpacing: 0.3,
-                    }}
-                  >
-                    Enter credentials
+                    gap: 7,
+                    fontSize: 13,
+                    color: '#374151',
+                    cursor: 'pointer',
+                    fontFamily: ff,
+                    userSelect: 'none',
+                  }}>
+                    <input type="checkbox" style={{ accentColor: activeColor, width: 14, height: 14 }} />
+                    Remember me
+                  </label>
+                  <span style={{
+                    fontSize: 13,
+                    color: activeColor,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: ff,
+                  }}>
+                    Forgot Password?
                   </span>
-                  <div style={{ flexGrow: 1, height: 1, background: '#F4F4F5' }} />
                 </div>
 
-                {/* Demo banner */}
-                {demoActive && (
-                  <div
-                    style={{
-                      background: '#F0FDF4',
-                      border: '1.5px solid #86EFAC',
-                      borderRadius: 10,
-                      padding: '10px 14px',
-                      marginBottom: 18,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      fontSize: 13,
-                      color: '#166534',
-                      fontFamily: FF,
-                    }}
+                {/* Sign In button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '13px',
+                    background: loading ? `${activeColor}99` : activeColor,
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 10,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    fontFamily: ff,
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    transition: 'background 0.2s',
+                    letterSpacing: 0.2,
+                  }}
+                >
+                  {loading ? 'Signing in…' : `Sign In as ${activePortal?.label}`}
+                </button>
+
+                {/* Divider */}
+                <div style={{ height: 1, background: '#e2e8f0', margin: '22px 0 16px' }} />
+
+                {/* Register link */}
+                <p style={{
+                  textAlign: 'center',
+                  fontSize: 13,
+                  color: '#64748b',
+                  margin: 0,
+                  fontFamily: ff,
+                }}>
+                  Don't have an account?{' '}
+                  <Link
+                    to="/auth/register"
+                    style={{ color: activeColor, fontWeight: 600, textDecoration: 'none' }}
                   >
-                    <span>✅</span>
-                    Demo credentials pre-filled — click Sign In to explore
-                  </div>
-                )}
+                    Register here
+                  </Link>
+                </p>
+              </form>
+            </div>
+          )}
 
-                <form onSubmit={handleSubmit}>
-                  {/* Identifier input */}
-                  <div style={{ marginBottom: 16 }}>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: '#3F3F46',
-                        marginBottom: 6,
-                        fontFamily: FF,
-                      }}
-                    >
-                      {ID_LABEL[selectedPortal]}
-                    </label>
-                    <input
-                      type="text"
-                      name="identifier"
-                      value={form.identifier}
-                      onChange={handleChange}
-                      placeholder={`Enter ${ID_LABEL[selectedPortal]?.toLowerCase()}`}
-                      style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        border: '2px solid #F4F4F5',
-                        borderRadius: 12,
-                        fontSize: 14,
-                        color: '#18181B',
-                        fontFamily: FF,
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                        background: '#fff',
-                        transition: 'border-color 0.15s',
-                      }}
-                      onFocus={(e) => (e.target.style.borderColor = activeColor)}
-                      onBlur={(e) => (e.target.style.borderColor = '#F4F4F5')}
-                    />
-                  </div>
-
-                  {/* Password input */}
-                  <div style={{ marginBottom: 8 }}>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: '#3F3F46',
-                        marginBottom: 6,
-                        fontFamily: FF,
-                      }}
-                    >
-                      Password
-                    </label>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        name="password"
-                        value={form.password}
-                        onChange={handleChange}
-                        placeholder="Enter password"
-                        style={{
-                          width: '100%',
-                          padding: '12px 48px 12px 16px',
-                          border: '2px solid #F4F4F5',
-                          borderRadius: 12,
-                          fontSize: 14,
-                          color: '#18181B',
-                          fontFamily: FF,
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                          background: '#fff',
-                          transition: 'border-color 0.15s',
-                        }}
-                        onFocus={(e) => (e.target.style.borderColor = activeColor)}
-                        onBlur={(e) => (e.target.style.borderColor = '#F4F4F5')}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        style={{
-                          position: 'absolute',
-                          right: 14,
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: '#A1A1AA',
-                          display: 'flex',
-                          alignItems: 'center',
-                          padding: 0,
-                        }}
-                      >
-                        {showPassword
-                          ? <MdVisibilityOff size={18} />
-                          : <MdVisibility size={18} />
-                        }
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Forgot password — right aligned */}
-                  <div style={{ textAlign: 'right', marginBottom: 4 }}>
-                    <span
-                      className="prism-forgot"
-                      style={{
-                        fontSize: 13,
-                        color: activeColor,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontFamily: FF,
-                        transition: 'opacity 0.15s',
-                      }}
-                    >
-                      Forgot Password?
-                    </span>
-                  </div>
-
-                  {/* Sign In button */}
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="prism-sign-btn"
-                    style={{
-                      background: loading ? `${activeColor}90` : activeColor,
-                      color: '#fff',
-                      width: '100%',
-                      padding: '13px',
-                      borderRadius: 12,
-                      border: 'none',
-                      fontSize: 15,
-                      fontWeight: 700,
-                      fontFamily: FF,
-                      boxShadow: `0 4px 14px ${activeColor}35`,
-                      cursor: loading ? 'not-allowed' : 'pointer',
-                      marginTop: 20,
-                      transition: 'all 0.2s ease',
-                      letterSpacing: 0.2,
-                    }}
-                  >
-                    {loading ? 'Signing in...' : `Sign In as ${activePortal?.label}`}
-                  </button>
-                </form>
-              </div>
-            )}
-          </div>
-
-          {/* Card footer */}
-          <div>
-            <div style={{ height: 1, background: '#F4F4F5', margin: '24px 0 16px' }} />
-            <p
+          {/* Back to Home */}
+          <div style={{ marginTop: 32, textAlign: 'center' }}>
+            <Link
+              to="/"
               style={{
-                textAlign: 'center',
                 fontSize: 13,
-                color: '#71717A',
-                margin: '0 0 8px',
-                fontFamily: FF,
+                color: '#94a3b8',
+                textDecoration: 'none',
+                fontFamily: ff,
               }}
             >
-              New to College ERP?{' '}
-              <Link
-                to="/auth/register"
-                style={{
-                  color: '#7C3AED',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                }}
-              >
-                Register here
-              </Link>
-            </p>
-            <div style={{ textAlign: 'center' }}>
-              <span
-                className="prism-back"
-                onClick={() => navigate('/')}
-                style={{
-                  fontSize: 12,
-                  color: '#A1A1AA',
-                  cursor: 'pointer',
-                  fontFamily: FF,
-                  transition: 'color 0.15s',
-                }}
-              >
-                ← Back to Home
-              </span>
-            </div>
+              ← Back to Home
+            </Link>
           </div>
+
         </div>
       </div>
     </div>
