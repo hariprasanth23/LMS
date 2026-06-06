@@ -28,11 +28,13 @@ public class QuizController {
     private final QuizService quizService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STUDENT')")
     public ResponseEntity<ApiResponse<List<Quiz>>> getAll() {
         return ResponseEntity.ok(ApiResponse.ok(quizService.findAll()));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STUDENT')")
     public ResponseEntity<ApiResponse<Quiz>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.ok(quizService.findById(id)));
     }
@@ -60,6 +62,7 @@ public class QuizController {
     }
 
     @GetMapping("/{id}/questions")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STUDENT')")
     public ResponseEntity<ApiResponse<List<QuizQuestion>>> getQuestions(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.ok(quizService.getQuestions(id)));
     }

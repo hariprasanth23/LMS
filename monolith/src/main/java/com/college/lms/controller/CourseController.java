@@ -26,11 +26,13 @@ public class CourseController {
     private final CourseMaterialService materialService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STUDENT')")
     public ResponseEntity<ApiResponse<List<Course>>> getAll() {
         return ResponseEntity.ok(ApiResponse.ok(courseService.findAll()));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STUDENT')")
     public ResponseEntity<ApiResponse<Course>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.ok(courseService.findById(id)));
     }
@@ -57,6 +59,7 @@ public class CourseController {
     }
 
     @GetMapping("/{id}/materials")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STUDENT')")
     public ResponseEntity<ApiResponse<List<CourseMaterial>>> getMaterials(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.ok(materialService.findByCourse(id)));
     }

@@ -1,6 +1,5 @@
 package com.college.auth.dto.request;
 
-import com.college.auth.model.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -24,5 +23,7 @@ public class RegisterRequest {
     @NotBlank(message = "Password is required")
     private String password;
 
-    private User.Role role = User.Role.STUDENT;
+    // Role is intentionally excluded from the public registration DTO.
+    // AuthServiceImpl defaults new registrations to STUDENT.
+    // Admin-assigned roles must go through a privileged endpoint.
 }

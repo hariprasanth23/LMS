@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Local environment / secrets — NEVER commit these
+monolith/src/main/resources/application-local.properties
+**/*.env
+**/.env
+**/.env.*
+
+# Gradle build output
+monolith/.gradle/
+monolith/build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Logs
+*.log

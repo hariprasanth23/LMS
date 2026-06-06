@@ -24,6 +24,7 @@ public class LeaveController {
     private final LeaveService leaveService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STAFF')")
     public ResponseEntity<ApiResponse<LeaveRequestResponse>> apply(@Valid @RequestBody LeaveRequestDto dto) {
         LeaveRequestResponse resp = leaveService.apply(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -31,6 +32,7 @@ public class LeaveController {
     }
 
     @GetMapping("/my")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STAFF')")
     public ResponseEntity<ApiResponse<List<LeaveRequestResponse>>> getMyRequests() {
         return ResponseEntity.ok(ApiResponse.ok(leaveService.getMyRequests()));
     }
@@ -58,6 +60,7 @@ public class LeaveController {
     }
 
     @GetMapping("/balance")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STAFF')")
     public ResponseEntity<ApiResponse<LeaveBalance>> getBalance() {
         return ResponseEntity.ok(ApiResponse.ok(leaveService.getBalance()));
     }

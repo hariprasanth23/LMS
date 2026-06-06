@@ -24,11 +24,13 @@ public class AnnouncementController {
     private final AnnouncementService announcementService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STUDENT')")
     public ResponseEntity<ApiResponse<List<Announcement>>> getAll() {
         return ResponseEntity.ok(ApiResponse.ok(announcementService.findAll()));
     }
 
     @GetMapping("/course/{courseId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STUDENT')")
     public ResponseEntity<ApiResponse<List<Announcement>>> getByCourse(@PathVariable UUID courseId) {
         return ResponseEntity.ok(ApiResponse.ok(announcementService.findByCourseOrGlobal(courseId)));
     }

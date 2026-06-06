@@ -28,16 +28,19 @@ public class EmployeeController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STAFF')")
     public ResponseEntity<ApiResponse<EmployeeResponse>> getMe() {
         return ResponseEntity.ok(ApiResponse.ok(employeeService.findMe()));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STAFF')")
     public ResponseEntity<ApiResponse<EmployeeResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.ok(employeeService.findById(id)));
     }
 
     @GetMapping("/department/{deptId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY')")
     public ResponseEntity<ApiResponse<List<EmployeeResponse>>> getByDepartment(@PathVariable Long deptId) {
         return ResponseEntity.ok(ApiResponse.ok(employeeService.findByDepartment(deptId)));
     }

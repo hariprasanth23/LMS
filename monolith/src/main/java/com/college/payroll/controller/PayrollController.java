@@ -39,6 +39,7 @@ public class PayrollController {
     }
 
     @GetMapping("/my")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STAFF')")
     public ResponseEntity<ApiResponse<List<PayrollResponse>>> getMyPayslips() {
         return ResponseEntity.ok(ApiResponse.ok(payrollService.getMyPayslips()));
     }
@@ -50,6 +51,7 @@ public class PayrollController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PayrollResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.ok(payrollService.getById(id)));
     }

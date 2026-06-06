@@ -43,14 +43,14 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalStateException("Email already registered: " + request.getEmail());
         }
 
-        User.Role role = (request.getRole() != null) ? request.getRole() : User.Role.STUDENT;
-
+        // Public registration always creates a STUDENT — role escalation must
+        // go through a privileged admin endpoint, not the open /register path.
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail().toLowerCase().strip())
                 .phone(request.getPhone())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(role)
+                .role(User.Role.STUDENT)
                 .active(true)
                 .build();
 
