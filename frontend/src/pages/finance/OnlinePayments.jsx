@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -72,6 +72,13 @@ const pendingVerifications = [
 
 export default function OnlinePayments() {
   const [active, setActive] = useState('Payments')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
   const [walletPreset, setWalletPreset] = useState(null)
   const [customAmount, setCustomAmount] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('UPI')
@@ -153,7 +160,8 @@ export default function OnlinePayments() {
       </div>
 
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
           <thead>
             <tr>
               {['Fee Type', 'Amount', 'Due Date', 'Status', 'Action'].map(h => (
@@ -188,6 +196,7 @@ export default function OnlinePayments() {
             ))}
           </tbody>
         </table>
+        </div>
         <div style={{ padding: '14px 16px', background: '#fef2f2', borderTop: '1px solid #fecaca' }}>
           <span style={{ fontWeight: 700, color: '#dc2626', fontSize: 15 }}>
             Total Pending: ₹{totalPending.toLocaleString('en-IN')}
@@ -248,7 +257,8 @@ export default function OnlinePayments() {
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: 600, fontSize: 15 }}>
           Recent Transactions
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 400 }}>
           <thead>
             <tr>
               {['Date', 'Type', 'Mode', 'Amount', 'Balance'].map(h => <th key={h} style={thStyle}>{h}</th>)}
@@ -272,6 +282,7 @@ export default function OnlinePayments() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -291,7 +302,8 @@ export default function OnlinePayments() {
       </div>
 
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
           <thead>
             <tr>
               {['Receipt No', 'Date', 'Description', 'Amount', 'Mode', 'Status', 'Download'].map(h => (
@@ -321,6 +333,7 @@ export default function OnlinePayments() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -329,7 +342,8 @@ export default function OnlinePayments() {
     <div style={{ marginBottom: 24 }}>
       <div style={{ fontWeight: 600, fontSize: 15, color: TEXT, marginBottom: 10 }}>{title}</div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 400 }}>
           <thead>
             <tr>
               {['Fee Name', 'Amount (₹)', 'Due Date', 'Remarks'].map(h => <th key={h} style={thStyle}>{h}</th>)}
@@ -353,6 +367,7 @@ export default function OnlinePayments() {
             </tr>
           </tfoot>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -410,7 +425,8 @@ export default function OnlinePayments() {
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: 600, fontSize: 15 }}>
           Pending Verifications
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 400 }}>
           <thead>
             <tr>
               {['Challan No', 'Amount', 'Submitted Date', 'Status'].map(h => <th key={h} style={thStyle}>{h}</th>)}
@@ -431,6 +447,7 @@ export default function OnlinePayments() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -452,7 +469,8 @@ export default function OnlinePayments() {
             <button style={btn('danger')}>Pay All Fines</button>
           </div>
           <div style={{ ...card, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
               <thead>
                 <tr>
                   {['Book Title', 'ISBN', 'Issued Date', 'Due Date', 'Days Overdue', 'Fine Amount', 'Action'].map(h => (
@@ -480,6 +498,7 @@ export default function OnlinePayments() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </>
       )}
@@ -534,7 +553,8 @@ export default function OnlinePayments() {
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: 600, fontSize: 15 }}>
           My Refund Requests
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
           <thead>
             <tr>
               {['Request ID', 'Fee Type', 'Reason', 'Amount', 'Status', 'Date'].map(h => <th key={h} style={thStyle}>{h}</th>)}
@@ -567,6 +587,7 @@ export default function OnlinePayments() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -588,16 +609,36 @@ export default function OnlinePayments() {
         <p style={{ fontSize: 14, color: MUTED, margin: 0 }}>Pay fees, manage wallet and view payment history</p>
       </div>
 
-      <div style={{ ...card, display: 'flex', minHeight: 520 }}>
-        <div style={{ width: 210, borderRight: '1px solid #e2e8f0', paddingTop: 8, paddingBottom: 8, flexShrink: 0 }}>
+      <div style={{ ...card, display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: 520 }}>
+        <div style={{
+          width: isMobile ? '100%' : 210,
+          borderRight: isMobile ? 'none' : '1px solid #e2e8f0',
+          borderBottom: isMobile ? '1px solid #e2e8f0' : 'none',
+          paddingTop: isMobile ? 4 : 8,
+          paddingBottom: isMobile ? 4 : 8,
+          padding: isMobile ? '8px 4px' : undefined,
+          flexShrink: 0,
+          display: isMobile ? 'flex' : 'block',
+          flexDirection: isMobile ? 'row' : undefined,
+          flexWrap: isMobile ? 'wrap' : undefined,
+          overflowX: isMobile ? 'auto' : undefined,
+        }}>
           {NAV_ITEMS.map(item => (
-            <div key={item} style={navStyle(item)} onClick={() => setActive(item)}>
+            <div key={item} onClick={() => setActive(item)} style={{
+              ...navStyle(item),
+              padding: isMobile ? '6px 12px' : navStyle(item).padding,
+              fontSize: isMobile ? 12 : navStyle(item).fontSize,
+              borderLeft: isMobile ? 'none' : navStyle(item).borderLeft,
+              borderBottom: isMobile ? (active === item ? '2px solid #6366f1' : '2px solid transparent') : 'none',
+              borderRadius: isMobile ? 100 : 0,
+              whiteSpace: 'nowrap',
+            }}>
               {item}
             </div>
           ))}
         </div>
 
-        <div style={{ flex: 1, padding: 28, overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: isMobile ? '16px' : 28, overflowY: 'auto' }}>
           <div style={{ fontWeight: 700, fontSize: 17, color: TEXT, marginBottom: 20 }}>{active}</div>
           {contentMap[active]?.()}
         </div>

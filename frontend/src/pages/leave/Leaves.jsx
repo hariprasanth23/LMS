@@ -167,6 +167,13 @@ export default function Leaves() {
   const [confirmAction, setConfirmAction] = useState(null) // { type: 'approve'|'reject', leave }
   const [reviewNote, setReviewNote] = useState('')
   const [activeTab, setActiveTab] = useState('ALL')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   const isAdmin = user?.role === 'ADMIN'
   const isFaculty = user?.role === 'FACULTY'
@@ -290,9 +297,9 @@ export default function Leaves() {
 
       {/* Non-admin layout: balance cards + calendar on the right */}
       {!isAdminOrFaculty && (
-        <div style={{ display: 'flex', gap: 20, marginBottom: 24, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 20, marginBottom: 24, flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
           {/* Balance cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1, minWidth: 240 }}>
+          <div style={{ display: isMobile ? 'grid' : 'flex', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : undefined, flexDirection: isMobile ? undefined : 'column', gap: 12, flex: 1, minWidth: 240 }}>
             {balanceCards.map(item => {
               const remaining = item.total - item.used
               const pct = Math.round((item.used / item.total) * 100)
@@ -360,7 +367,8 @@ export default function Leaves() {
             <div style={{ fontSize: 14, color: MUTED }}>No {activeTab !== 'ALL' ? activeTab.toLowerCase() : ''} leave requests</div>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 600 }}>
             <thead>
               <tr style={{ background: '#f8fafc' }}>
                 {[isAdminOrFaculty ? 'Employee' : null, 'Type', 'Duration', 'Days', 'Reason', 'Status', isAdminOrFaculty ? 'Actions' : null].filter(Boolean).map(h => (
@@ -420,6 +428,7 @@ export default function Leaves() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -441,7 +450,7 @@ export default function Leaves() {
       {/* Confirmation Dialog (Approve/Reject) */}
       {confirmAction && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#fff', borderRadius: 14, padding: 28, width: '100%', maxWidth: 420 }}>
+          <div style={{ background: '#fff', borderRadius: 14, padding: 28, width: '100%', maxWidth: isMobile ? '95vw' : 420 }}>
             {confirmAction.type === 'approve' ? (
               <>
                 <h2 style={{ margin: '0 0 8px', fontSize: 17, fontWeight: 700, color: TEXT }}>Confirm Approval</h2>
@@ -485,7 +494,7 @@ export default function Leaves() {
       {/* Apply Modal */}
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#fff', borderRadius: 14, padding: 28, width: '100%', maxWidth: 480 }}>
+          <div style={{ background: '#fff', borderRadius: 14, padding: 28, width: '100%', maxWidth: isMobile ? '95vw' : 480, maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TEXT }}>Apply for Leave</h2>
               <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED }}><MdClose size={20} /></button>
@@ -497,7 +506,7 @@ export default function Leaves() {
                   {LEAVE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14, marginBottom: 14 }}>
                 <div>
                   <label style={labelStyle}>From Date *</label>
                   <input type="date" value={form.fromDate} onChange={e => setForm({ ...form, fromDate: e.target.value })} style={inputStyle}

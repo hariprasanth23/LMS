@@ -123,12 +123,13 @@ const navLinkStyle = (isActive) => ({
   overflow: 'hidden'
 })
 
-function NavItem({ to, icon, label, collapsed }) {
+function NavItem({ to, icon, label, collapsed, onClose }) {
   if (collapsed) {
     return (
       <Tooltip label={label}>
         <NavLink
           to={to}
+          onClick={onClose}
           style={({ isActive }) => ({
             ...navLinkStyle(isActive),
             padding: '10px',
@@ -143,7 +144,7 @@ function NavItem({ to, icon, label, collapsed }) {
     )
   }
   return (
-    <NavLink to={to} style={({ isActive }) => navLinkStyle(isActive)}>
+    <NavLink to={to} onClick={onClose} style={({ isActive }) => navLinkStyle(isActive)}>
       {({ isActive }) => (
         <>
           {/* animated left bar */}
@@ -313,7 +314,7 @@ const FACULTY_SECTIONS = [
 
 // ─── Accordion Section ─────────────────────────────────────────────────────────
 
-function AccordionSection({ section, isOpen, onToggle, collapsed, sectionBadges }) {
+function AccordionSection({ section, isOpen, onToggle, collapsed, sectionBadges, onItemClick }) {
   const SectionIcon = section.icon
   const iconColor = section.iconColor || section.color
 
@@ -394,6 +395,7 @@ function AccordionSection({ section, isOpen, onToggle, collapsed, sectionBadges 
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={onItemClick}
               style={({ isActive }) => ({
                 display: 'flex',
                 alignItems: 'center',
@@ -623,12 +625,12 @@ function UserCard({ user, role, roleColor, logout, collapsed }) {
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 
-export default function Sidebar({ onCollapsedChange }) {
+export default function Sidebar({ onCollapsedChange, isMobile, sidebarOpen, onClose }) {
   const { user, logout } = useAuth()
   const role = user?.role
   const location = useLocation()
 
-  // ── Collapse state (persisted) ──
+  // ── Collapse state (persisted, desktop only) ──
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem('sidebar_collapsed') === 'true'
@@ -636,6 +638,9 @@ export default function Sidebar({ onCollapsedChange }) {
       return false
     }
   })
+
+  // On mobile, never use collapsed mode
+  const effectiveCollapsed = isMobile ? false : collapsed
 
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
@@ -646,8 +651,8 @@ export default function Sidebar({ onCollapsedChange }) {
   }
 
   useEffect(() => {
-    if (onCollapsedChange) onCollapsedChange(collapsed)
-  }, [collapsed, onCollapsedChange])
+    if (onCollapsedChange) onCollapsedChange(effectiveCollapsed)
+  }, [effectiveCollapsed, onCollapsedChange])
 
   // ── Search ──
   const [search, setSearch] = useState('')
@@ -748,28 +753,35 @@ export default function Sidebar({ onCollapsedChange }) {
   const specificItems = roleItems[role] || []
 
   return (
-    <SidebarContext.Provider value={{ collapsed }}>
+    <SidebarContext.Provider value={{ collapsed: effectiveCollapsed }}>
       <aside style={{
-        width: collapsed ? 64 : 260,
+        width: effectiveCollapsed ? 64 : 260,
         minHeight: '100vh',
         background: '#fff',
         borderRight: '1px solid #e2e8f0',
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
-        transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: isMobile
+          ? 'left 0.3s ease'
+          : 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         overflow: 'hidden',
-        position: 'relative'
+        position: isMobile ? 'fixed' : 'relative',
+        top: isMobile ? 0 : undefined,
+        left: isMobile ? (sidebarOpen ? 0 : -260) : undefined,
+        height: isMobile ? '100vh' : undefined,
+        zIndex: isMobile ? 500 : undefined,
+        boxShadow: isMobile && sidebarOpen ? '4px 0 24px rgba(0,0,0,0.15)' : undefined,
       }}>
 
         {/* ── Logo / Brand ── */}
         <div style={{
-          padding: collapsed ? '20px 0 16px' : '20px 20px 16px',
+          padding: effectiveCollapsed ? '20px 0 16px' : '20px 20px 16px',
           borderBottom: '1px solid #f1f5f9',
           flexShrink: 0,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: collapsed ? 'center' : 'flex-start',
+          justifyContent: effectiveCollapsed ? 'center' : 'flex-start',
           gap: 10,
           transition: 'padding 0.25s ease'
         }}>
@@ -785,8 +797,8 @@ export default function Sidebar({ onCollapsedChange }) {
           }}>
             <MdSchool style={{ color: '#fff', fontSize: 20 }} />
           </div>
-          {!collapsed && (
-            <div style={{ overflow: 'hidden' }}>
+          {!effectiveCollapsed && (
+            <div style={{ overflow: 'hidden', flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: FONT, fontWeight: 700, fontSize: 14, color: TEXT, whiteSpace: 'nowrap' }}>
                 College ERP
               </div>
@@ -795,39 +807,66 @@ export default function Sidebar({ onCollapsedChange }) {
               </div>
             </div>
           )}
+          {/* Close button — mobile only */}
+          {isMobile && (
+            <button
+              onClick={onClose}
+              aria-label="Close sidebar"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                border: '1px solid #e2e8f0',
+                background: '#f8fafc',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                flexShrink: 0,
+                fontSize: 16,
+                color: MUTED,
+                padding: 0,
+                lineHeight: 1,
+              }}
+            >
+              ✕
+            </button>
+          )}
         </div>
 
-        {/* ── Collapse toggle button ── */}
-        <button
-          onClick={toggleCollapsed}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          style={{
-            position: 'absolute',
-            top: 22,
-            right: collapsed ? -1 : -13,
-            width: 26,
-            height: 26,
-            borderRadius: '50%',
-            background: '#fff',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            zIndex: 10,
-            transition: 'right 0.25s ease',
-            padding: 0
-          }}
-        >
-          {collapsed
-            ? <MdChevronRight style={{ fontSize: 16, color: MUTED }} />
-            : <MdChevronLeft style={{ fontSize: 16, color: MUTED }} />
-          }
-        </button>
+        {/* ── Collapse toggle button — desktop only ── */}
+        {!isMobile && (
+          <button
+            onClick={toggleCollapsed}
+            title={effectiveCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            style={{
+              position: 'absolute',
+              top: 22,
+              right: effectiveCollapsed ? -1 : -13,
+              width: 26,
+              height: 26,
+              borderRadius: '50%',
+              background: '#fff',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              zIndex: 10,
+              transition: 'right 0.25s ease',
+              padding: 0
+            }}
+          >
+            {effectiveCollapsed
+              ? <MdChevronRight style={{ fontSize: 16, color: MUTED }} />
+              : <MdChevronLeft style={{ fontSize: 16, color: MUTED }} />
+            }
+          </button>
+        )}
 
         {/* ── Role badge ── */}
-        {!collapsed && (
+        {!effectiveCollapsed && (
           <div style={{ padding: '12px 16px 4px', flexShrink: 0 }}>
             <div style={{
               display: 'inline-flex',
@@ -849,7 +888,7 @@ export default function Sidebar({ onCollapsedChange }) {
         )}
 
         {/* ── Search box ── */}
-        {!collapsed && isAccordionRole && (
+        {!effectiveCollapsed && isAccordionRole && (
           <div style={{ padding: '8px 12px 4px', flexShrink: 0 }}>
             <div style={{
               display: 'flex',
@@ -907,16 +946,17 @@ export default function Sidebar({ onCollapsedChange }) {
           flex: 1,
           overflowY: 'auto',
           overflowX: 'hidden',
-          padding: isAccordionRole ? '4px 0' : (collapsed ? '4px 0' : '4px 12px')
+          padding: isAccordionRole ? '4px 0' : (effectiveCollapsed ? '4px 0' : '4px 12px')
         }}>
 
           {/* Dashboard — always visible */}
           {isAccordionRole ? (
-            collapsed ? (
+            effectiveCollapsed ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0' }}>
                 <Tooltip label="Dashboard">
                   <NavLink
                     to="/dashboard"
+                    onClick={isMobile ? onClose : undefined}
                     style={({ isActive }) => ({
                       display: 'flex',
                       alignItems: 'center',
@@ -938,6 +978,7 @@ export default function Sidebar({ onCollapsedChange }) {
               <div style={{ padding: '0 12px', marginBottom: 4 }}>
                 <NavLink
                   to="/dashboard"
+                  onClick={isMobile ? onClose : undefined}
                   style={({ isActive }) => navLinkStyle(isActive)}
                 >
                   {({ isActive }) => (
@@ -962,20 +1003,26 @@ export default function Sidebar({ onCollapsedChange }) {
               </div>
             )
           ) : (
-            <NavItem to="/dashboard" icon={<MdDashboard />} label="Dashboard" collapsed={collapsed} />
+            <NavItem
+              to="/dashboard"
+              icon={<MdDashboard />}
+              label="Dashboard"
+              collapsed={effectiveCollapsed}
+              onClose={isMobile ? onClose : undefined}
+            />
           )}
 
           {/* ── STUDENT accordion menu ── */}
           {isStudent && (
-            <div style={{ marginTop: 8, padding: collapsed ? '0 4px' : '0 8px' }}>
-              {collapsed
+            <div style={{ marginTop: 8, padding: effectiveCollapsed ? '0 4px' : '0 8px' }}>
+              {effectiveCollapsed
                 ? STUDENT_SECTIONS.map((section) => (
                     <AccordionSection
                       key={section.key}
                       section={section}
                       isOpen={openSections.includes(section.key)}
                       onToggle={() => toggleSection(section.key)}
-                      collapsed={collapsed}
+                      collapsed={effectiveCollapsed}
                     />
                   ))
                 : visibleSections.map((section) => (
@@ -985,10 +1032,11 @@ export default function Sidebar({ onCollapsedChange }) {
                       isOpen={openSections.includes(section.key)}
                       onToggle={() => toggleSection(section.key)}
                       collapsed={false}
+                      onItemClick={isMobile ? onClose : undefined}
                     />
                   ))
               }
-              {!collapsed && normalizedSearch && visibleSections.length === 0 && (
+              {!effectiveCollapsed && normalizedSearch && visibleSections.length === 0 && (
                 <div style={{ padding: '12px 16px', fontFamily: FONT, fontSize: 13, color: MUTED }}>
                   No results for "{search}"
                 </div>
@@ -998,15 +1046,15 @@ export default function Sidebar({ onCollapsedChange }) {
 
           {/* ── FACULTY accordion menu ── */}
           {isFaculty && (
-            <div style={{ marginTop: 8, padding: collapsed ? '0 4px' : '0 8px' }}>
-              {collapsed
+            <div style={{ marginTop: 8, padding: effectiveCollapsed ? '0 4px' : '0 8px' }}>
+              {effectiveCollapsed
                 ? FACULTY_SECTIONS.map((section) => (
                     <AccordionSection
                       key={section.key}
                       section={section}
                       isOpen={openSections.includes(section.key)}
                       onToggle={() => toggleSection(section.key)}
-                      collapsed={collapsed}
+                      collapsed={effectiveCollapsed}
                     />
                   ))
                 : visibleSections.map((section) => (
@@ -1017,10 +1065,11 @@ export default function Sidebar({ onCollapsedChange }) {
                       onToggle={() => toggleSection(section.key)}
                       collapsed={false}
                       sectionBadges={BADGE_COUNTS[section.key]}
+                      onItemClick={isMobile ? onClose : undefined}
                     />
                   ))
               }
-              {!collapsed && normalizedSearch && visibleSections.length === 0 && (
+              {!effectiveCollapsed && normalizedSearch && visibleSections.length === 0 && (
                 <div style={{ padding: '12px 16px', fontFamily: FONT, fontSize: 13, color: MUTED }}>
                   No results for "{search}"
                 </div>
@@ -1031,7 +1080,7 @@ export default function Sidebar({ onCollapsedChange }) {
           {/* ── Non-accordion role-specific items ── */}
           {!isAccordionRole && specificItems.length > 0 && (
             <div style={{ marginTop: 8 }}>
-              {!collapsed && (
+              {!effectiveCollapsed && (
                 <div style={{
                   padding: '8px 4px 4px',
                   fontSize: 10,
@@ -1045,7 +1094,14 @@ export default function Sidebar({ onCollapsedChange }) {
                 </div>
               )}
               {specificItems.map((item) => (
-                <NavItem key={item.to} to={item.to} icon={item.icon} label={item.label} collapsed={collapsed} />
+                <NavItem
+                  key={item.to}
+                  to={item.to}
+                  icon={item.icon}
+                  label={item.label}
+                  collapsed={effectiveCollapsed}
+                  onClose={isMobile ? onClose : undefined}
+                />
               ))}
             </div>
           )}
@@ -1053,7 +1109,7 @@ export default function Sidebar({ onCollapsedChange }) {
           {/* ── Profile link (non-accordion roles) ── */}
           {!isAccordionRole && (
             <div style={{ marginTop: 8 }}>
-              {!collapsed && (
+              {!effectiveCollapsed && (
                 <div style={{
                   padding: '8px 4px 4px',
                   fontSize: 10,
@@ -1066,7 +1122,13 @@ export default function Sidebar({ onCollapsedChange }) {
                   Account
                 </div>
               )}
-              <NavItem to="/profile" icon={<MdPerson />} label="Profile" collapsed={collapsed} />
+              <NavItem
+                to="/profile"
+                icon={<MdPerson />}
+                label="Profile"
+                collapsed={effectiveCollapsed}
+                onClose={isMobile ? onClose : undefined}
+              />
             </div>
           )}
         </nav>
@@ -1077,7 +1139,7 @@ export default function Sidebar({ onCollapsedChange }) {
           role={role}
           roleColor={roleColor}
           logout={logout}
-          collapsed={collapsed}
+          collapsed={effectiveCollapsed}
         />
       </aside>
     </SidebarContext.Provider>

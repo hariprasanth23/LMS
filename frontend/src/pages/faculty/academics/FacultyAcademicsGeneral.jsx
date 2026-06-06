@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -136,31 +136,33 @@ function WorkLoad() {
           <div style={{ fontSize: 11, color: MUTED, fontFamily: 'system-ui' }}>University norm: 16–18 hrs/week</div>
         </div>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
-        <thead>
-          <tr style={{ background: '#f8fafc' }}>
-            {['Course Code', 'Course Name', 'Class', 'Credits', 'Hrs/Week', 'Type', 'Students'].map(h => (
-              <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {courses.map((c, i) => {
-            const [tbg, tcl] = typeColor[c.type]
-            return (
-              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '9px 10px', color: ACCENT, fontWeight: 700 }}>{c.code}</td>
-                <td style={{ padding: '9px 10px', color: TEXT }}>{c.name}</td>
-                <td style={{ padding: '9px 10px', color: MUTED }}>{c.cls}</td>
-                <td style={{ padding: '9px 10px', color: TEXT, textAlign: 'center' }}>{c.credits}</td>
-                <td style={{ padding: '9px 10px', color: TEXT, fontWeight: 600, textAlign: 'center' }}>{c.hrsWeek}</td>
-                <td style={{ padding: '9px 10px' }}><span style={{ background: tbg, color: tcl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{c.type}</span></td>
-                <td style={{ padding: '9px 10px', color: MUTED, textAlign: 'center' }}>{c.enrolled}</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
+          <thead>
+            <tr style={{ background: '#f8fafc' }}>
+              {['Course Code', 'Course Name', 'Class', 'Credits', 'Hrs/Week', 'Type', 'Students'].map(h => (
+                <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {courses.map((c, i) => {
+              const [tbg, tcl] = typeColor[c.type]
+              return (
+                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '9px 10px', color: ACCENT, fontWeight: 700 }}>{c.code}</td>
+                  <td style={{ padding: '9px 10px', color: TEXT }}>{c.name}</td>
+                  <td style={{ padding: '9px 10px', color: MUTED }}>{c.cls}</td>
+                  <td style={{ padding: '9px 10px', color: TEXT, textAlign: 'center' }}>{c.credits}</td>
+                  <td style={{ padding: '9px 10px', color: TEXT, fontWeight: 600, textAlign: 'center' }}>{c.hrsWeek}</td>
+                  <td style={{ padding: '9px 10px' }}><span style={{ background: tbg, color: tcl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{c.type}</span></td>
+                  <td style={{ padding: '9px 10px', color: MUTED, textAlign: 'center' }}>{c.enrolled}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -189,31 +191,33 @@ function MarkConfiguration() {
         </select>
       </div>
       <div style={{ fontSize: 13, fontWeight: 600, color: MUTED, fontFamily: 'system-ui', marginBottom: 8 }}>Assessment Components — {selectedCourse}</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', marginBottom: 16 }}>
-        <thead>
-          <tr style={{ background: '#f8fafc' }}>
-            {['Component', 'Max Marks', 'Passing Marks', 'Weightage (%)'].map(h => (
-              <th key={h} style={{ padding: '9px 12px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {components.map((c, i) => (
-            <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-              <td style={{ padding: '9px 12px', fontWeight: 700, color: TEXT }}>{c.name}</td>
-              <td style={{ padding: '9px 12px' }}>
-                <input type="number" value={c.max} onChange={e => update(i, 'max', e.target.value)} style={{ width: 70, padding: '5px 8px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontFamily: 'system-ui' }} />
-              </td>
-              <td style={{ padding: '9px 12px' }}>
-                <input type="number" value={c.passing} onChange={e => update(i, 'passing', e.target.value)} style={{ width: 70, padding: '5px 8px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontFamily: 'system-ui' }} />
-              </td>
-              <td style={{ padding: '9px 12px' }}>
-                <input type="number" value={c.weightage} onChange={e => update(i, 'weightage', e.target.value)} style={{ width: 70, padding: '5px 8px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontFamily: 'system-ui' }} />
-              </td>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', marginBottom: 16, minWidth: 600 }}>
+          <thead>
+            <tr style={{ background: '#f8fafc' }}>
+              {['Component', 'Max Marks', 'Passing Marks', 'Weightage (%)'].map(h => (
+                <th key={h} style={{ padding: '9px 12px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {components.map((c, i) => (
+              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '9px 12px', fontWeight: 700, color: TEXT }}>{c.name}</td>
+                <td style={{ padding: '9px 12px' }}>
+                  <input type="number" value={c.max} onChange={e => update(i, 'max', e.target.value)} style={{ width: 70, padding: '5px 8px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontFamily: 'system-ui' }} />
+                </td>
+                <td style={{ padding: '9px 12px' }}>
+                  <input type="number" value={c.passing} onChange={e => update(i, 'passing', e.target.value)} style={{ width: 70, padding: '5px 8px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontFamily: 'system-ui' }} />
+                </td>
+                <td style={{ padding: '9px 12px' }}>
+                  <input type="number" value={c.weightage} onChange={e => update(i, 'weightage', e.target.value)} style={{ width: 70, padding: '5px 8px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontFamily: 'system-ui' }} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
         <button onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 2000) }} style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 13, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600 }}>Save Configuration</button>
         {saved && <span style={{ fontSize: 13, color: '#15803d', fontFamily: 'system-ui', fontWeight: 600 }}>Configuration saved!</span>}
@@ -274,30 +278,32 @@ function Project() {
         </div>
       )}
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
-        <thead>
-          <tr style={{ background: '#f8fafc' }}>
-            {['Project Title', 'Team', 'Sem', 'Stage', 'Last Review', 'Next Review'].map(h => (
-              <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {projects.map((p, i) => {
-            const [sbg, scl] = stageColor[p.stage]
-            return (
-              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '9px 10px', color: TEXT, fontWeight: 600, maxWidth: 200 }}>{p.title}</td>
-                <td style={{ padding: '9px 10px', color: MUTED, fontSize: 12 }}>{p.team}</td>
-                <td style={{ padding: '9px 10px', color: TEXT, textAlign: 'center' }}>{p.sem}</td>
-                <td style={{ padding: '9px 10px' }}><span style={{ background: sbg, color: scl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{p.stage}</span></td>
-                <td style={{ padding: '9px 10px', color: MUTED }}>{p.lastReview}</td>
-                <td style={{ padding: '9px 10px', color: p.nextReview === '—' ? MUTED : ACCENT, fontWeight: p.nextReview === '—' ? 400 : 600 }}>{p.nextReview}</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
+          <thead>
+            <tr style={{ background: '#f8fafc' }}>
+              {['Project Title', 'Team', 'Sem', 'Stage', 'Last Review', 'Next Review'].map(h => (
+                <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {projects.map((p, i) => {
+              const [sbg, scl] = stageColor[p.stage]
+              return (
+                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '9px 10px', color: TEXT, fontWeight: 600, maxWidth: 200 }}>{p.title}</td>
+                  <td style={{ padding: '9px 10px', color: MUTED, fontSize: 12 }}>{p.team}</td>
+                  <td style={{ padding: '9px 10px', color: TEXT, textAlign: 'center' }}>{p.sem}</td>
+                  <td style={{ padding: '9px 10px' }}><span style={{ background: sbg, color: scl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{p.stage}</span></td>
+                  <td style={{ padding: '9px 10px', color: MUTED }}>{p.lastReview}</td>
+                  <td style={{ padding: '9px 10px', color: p.nextReview === '—' ? MUTED : ACCENT, fontWeight: p.nextReview === '—' ? 400 : 600 }}>{p.nextReview}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -325,27 +331,29 @@ function CoFacultyWorkLoad() {
           {courses.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
-        <thead>
-          <tr style={{ background: '#f8fafc' }}>
-            {['Faculty Name', 'Course', 'Section', 'Hrs/Week'].map(h => (
-              <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map((d, i) => (
-            <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-              <td style={{ padding: '9px 10px', color: TEXT, fontWeight: 600 }}>{d.name}</td>
-              <td style={{ padding: '9px 10px', color: ACCENT, fontWeight: 600 }}>{d.course}</td>
-              <td style={{ padding: '9px 10px', color: MUTED }}>{d.section}</td>
-              <td style={{ padding: '9px 10px', textAlign: 'center' }}>
-                <span style={{ background: '#eef2ff', color: ACCENT, fontSize: 12, borderRadius: 8, padding: '2px 10px', fontWeight: 700 }}>{d.hrsWeek} hrs</span>
-              </td>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
+          <thead>
+            <tr style={{ background: '#f8fafc' }}>
+              {['Faculty Name', 'Course', 'Section', 'Hrs/Week'].map(h => (
+                <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filtered.map((d, i) => (
+              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '9px 10px', color: TEXT, fontWeight: 600 }}>{d.name}</td>
+                <td style={{ padding: '9px 10px', color: ACCENT, fontWeight: 600 }}>{d.course}</td>
+                <td style={{ padding: '9px 10px', color: MUTED }}>{d.section}</td>
+                <td style={{ padding: '9px 10px', textAlign: 'center' }}>
+                  <span style={{ background: '#eef2ff', color: ACCENT, fontSize: 12, borderRadius: 8, padding: '2px 10px', fontWeight: 700 }}>{d.hrsWeek} hrs</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <div style={{ marginTop: 14, fontSize: 12, color: MUTED, fontFamily: 'system-ui', background: '#f8fafc', borderRadius: 8, padding: '8px 14px' }}>
         Showing {filtered.length} of {data.length} co-faculty records. Use the filter above to narrow by course for coordination planning.
       </div>
@@ -357,27 +365,49 @@ const CONTENT_MAP = [OpenHours, WorkLoad, MarkConfiguration, Project, CoFacultyW
 
 export default function FacultyAcademicsGeneral() {
   const [active, setActive] = useState(0)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
   const ActiveComponent = CONTENT_MAP[active]
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100%', padding: 1 }}>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: TEXT, fontFamily: 'system-ui' }}>Academics — General</h1>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 18 : 22, fontWeight: 700, color: TEXT, fontFamily: 'system-ui' }}>Academics — General</h1>
         <p style={{ margin: '4px 0 0', fontSize: 13, color: MUTED, fontFamily: 'system-ui' }}>Workload, open hours, marks configuration and project management</p>
       </div>
-      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', minHeight: 520 }}>
-        <div style={{ width: 210, borderRight: '1px solid #e2e8f0', padding: '12px 0', flexShrink: 0 }}>
+      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: 520 }}>
+        <div style={isMobile ? {
+          borderBottom: '1px solid #e2e8f0', padding: '8px 12px',
+          display: 'flex', overflowX: 'auto', gap: 8, flexShrink: 0,
+        } : {
+          width: 210, borderRight: '1px solid #e2e8f0', padding: '12px 0', flexShrink: 0,
+        }}>
           {ITEMS.map((item, i) => (
-            <div key={i} onClick={() => setActive(i)} style={{
-              padding: '9px 16px', cursor: 'pointer', fontSize: 13,
-              fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569',
-              background: active === i ? '#eef2ff' : 'transparent',
-              borderLeft: active === i ? '3px solid #6366f1' : '3px solid transparent',
-              fontWeight: active === i ? 600 : 400
-            }}>{item}</div>
+            isMobile ? (
+              <div key={i} onClick={() => setActive(i)} style={{
+                padding: '6px 14px', cursor: 'pointer', fontSize: 12,
+                fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569',
+                background: active === i ? '#eef2ff' : '#f1f5f9',
+                border: active === i ? '1.5px solid #6366f1' : '1.5px solid transparent',
+                borderRadius: 20, fontWeight: active === i ? 600 : 400,
+                whiteSpace: 'nowrap', flexShrink: 0,
+              }}>{item}</div>
+            ) : (
+              <div key={i} onClick={() => setActive(i)} style={{
+                padding: '9px 16px', cursor: 'pointer', fontSize: 13,
+                fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569',
+                background: active === i ? '#eef2ff' : 'transparent',
+                borderLeft: active === i ? '3px solid #6366f1' : '3px solid transparent',
+                fontWeight: active === i ? 600 : 400
+              }}>{item}</div>
+            )
           ))}
         </div>
-        <div style={{ flex: 1, padding: 28, overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: isMobile ? 14 : 28, overflowY: 'auto' }}>
           <ActiveComponent />
         </div>
       </div>

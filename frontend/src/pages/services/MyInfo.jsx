@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -58,6 +58,13 @@ const scholarshipsData = [
 
 export default function MyInfo() {
   const [active, setActive] = useState('Profile')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
   const [editMode, setEditMode] = useState(false)
   const [twoFA, setTwoFA] = useState(false)
   const [dayboarderType] = useState('hosteller')
@@ -336,7 +343,8 @@ export default function MyInfo() {
   const renderAcknowledgement = () => (
     <div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
           <thead>
             <tr>
               {['Document Name', 'Date Signed', 'Academic Year', 'Status', 'Download'].map(h => (
@@ -364,6 +372,7 @@ export default function MyInfo() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -435,7 +444,8 @@ export default function MyInfo() {
         </div>
 
         <div style={{ ...card, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
             <thead>
               <tr>
                 {['Scholarship Name', 'Applied Date', 'Status', 'Amount', 'Credited Date', 'Reference'].map(h => (
@@ -469,6 +479,7 @@ export default function MyInfo() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     )
@@ -490,16 +501,36 @@ export default function MyInfo() {
         <p style={{ fontSize: 14, color: MUTED, margin: 0 }}>Personal information, bank details and scholarship records</p>
       </div>
 
-      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', minHeight: 520 }}>
-        <div style={{ width: 210, borderRight: '1px solid #e2e8f0', paddingTop: 8, paddingBottom: 8, flexShrink: 0 }}>
+      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: 520 }}>
+        <div style={{
+          width: isMobile ? '100%' : 210,
+          borderRight: isMobile ? 'none' : '1px solid #e2e8f0',
+          borderBottom: isMobile ? '1px solid #e2e8f0' : 'none',
+          padding: isMobile ? '8px 4px' : undefined,
+          paddingTop: isMobile ? undefined : 8,
+          paddingBottom: isMobile ? undefined : 8,
+          flexShrink: 0,
+          display: isMobile ? 'flex' : 'block',
+          flexDirection: isMobile ? 'row' : undefined,
+          flexWrap: isMobile ? 'wrap' : undefined,
+          overflowX: isMobile ? 'auto' : undefined,
+        }}>
           {NAV_ITEMS.map(item => (
-            <div key={item} style={navStyle(item)} onClick={() => setActive(item)}>
+            <div key={item} onClick={() => setActive(item)} style={{
+              ...navStyle(item),
+              padding: isMobile ? '6px 12px' : navStyle(item).padding,
+              fontSize: isMobile ? 12 : navStyle(item).fontSize,
+              borderLeft: isMobile ? 'none' : navStyle(item).borderLeft,
+              borderBottom: isMobile ? (active === item ? '2px solid #6366f1' : '2px solid transparent') : 'none',
+              borderRadius: isMobile ? 100 : 0,
+              whiteSpace: 'nowrap',
+            }}>
               {item}
             </div>
           ))}
         </div>
 
-        <div style={{ flex: 1, padding: 28, overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: isMobile ? '16px' : 28, overflowY: 'auto' }}>
           <div style={{ fontWeight: 700, fontSize: 17, color: TEXT, marginBottom: 20 }}>{active}</div>
           {contentMap[active]?.()}
         </div>

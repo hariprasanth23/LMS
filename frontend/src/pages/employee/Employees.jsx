@@ -69,6 +69,13 @@ export default function Employees() {
     designation: 'Professor', employeeType: 'FACULTY',
     department: '', joinDate: '', baseSalary: '', qualifications: ''
   })
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   const fetchEmployees = async () => {
     try {
@@ -195,7 +202,7 @@ export default function Employees() {
       </div>
 
       {/* Stats Bar */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }}>
         {[
           { label: 'Total', value: total, color: TEXT, bg: '#f8fafc', border: '#e2e8f0' },
           { label: 'Faculty', value: faculty, color: ACCENT, bg: '#eef2ff', border: '#c7d2fe' },
@@ -217,10 +224,11 @@ export default function Employees() {
       <div style={{
         background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
         padding: '14px 16px', marginBottom: 16,
-        display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end'
+        display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end',
+        flexDirection: isMobile ? 'column' : 'row'
       }}>
         {/* Search */}
-        <div style={{ flex: 2, minWidth: 200, position: 'relative' }}>
+        <div style={{ flex: 2, minWidth: 200, position: 'relative', width: isMobile ? '100%' : undefined }}>
           <MdSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: MUTED, fontSize: 17, pointerEvents: 'none' }} />
           <input
             type="text"
@@ -285,7 +293,7 @@ export default function Employees() {
           {search ? 'No employees match your search' : 'No employees found'}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 16 }}>
           {filtered.map(emp => {
             const tc = typeColors[emp.employeeType] || { bg: '#f8fafc', color: MUTED }
             const status = emp.status || 'ACTIVE'
@@ -388,8 +396,13 @@ export default function Employees() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1000, display: 'flex', justifyContent: 'flex-end' }}
           onClick={e => { if (e.target === e.currentTarget) setDetailEmp(null) }}>
           <div style={{
-            background: '#fff', width: 380, height: '100%', overflowY: 'auto',
-            boxShadow: '-4px 0 20px rgba(0,0,0,0.12)', padding: 28
+            background: '#fff',
+            width: isMobile ? '100%' : 380,
+            height: '100%', overflowY: 'auto',
+            boxShadow: '-4px 0 20px rgba(0,0,0,0.12)', padding: 28,
+            position: isMobile ? 'fixed' : 'relative',
+            inset: isMobile ? 0 : undefined,
+            zIndex: isMobile ? 100 : undefined
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
               <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TEXT }}>Employee Profile</h2>
@@ -466,7 +479,7 @@ export default function Employees() {
       {/* Add/Edit Modal */}
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#fff', borderRadius: 14, padding: 28, width: '100%', maxWidth: 540, maxHeight: '90vh', overflow: 'auto' }}>
+          <div style={{ background: '#fff', borderRadius: 14, padding: 28, width: '100%', maxWidth: isMobile ? '95vw' : 540, maxHeight: '90vh', overflow: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TEXT }}>
                 {editEmp ? 'Edit Employee' : 'Add Employee'}
@@ -476,7 +489,7 @@ export default function Employees() {
               </button>
             </div>
             <form onSubmit={handleSave}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
                 {[['Emp Code *', 'empCode', 'text'], ['Full Name *', 'name', 'text'], ['Email', 'email', 'email'], ['Phone', 'phone', 'tel'], ['Join Date', 'joinDate', 'date'], ['Base Salary', 'baseSalary', 'number']].map(([label, name, type]) => (
                   <div key={name}>
                     <label style={labelStyle}>{label}</label>
@@ -485,7 +498,7 @@ export default function Employees() {
                   </div>
                 ))}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14, marginTop: 14 }}>
                 <div>
                   <label style={labelStyle}>Designation</label>
                   <select value={form.designation} onChange={e => setForm({ ...form, designation: e.target.value })} style={{ ...inputStyle, cursor: 'pointer' }}>

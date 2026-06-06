@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -969,22 +969,53 @@ const tabComponents = {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function FacultyResearchGeneral() {
   const [activeTab, setActiveTab] = useState(navItems[0])
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   return (
     <div style={{ minHeight: '100vh', background: BG, fontFamily: 'system-ui, -apple-system, sans-serif', color: TEXT }}>
       {/* Header */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '22px 32px 18px' }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: TEXT }}>Research — General</h1>
+      <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: isMobile ? '16px 16px 14px' : '22px 32px 18px' }}>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 18 : 22, fontWeight: 800, color: TEXT }}>Research — General</h1>
         <p style={{ margin: '4px 0 0', fontSize: 14, color: MUTED }}>Manage scholars, research regulations, and academic approvals</p>
       </div>
 
       {/* Body */}
-      <div style={{ display: 'flex', margin: '24px 32px', gap: 0, ...card, overflow: 'hidden', minHeight: 600 }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', margin: isMobile ? '16px 12px' : '24px 32px', gap: 0, ...card, overflow: 'hidden', minHeight: 600 }}>
         {/* Left Nav */}
-        <nav style={{ width: 210, flexShrink: 0, borderRight: '1px solid #e2e8f0', padding: '12px 0' }}>
+        <nav style={isMobile ? {
+          borderBottom: '1px solid #e2e8f0', padding: '8px 12px',
+          display: 'flex', overflowX: 'auto', gap: 8, flexShrink: 0,
+        } : {
+          width: 210, flexShrink: 0, borderRight: '1px solid #e2e8f0', padding: '12px 0',
+        }}>
           {navItems.map((item) => {
             const isActive = activeTab === item
-            return (
+            return isMobile ? (
+              <button
+                key={item}
+                onClick={() => setActiveTab(item)}
+                style={{
+                  padding: '6px 14px',
+                  background: isActive ? '#eef2ff' : '#f1f5f9',
+                  color: isActive ? ACCENT : TEXT,
+                  border: isActive ? '1.5px solid #6366f1' : '1.5px solid transparent',
+                  borderRadius: 20,
+                  fontWeight: isActive ? 600 : 400,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  lineHeight: 1.4,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+              >
+                {item}
+              </button>
+            ) : (
               <button
                 key={item}
                 onClick={() => setActiveTab(item)}
@@ -1009,7 +1040,7 @@ export default function FacultyResearchGeneral() {
         </nav>
 
         {/* Content Area */}
-        <div style={{ flex: 1, padding: 28, overflowX: 'auto' }}>
+        <div style={{ flex: 1, padding: isMobile ? 14 : 28, overflowX: 'auto' }}>
           {tabComponents[activeTab]}
         </div>
       </div>

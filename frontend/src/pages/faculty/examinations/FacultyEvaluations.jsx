@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -364,7 +364,8 @@ function ArrearGradesSection() {
       )}
       <div style={{ ...card, overflow: 'hidden', marginBottom: 20 }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: 600, fontSize: 15, color: TEXT }}>Arrear Exam Grades</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
           <thead>
             <tr>{['Student', 'Course', 'Attempt', 'Marks', 'Calculated Grade', 'Override', 'Justification'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
           </thead>
@@ -401,6 +402,7 @@ function ArrearGradesSection() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
       <button onClick={() => setFinalized(true)} style={{ background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 28px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
         Finalize Arrear Grades
@@ -412,29 +414,51 @@ function ArrearGradesSection() {
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function FacultyEvaluations() {
   const [activeNav, setActiveNav] = useState('Mark Entry')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: 32 }}>
+    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: isMobile ? 16 : 32 }}>
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: TEXT }}>Examinations — Evaluations</h1>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 26, fontWeight: 700, color: TEXT }}>Examinations — Evaluations</h1>
         <p style={{ margin: '6px 0 0', color: MUTED, fontSize: 15 }}>Enter and manage marks for all exam types</p>
       </div>
 
-      <div style={{ ...card, display: 'flex', overflow: 'hidden' }}>
-        <div style={{ width: 210, borderRight: '1px solid #f1f5f9', padding: '16px 0', flexShrink: 0 }}>
+      <div style={{ ...card, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
+        <div style={isMobile ? {
+          borderBottom: '1px solid #f1f5f9', padding: '8px 12px',
+          display: 'flex', overflowX: 'auto', gap: 8, flexShrink: 0,
+        } : {
+          width: 210, borderRight: '1px solid #f1f5f9', padding: '16px 0', flexShrink: 0,
+        }}>
           {navItems.map(item => (
-            <button key={item} onClick={() => setActiveNav(item)}
-              style={{
-                display: 'block', width: '100%', padding: '11px 20px',
-                background: activeNav === item ? '#eef2ff' : 'transparent',
-                border: 'none', borderLeft: activeNav === item ? '3px solid #6366f1' : '3px solid transparent',
-                textAlign: 'left', fontSize: 14, fontWeight: activeNav === item ? 600 : 400,
-                color: activeNav === item ? ACCENT : TEXT, cursor: 'pointer',
-              }}
-            >{item}</button>
+            isMobile ? (
+              <button key={item} onClick={() => setActiveNav(item)}
+                style={{
+                  padding: '6px 14px', background: activeNav === item ? '#eef2ff' : '#f1f5f9',
+                  border: activeNav === item ? '1.5px solid #6366f1' : '1.5px solid transparent',
+                  borderRadius: 20, fontSize: 12, fontWeight: activeNav === item ? 600 : 400,
+                  color: activeNav === item ? ACCENT : TEXT, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                }}
+              >{item}</button>
+            ) : (
+              <button key={item} onClick={() => setActiveNav(item)}
+                style={{
+                  display: 'block', width: '100%', padding: '11px 20px',
+                  background: activeNav === item ? '#eef2ff' : 'transparent',
+                  border: 'none', borderLeft: activeNav === item ? '3px solid #6366f1' : '3px solid transparent',
+                  textAlign: 'left', fontSize: 14, fontWeight: activeNav === item ? 600 : 400,
+                  color: activeNav === item ? ACCENT : TEXT, cursor: 'pointer',
+                }}
+              >{item}</button>
+            )
           ))}
         </div>
-        <div style={{ flex: 1, padding: 28, minWidth: 0 }}>
+        <div style={{ flex: 1, padding: isMobile ? 14 : 28, minWidth: 0 }}>
           {activeNav === 'Mark Entry' && <MarkEntrySection />}
           {activeNav === 'Arrear Mark Entry' && <ArrearMarkEntrySection />}
           {activeNav === 'Arrear Rev Mark Entry' && <ArrearRevMarkEntry />}

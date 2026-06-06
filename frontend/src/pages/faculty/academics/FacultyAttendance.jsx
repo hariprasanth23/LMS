@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -88,38 +88,40 @@ function Roster() {
         {course} · {section} · {filtered.length} students
       </div>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
-        <thead>
-          <tr style={{ background: '#f8fafc' }}>
-            {['#', 'Roll No', 'Name', 'Registration Date', 'Status'].map(h => (
-              <th key={h} style={{ padding: '9px 12px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map((s, i) => {
-            const initials = s.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-            const color = avatarColors[i % avatarColors.length]
-            const [sbg, scl] = statusColor[s.status] || ['#f1f5f9', MUTED]
-            return (
-              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '9px 12px', color: MUTED, fontSize: 12 }}>{i + 1}</td>
-                <td style={{ padding: '9px 12px', color: ACCENT, fontWeight: 700 }}>{s.rollNo}</td>
-                <td style={{ padding: '9px 12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: color + '22', color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>{initials}</div>
-                    <span style={{ color: TEXT, fontWeight: 600 }}>{s.name}</span>
-                  </div>
-                </td>
-                <td style={{ padding: '9px 12px', color: MUTED }}>{s.registered}</td>
-                <td style={{ padding: '9px 12px' }}>
-                  <span style={{ background: sbg, color: scl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{s.status}</span>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
+          <thead>
+            <tr style={{ background: '#f8fafc' }}>
+              {['#', 'Roll No', 'Name', 'Registration Date', 'Status'].map(h => (
+                <th key={h} style={{ padding: '9px 12px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((s, i) => {
+              const initials = s.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+              const color = avatarColors[i % avatarColors.length]
+              const [sbg, scl] = statusColor[s.status] || ['#f1f5f9', MUTED]
+              return (
+                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '9px 12px', color: MUTED, fontSize: 12 }}>{i + 1}</td>
+                  <td style={{ padding: '9px 12px', color: ACCENT, fontWeight: 700 }}>{s.rollNo}</td>
+                  <td style={{ padding: '9px 12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: color + '22', color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>{initials}</div>
+                      <span style={{ color: TEXT, fontWeight: 600 }}>{s.name}</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: '9px 12px', color: MUTED }}>{s.registered}</td>
+                  <td style={{ padding: '9px 12px' }}>
+                    <span style={{ background: sbg, color: scl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{s.status}</span>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -196,45 +198,47 @@ function AttendanceReport() {
         </div>
       )}
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
-        <thead>
-          <tr style={{ background: '#f8fafc' }}>
-            {['Roll No', 'Student Name', 'Total Classes', 'Present', 'Absent', 'Percentage', 'Status', 'Warning'].map(h => (
-              <th key={h} style={{ padding: '9px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {withPct.map((s, i) => {
-            const [label, sbg, scl] = statusInfo(s.pct)
-            const isDefaulter = s.pct < 75
-            return (
-              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: isDefaulter ? '#fff8f8' : 'transparent' }}>
-                <td style={{ padding: '9px 10px', color: ACCENT, fontWeight: 700 }}>{s.rollNo}</td>
-                <td style={{ padding: '9px 10px', color: isDefaulter ? '#dc2626' : TEXT, fontWeight: 600 }}>{s.name}</td>
-                <td style={{ padding: '9px 10px', color: MUTED, textAlign: 'center' }}>{s.total}</td>
-                <td style={{ padding: '9px 10px', color: '#15803d', fontWeight: 600, textAlign: 'center' }}>{s.present}</td>
-                <td style={{ padding: '9px 10px', color: s.absent > 10 ? '#dc2626' : MUTED, fontWeight: s.absent > 10 ? 700 : 400, textAlign: 'center' }}>{s.absent}</td>
-                <td style={{ padding: '9px 10px', fontWeight: 800, color: isDefaulter ? '#dc2626' : TEXT }}>{s.pct}%</td>
-                <td style={{ padding: '9px 10px' }}>
-                  <span style={{ background: sbg, color: scl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{label}</span>
-                </td>
-                <td style={{ padding: '9px 10px' }}>
-                  {isDefaulter && (
-                    <button
-                      onClick={() => setWarnSent(prev => ({ ...prev, [s.rollNo]: true }))}
-                      disabled={!!warnSent[s.rollNo]}
-                      style={{ background: warnSent[s.rollNo] ? '#f1f5f9' : '#fee2e2', color: warnSent[s.rollNo] ? MUTED : '#dc2626', border: 'none', borderRadius: 7, padding: '4px 10px', fontSize: 11, fontFamily: 'system-ui', cursor: warnSent[s.rollNo] ? 'not-allowed' : 'pointer', fontWeight: 700 }}
-                    >
-                      {warnSent[s.rollNo] ? 'Email Sent' : 'Send Warning'}
-                    </button>
-                  )}
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
+          <thead>
+            <tr style={{ background: '#f8fafc' }}>
+              {['Roll No', 'Student Name', 'Total Classes', 'Present', 'Absent', 'Percentage', 'Status', 'Warning'].map(h => (
+                <th key={h} style={{ padding: '9px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {withPct.map((s, i) => {
+              const [label, sbg, scl] = statusInfo(s.pct)
+              const isDefaulter = s.pct < 75
+              return (
+                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: isDefaulter ? '#fff8f8' : 'transparent' }}>
+                  <td style={{ padding: '9px 10px', color: ACCENT, fontWeight: 700 }}>{s.rollNo}</td>
+                  <td style={{ padding: '9px 10px', color: isDefaulter ? '#dc2626' : TEXT, fontWeight: 600 }}>{s.name}</td>
+                  <td style={{ padding: '9px 10px', color: MUTED, textAlign: 'center' }}>{s.total}</td>
+                  <td style={{ padding: '9px 10px', color: '#15803d', fontWeight: 600, textAlign: 'center' }}>{s.present}</td>
+                  <td style={{ padding: '9px 10px', color: s.absent > 10 ? '#dc2626' : MUTED, fontWeight: s.absent > 10 ? 700 : 400, textAlign: 'center' }}>{s.absent}</td>
+                  <td style={{ padding: '9px 10px', fontWeight: 800, color: isDefaulter ? '#dc2626' : TEXT }}>{s.pct}%</td>
+                  <td style={{ padding: '9px 10px' }}>
+                    <span style={{ background: sbg, color: scl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{label}</span>
+                  </td>
+                  <td style={{ padding: '9px 10px' }}>
+                    {isDefaulter && (
+                      <button
+                        onClick={() => setWarnSent(prev => ({ ...prev, [s.rollNo]: true }))}
+                        disabled={!!warnSent[s.rollNo]}
+                        style={{ background: warnSent[s.rollNo] ? '#f1f5f9' : '#fee2e2', color: warnSent[s.rollNo] ? MUTED : '#dc2626', border: 'none', borderRadius: 7, padding: '4px 10px', fontSize: 11, fontFamily: 'system-ui', cursor: warnSent[s.rollNo] ? 'not-allowed' : 'pointer', fontWeight: 700 }}
+                      >
+                        {warnSent[s.rollNo] ? 'Email Sent' : 'Send Warning'}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
 
       <div style={{ marginTop: 14, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
         {[
@@ -362,37 +366,39 @@ function BiometricSearchByVenue() {
               No biometric records found for the selected criteria.
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc' }}>
-                  {['Faculty Name', 'Designation', 'Dept', 'Entry Time', 'Exit Time', 'Duration', 'Class / Purpose'].map(h => (
-                    <th key={h} style={{ padding: '9px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((r, i) => {
-                  const duration = getDuration(r.entry, r.exit)
-                  const [dh] = duration.split('h')
-                  const isShort = !duration.includes('h') || parseInt(dh) < 1
-                  return (
-                    <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '9px 10px', color: TEXT, fontWeight: 700 }}>{r.faculty}</td>
-                      <td style={{ padding: '9px 10px', color: MUTED, fontSize: 12 }}>{r.designation}</td>
-                      <td style={{ padding: '9px 10px' }}>
-                        <span style={{ background: '#eef2ff', color: ACCENT, fontSize: 11, borderRadius: 7, padding: '2px 7px', fontWeight: 700 }}>{r.dept}</span>
-                      </td>
-                      <td style={{ padding: '9px 10px', color: '#15803d', fontWeight: 700 }}>{r.entry}</td>
-                      <td style={{ padding: '9px 10px', color: '#dc2626', fontWeight: 700 }}>{r.exit}</td>
-                      <td style={{ padding: '9px 10px' }}>
-                        <span style={{ background: isShort ? '#fef3c7' : '#dcfce7', color: isShort ? '#b45309' : '#15803d', fontSize: 12, borderRadius: 8, padding: '2px 9px', fontWeight: 700 }}>{duration}</span>
-                      </td>
-                      <td style={{ padding: '9px 10px', color: MUTED, fontSize: 12 }}>{r.purpose}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    {['Faculty Name', 'Designation', 'Dept', 'Entry Time', 'Exit Time', 'Duration', 'Class / Purpose'].map(h => (
+                      <th key={h} style={{ padding: '9px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.map((r, i) => {
+                    const duration = getDuration(r.entry, r.exit)
+                    const [dh] = duration.split('h')
+                    const isShort = !duration.includes('h') || parseInt(dh) < 1
+                    return (
+                      <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '9px 10px', color: TEXT, fontWeight: 700 }}>{r.faculty}</td>
+                        <td style={{ padding: '9px 10px', color: MUTED, fontSize: 12 }}>{r.designation}</td>
+                        <td style={{ padding: '9px 10px' }}>
+                          <span style={{ background: '#eef2ff', color: ACCENT, fontSize: 11, borderRadius: 7, padding: '2px 7px', fontWeight: 700 }}>{r.dept}</span>
+                        </td>
+                        <td style={{ padding: '9px 10px', color: '#15803d', fontWeight: 700 }}>{r.entry}</td>
+                        <td style={{ padding: '9px 10px', color: '#dc2626', fontWeight: 700 }}>{r.exit}</td>
+                        <td style={{ padding: '9px 10px' }}>
+                          <span style={{ background: isShort ? '#fef3c7' : '#dcfce7', color: isShort ? '#b45309' : '#15803d', fontSize: 12, borderRadius: 8, padding: '2px 9px', fontWeight: 700 }}>{duration}</span>
+                        </td>
+                        <td style={{ padding: '9px 10px', color: MUTED, fontSize: 12 }}>{r.purpose}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
 
           <div style={{ marginTop: 14, fontSize: 12, color: MUTED, fontFamily: 'system-ui', background: '#f8fafc', borderRadius: 8, padding: '8px 14px' }}>
@@ -408,33 +414,61 @@ const CONTENT_MAP = [Roster, AttendanceReport, BiometricSearchByVenue]
 
 export default function FacultyAttendance() {
   const [active, setActive] = useState(0)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
   const ActiveComponent = CONTENT_MAP[active]
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100%', padding: 1 }}>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: TEXT, fontFamily: 'system-ui' }}>Academics — Attendance</h1>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 18 : 22, fontWeight: 700, color: TEXT, fontFamily: 'system-ui' }}>Academics — Attendance</h1>
         <p style={{ margin: '4px 0 0', fontSize: 13, color: MUTED, fontFamily: 'system-ui' }}>Roster, attendance reports and biometric venue verification</p>
       </div>
-      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', minHeight: 520 }}>
-        <div style={{ width: 210, borderRight: '1px solid #e2e8f0', padding: '12px 0', flexShrink: 0 }}>
+      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: 520 }}>
+        <div style={isMobile ? {
+          borderBottom: '1px solid #e2e8f0', padding: '8px 12px',
+          display: 'flex', overflowX: 'auto', gap: 8, flexShrink: 0,
+        } : {
+          width: 210, borderRight: '1px solid #e2e8f0', padding: '12px 0', flexShrink: 0,
+        }}>
           {ITEMS.map((item, i) => (
-            <div
-              key={i}
-              onClick={() => setActive(i)}
-              style={{
-                padding: '9px 16px', cursor: 'pointer', fontSize: 13,
-                fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569',
-                background: active === i ? '#eef2ff' : 'transparent',
-                borderLeft: active === i ? '3px solid #6366f1' : '3px solid transparent',
-                fontWeight: active === i ? 600 : 400,
-              }}
-            >
-              {item}
-            </div>
+            isMobile ? (
+              <div
+                key={i}
+                onClick={() => setActive(i)}
+                style={{
+                  padding: '6px 14px', cursor: 'pointer', fontSize: 12,
+                  fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569',
+                  background: active === i ? '#eef2ff' : '#f1f5f9',
+                  border: active === i ? '1.5px solid #6366f1' : '1.5px solid transparent',
+                  borderRadius: 20, fontWeight: active === i ? 600 : 400,
+                  whiteSpace: 'nowrap', flexShrink: 0,
+                }}
+              >
+                {item}
+              </div>
+            ) : (
+              <div
+                key={i}
+                onClick={() => setActive(i)}
+                style={{
+                  padding: '9px 16px', cursor: 'pointer', fontSize: 13,
+                  fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569',
+                  background: active === i ? '#eef2ff' : 'transparent',
+                  borderLeft: active === i ? '3px solid #6366f1' : '3px solid transparent',
+                  fontWeight: active === i ? 600 : 400,
+                }}
+              >
+                {item}
+              </div>
+            )
           ))}
         </div>
-        <div style={{ flex: 1, padding: 28, overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: isMobile ? 14 : 28, overflowY: 'auto' }}>
           <ActiveComponent />
         </div>
       </div>

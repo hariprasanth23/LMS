@@ -52,6 +52,13 @@ export default function Students() {
   const [submitting, setSubmitting] = useState(false)
   const [page, setPage] = useState(1)
   const searchRef = useRef(null)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   const fetchStudents = async () => {
     try {
@@ -199,9 +206,9 @@ export default function Students() {
       />
 
       {/* Search + filters row */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
         {/* Search bar */}
-        <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: 220, width: isMobile ? '100%' : undefined }}>
           <MdSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: MUTED, fontSize: 18, pointerEvents: 'none' }} />
           <input
             ref={searchRef}
@@ -291,79 +298,81 @@ export default function Students() {
           </div>
         ) : (
           <>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead>
-                <tr style={{ background: '#f8fafc' }}>
-                  {['#', 'Student', 'Email', 'Phone', 'Sem', 'Status', ''].map((h, i) => (
-                    <th key={i} style={{
-                      padding: '11px 16px', textAlign: 'left', color: MUTED,
-                      fontWeight: 700, fontSize: 11, borderBottom: '1px solid #f1f5f9',
-                      letterSpacing: 0.5, textTransform: 'uppercase'
-                    }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {paginated.map((s, idx) => {
-                  const globalIdx = (safePage - 1) * PAGE_SIZE + idx
-                  return (
-                    <tr
-                      key={s.id}
-                      style={{ borderBottom: '1px solid #f8fafc', transition: 'background 0.1s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#f8f9ff'}
-                      onMouseLeave={e => e.currentTarget.style.background = ''}
-                    >
-                      <td style={{ padding: '12px 16px', color: MUTED, fontWeight: 600, fontSize: 12 }}>
-                        {s.rollNumber}
-                      </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <AvatarCircle name={s.name} index={globalIdx} />
-                          <div>
-                            <div style={{ fontWeight: 600, color: TEXT }}>{s.name}</div>
-                            {s.section && <div style={{ fontSize: 11, color: MUTED }}>Section {s.section}</div>}
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 700 }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    {['#', 'Student', 'Email', 'Phone', 'Sem', 'Status', ''].map((h, i) => (
+                      <th key={i} style={{
+                        padding: '11px 16px', textAlign: 'left', color: MUTED,
+                        fontWeight: 700, fontSize: 11, borderBottom: '1px solid #f1f5f9',
+                        letterSpacing: 0.5, textTransform: 'uppercase'
+                      }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginated.map((s, idx) => {
+                    const globalIdx = (safePage - 1) * PAGE_SIZE + idx
+                    return (
+                      <tr
+                        key={s.id}
+                        style={{ borderBottom: '1px solid #f8fafc', transition: 'background 0.1s' }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#f8f9ff'}
+                        onMouseLeave={e => e.currentTarget.style.background = ''}
+                      >
+                        <td style={{ padding: '12px 16px', color: MUTED, fontWeight: 600, fontSize: 12 }}>
+                          {s.rollNumber}
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <AvatarCircle name={s.name} index={globalIdx} />
+                            <div>
+                              <div style={{ fontWeight: 600, color: TEXT }}>{s.name}</div>
+                              {s.section && <div style={{ fontSize: 11, color: MUTED }}>Section {s.section}</div>}
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td style={{ padding: '12px 16px', color: MUTED }}>{s.email || '—'}</td>
-                      <td style={{ padding: '12px 16px', color: MUTED }}>{s.phone || '—'}</td>
-                      <td style={{ padding: '12px 16px', color: MUTED }}>{s.semester ? `Sem ${s.semester}` : '—'}</td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{
-                          padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-                          background: (s.status === 'ACTIVE' || !s.status) ? '#f0fdf4' : '#f8fafc',
-                          color: (s.status === 'ACTIVE' || !s.status) ? '#10b981' : MUTED
-                        }}>
-                          {s.status || 'ACTIVE'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                          <Link to={`/students/${s.id}`} style={{
-                            color: ACCENT, fontSize: 12, fontWeight: 600, textDecoration: 'none',
-                            padding: '4px 10px', borderRadius: 6, background: '#eef2ff'
+                        </td>
+                        <td style={{ padding: '12px 16px', color: MUTED }}>{s.email || '—'}</td>
+                        <td style={{ padding: '12px 16px', color: MUTED }}>{s.phone || '—'}</td>
+                        <td style={{ padding: '12px 16px', color: MUTED }}>{s.semester ? `Sem ${s.semester}` : '—'}</td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span style={{
+                            padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+                            background: (s.status === 'ACTIVE' || !s.status) ? '#f0fdf4' : '#f8fafc',
+                            color: (s.status === 'ACTIVE' || !s.status) ? '#10b981' : MUTED
                           }}>
-                            View
-                          </Link>
-                          {user?.role === 'ADMIN' && (
-                            <button
-                              onClick={() => openEdit(s)}
-                              style={{
-                                display: 'flex', alignItems: 'center', gap: 4,
-                                color: MUTED, fontSize: 12, fontWeight: 600, background: '#f8fafc',
-                                border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer'
-                              }}
-                            >
-                              <MdEdit size={13} /> Edit
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                            {s.status || 'ACTIVE'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <Link to={`/students/${s.id}`} style={{
+                              color: ACCENT, fontSize: 12, fontWeight: 600, textDecoration: 'none',
+                              padding: '4px 10px', borderRadius: 6, background: '#eef2ff'
+                            }}>
+                              View
+                            </Link>
+                            {user?.role === 'ADMIN' && (
+                              <button
+                                onClick={() => openEdit(s)}
+                                style={{
+                                  display: 'flex', alignItems: 'center', gap: 4,
+                                  color: MUTED, fontSize: 12, fontWeight: 600, background: '#f8fafc',
+                                  border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer'
+                                }}
+                              >
+                                <MdEdit size={13} /> Edit
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
 
             {/* Pagination */}
             <div style={{
@@ -444,7 +453,7 @@ export default function Students() {
         >
           <div style={{
             background: '#fff', borderRadius: 16, padding: 28,
-            width: '100%', maxWidth: 500, maxHeight: '92vh',
+            width: '100%', maxWidth: isMobile ? '95vw' : 500, maxHeight: '92vh',
             overflow: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.18)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
@@ -460,7 +469,7 @@ export default function Students() {
             </div>
 
             <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '14px' }}>
                 {[
                   ['Roll Number *', 'rollNumber', 'text', '2'],
                   ['Full Name *', 'name', 'text', '2'],
@@ -469,7 +478,7 @@ export default function Students() {
                   ['Semester', 'semester', 'number', '1'],
                   ['Section', 'section', 'text', '1'],
                 ].map(([label, name, type, span]) => (
-                  <div key={name} style={{ gridColumn: `span ${span}` }}>
+                  <div key={name} style={{ gridColumn: isMobile ? 'span 1' : `span ${span}` }}>
                     <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 5 }}>{label}</label>
                     <input
                       type={type}

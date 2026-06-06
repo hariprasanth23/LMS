@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -341,7 +341,8 @@ function AdditionalLearningSection() {
         <span style={{ fontSize: 13, color: MUTED }}>Total Credits Earned: <strong style={{ color: ACCENT }}>{total}</strong></span>
         <button style={{ padding: '7px 14px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>+ Add Activity</button>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui, -apple-system, sans-serif', minWidth: 400 }}>
         <thead>
           <tr>{['Activity', 'Provider', 'Date Completed', 'Credits Earned'].map(h => <Th key={h}>{h}</Th>)}</tr>
         </thead>
@@ -356,6 +357,7 @@ function AdditionalLearningSection() {
           ))}
         </tbody>
       </table>
+      </div>
     </SectionCard>
   )
 }
@@ -384,7 +386,8 @@ function MOOCUploadSection() {
         <button style={{ padding: '8px 20px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Upload Certificate</button>
       </div>
       <div style={{ padding: '12px 20px 4px', fontSize: 13, fontWeight: 700, color: TEXT }}>Uploaded MOOCs</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui, -apple-system, sans-serif', minWidth: 500 }}>
         <thead>
           <tr>{['Course Name', 'Platform', 'Duration', 'Completion Date', 'Verification Status'].map(h => <Th key={h}>{h}</Th>)}</tr>
         </thead>
@@ -400,6 +403,7 @@ function MOOCUploadSection() {
           ))}
         </tbody>
       </table>
+      </div>
     </SectionCard>
   )
 }
@@ -433,7 +437,8 @@ function ProjectUploadSection() {
         <button style={{ padding: '8px 20px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Upload File</button>
       </div>
       <div style={{ padding: '12px 20px 4px', fontSize: 13, fontWeight: 700, color: TEXT }}>Uploaded Files</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 400 }}>
         <thead>
           <tr>{['Project Title', 'Phase', 'Document Type', 'Uploaded At'].map(h => <Th key={h}>{h}</Th>)}</tr>
         </thead>
@@ -448,6 +453,7 @@ function ProjectUploadSection() {
           ))}
         </tbody>
       </table>
+      </div>
     </SectionCard>
   )
 }
@@ -480,7 +486,8 @@ function ECAUploadSection() {
         </div>
         <button style={{ padding: '8px 20px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Upload</button>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 500 }}>
         <thead>
           <tr>{['Activity', 'Category', 'Event Date', 'Achievement', 'Status'].map(h => <Th key={h}>{h}</Th>)}</tr>
         </thead>
@@ -496,6 +503,7 @@ function ECAUploadSection() {
           ))}
         </tbody>
       </table>
+      </div>
     </SectionCard>
   )
 }
@@ -578,7 +586,8 @@ function ReExamSection() {
       {applications.length > 0 && (
         <>
           <div style={{ padding: '12px 20px 4px', fontSize: 13, fontWeight: 700, color: TEXT }}>Existing Applications</div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 400 }}>
             <thead>
               <tr>{['Course', 'Exam Type', 'Fee', 'Status'].map(h => <Th key={h}>{h}</Th>)}</tr>
             </thead>
@@ -593,6 +602,7 @@ function ReExamSection() {
               ))}
             </tbody>
           </table>
+          </div>
         </>
       )}
     </SectionCard>
@@ -689,7 +699,14 @@ const sectionComponents = {
 
 export default function ExamGeneral() {
   const [active, setActive] = useState('Exam Schedule')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
   const ActiveSection = sectionComponents[active]
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: TEXT }}>
@@ -700,9 +717,19 @@ export default function ExamGeneral() {
       </div>
 
       {/* Card with left nav + content */}
-      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', minHeight: 500 }}>
+      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: 500 }}>
         {/* Left nav */}
-        <div style={{ width: 210, borderRight: '1px solid #e2e8f0', padding: '12px 0', flexShrink: 0 }}>
+        <div style={{
+          width: isMobile ? '100%' : 210,
+          borderRight: isMobile ? 'none' : '1px solid #e2e8f0',
+          borderBottom: isMobile ? '1px solid #e2e8f0' : 'none',
+          padding: isMobile ? '8px 4px' : '12px 0',
+          flexShrink: 0,
+          display: isMobile ? 'flex' : 'block',
+          flexDirection: isMobile ? 'row' : undefined,
+          flexWrap: isMobile ? 'wrap' : undefined,
+          overflowX: isMobile ? 'auto' : undefined,
+        }}>
           {navItems.map(item => {
             const isActive = active === item
             return (
@@ -710,17 +737,23 @@ export default function ExamGeneral() {
                 key={item}
                 onClick={() => setActive(item)}
                 style={{
-                  display: 'block', width: '100%', textAlign: 'left',
-                  padding: '10px 18px',
+                  display: isMobile ? 'inline-block' : 'block',
+                  width: isMobile ? 'auto' : '100%',
+                  textAlign: 'left',
+                  padding: isMobile ? '6px 12px' : '10px 18px',
                   background: isActive ? '#eef2ff' : 'transparent',
                   color: isActive ? ACCENT : TEXT,
-                  borderLeft: isActive ? '3px solid #6366f1' : '3px solid transparent',
+                  borderLeft: isMobile ? 'none' : (isActive ? `3px solid ${ACCENT}` : '3px solid transparent'),
+                  borderBottom: isMobile ? (isActive ? '2px solid #6366f1' : '2px solid transparent') : 'none',
+                  borderRadius: isMobile ? 100 : 0,
                   fontWeight: isActive ? 600 : 400,
-                  fontSize: 13,
-                  border: 'none',
-                  borderLeft: isActive ? `3px solid ${ACCENT}` : '3px solid transparent',
+                  fontSize: isMobile ? 12 : 13,
+                  border: isMobile ? 'none' : undefined,
                   cursor: 'pointer',
                   lineHeight: 1.4,
+                  whiteSpace: 'nowrap',
+                  borderBottom: isMobile ? (isActive ? '2px solid #6366f1' : '2px solid transparent') : 'none',
+                  borderLeft: isMobile ? 'none' : (isActive ? `3px solid ${ACCENT}` : '3px solid transparent'),
                 }}
               >
                 {item}
@@ -730,7 +763,7 @@ export default function ExamGeneral() {
         </div>
 
         {/* Content area */}
-        <div style={{ flex: 1, padding: 28, background: BG, overflowX: 'auto' }}>
+        <div style={{ flex: 1, padding: isMobile ? '16px' : 28, background: BG, overflowX: 'auto' }}>
           {ActiveSection ? <ActiveSection /> : null}
         </div>
       </div>

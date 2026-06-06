@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -97,7 +97,7 @@ function MyResearchProfile() {
           </div>
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 16 }}>
         {stats.map(s => (
           <div key={s.label} style={{ ...card, padding: 20, textAlign: 'center' }}>
             <div style={{ fontSize: 28, fontWeight: 700, color: s.color }}>{s.value}</div>
@@ -143,7 +143,8 @@ function CourseWorkRegistration() {
       )}
       <div style={{ ...card, padding: 24, marginBottom: 20 }}>
         <h3 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: TEXT }}>Available Courses</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 500 }}>
           <thead>
             <tr style={{ background: '#f8fafc' }}>
               {['', 'Course Code', 'Course Name', 'Credits', 'Instructor', 'Schedule'].map(h => (
@@ -166,6 +167,7 @@ function CourseWorkRegistration() {
             ))}
           </tbody>
         </table>
+        </div>
         <button
           onClick={handleRegister}
           disabled={!Object.values(selected).some(Boolean)}
@@ -176,7 +178,8 @@ function CourseWorkRegistration() {
       </div>
       <div style={{ ...card, padding: 24 }}>
         <h3 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: TEXT }}>Already Registered Courses</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 500 }}>
           <thead>
             <tr style={{ background: '#f8fafc' }}>
               {['Course Code', 'Course Name', 'Credits', 'Instructor', 'Grade'].map(h => (
@@ -198,6 +201,7 @@ function CourseWorkRegistration() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -285,7 +289,8 @@ function MeetingInfo() {
       </div>
       <h3 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 700, color: TEXT }}>Past Meetings Log</h3>
       <div style={{ ...card, padding: 20 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 400 }}>
           <thead>
             <tr style={{ background: '#f8fafc' }}>
               {['Type', 'Date', 'Duration', 'Minutes'].map(h => (
@@ -310,6 +315,7 @@ function MeetingInfo() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -395,7 +401,8 @@ function ResearchLetters() {
       <h2 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700, color: TEXT }}>Research Letters</h2>
       <div style={{ ...card, padding: 24, marginBottom: 20 }}>
         <h3 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: TEXT }}>Issued Letters</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 500 }}>
           <thead>
             <tr style={{ background: '#f8fafc' }}>
               {['Letter Type', 'Date', 'Purpose', 'Validity', 'Download'].map(h => (
@@ -417,6 +424,7 @@ function ResearchLetters() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
       <div style={{ ...card, padding: 24 }}>
         <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 700, color: TEXT }}>Request New Letter</h3>
@@ -570,7 +578,8 @@ function ResearchDocumentUpload() {
       </div>
       <div style={{ ...card, padding: 24 }}>
         <h3 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: TEXT }}>Uploaded Documents</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 400 }}>
           <thead>
             <tr style={{ background: '#f8fafc' }}>
               {['Type', 'Description', 'Date', 'File'].map(h => (
@@ -591,6 +600,7 @@ function ResearchDocumentUpload() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -768,7 +778,14 @@ const contentMap = {
 
 export default function ResearchGeneral() {
   const [activeNav, setActiveNav] = useState('Research Regulations')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
   const ActiveComponent = contentMap[activeNav] || (() => <div style={{ color: MUTED }}>Coming soon.</div>)
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: 32 }}>
@@ -779,26 +796,39 @@ export default function ResearchGeneral() {
       </div>
 
       {/* Card: left nav + content */}
-      <div style={{ ...card, display: 'flex', overflow: 'hidden' }}>
+      <div style={{ ...card, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
         {/* Left Nav */}
-        <div style={{ width: 210, borderRight: '1px solid #f1f5f9', padding: '16px 0', flexShrink: 0 }}>
+        <div style={{
+          width: isMobile ? '100%' : 210,
+          borderRight: isMobile ? 'none' : '1px solid #f1f5f9',
+          borderBottom: isMobile ? '1px solid #e2e8f0' : 'none',
+          padding: isMobile ? '8px 4px' : '16px 0',
+          flexShrink: 0,
+          display: isMobile ? 'flex' : 'block',
+          flexDirection: isMobile ? 'row' : undefined,
+          flexWrap: isMobile ? 'wrap' : undefined,
+          overflowX: isMobile ? 'auto' : undefined,
+        }}>
           {navItems.map(item => (
             <button
               key={item}
               onClick={() => setActiveNav(item)}
               style={{
-                display: 'block',
-                width: '100%',
-                padding: '10px 20px',
+                display: isMobile ? 'inline-block' : 'block',
+                width: isMobile ? 'auto' : '100%',
+                padding: isMobile ? '6px 12px' : '10px 20px',
                 background: activeNav === item ? '#eef2ff' : 'transparent',
                 border: 'none',
-                borderLeft: activeNav === item ? '3px solid #6366f1' : '3px solid transparent',
+                borderLeft: isMobile ? 'none' : (activeNav === item ? '3px solid #6366f1' : '3px solid transparent'),
+                borderBottom: isMobile ? (activeNav === item ? '2px solid #6366f1' : '2px solid transparent') : 'none',
+                borderRadius: isMobile ? 100 : 0,
                 textAlign: 'left',
-                fontSize: 13,
+                fontSize: isMobile ? 12 : 13,
                 fontWeight: activeNav === item ? 600 : 400,
                 color: activeNav === item ? ACCENT : TEXT,
                 cursor: 'pointer',
                 lineHeight: 1.4,
+                whiteSpace: 'nowrap',
               }}
             >
               {item}
@@ -807,7 +837,7 @@ export default function ResearchGeneral() {
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, padding: 28, minWidth: 0, overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: isMobile ? '16px' : 28, minWidth: 0, overflowY: 'auto' }}>
           <ActiveComponent />
         </div>
       </div>

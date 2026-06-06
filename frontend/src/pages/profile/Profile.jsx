@@ -222,6 +222,13 @@ export default function Profile() {
   const [showPwForm, setShowPwForm] = useState(false)
   const [showPw, setShowPw]         = useState({ cur: false, new: false, con: false })
   const [pwForm, setPwForm]         = useState({ current: '', newPw: '', confirm: '' })
+  const [isMobile, setIsMobile]     = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   /* personal form state */
   const [pf, setPf] = useState({
@@ -339,7 +346,7 @@ export default function Profile() {
         <div style={{ height: 120, background: rc.grad, position: 'relative' }} />
 
         {/* Content row */}
-        <div style={{ padding: '0 28px 24px', display: 'flex', alignItems: 'flex-start', gap: 22, flexWrap: 'wrap' }}>
+        <div style={{ padding: '0 28px 24px', display: 'flex', alignItems: 'flex-start', gap: 22, flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
           {/* Avatar */}
           <div style={{
             width: 80, height: 80, borderRadius: '50%',
@@ -394,7 +401,7 @@ export default function Profile() {
       <div style={{ ...card, marginBottom: 20, overflow: 'hidden' }}>
         <div style={{
           display: 'flex', borderBottom: `1px solid ${BORDER}`,
-          overflowX: 'auto', padding: '0 12px',
+          overflowX: 'auto', padding: '0 12px', flexWrap: 'nowrap',
         }}>
           {tabs.map((t, i) => (
             <TabBtn
@@ -431,7 +438,7 @@ export default function Profile() {
 
             {/* Basic identity */}
             <SectionTitle title="Basic Identity" sub="Your core profile details" />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 18, marginBottom: 28 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(220px,1fr))', gap: 18, marginBottom: 28 }}>
               <Field label="Full Name"        value={pf.name}          editing={editMode} onChange={v => setPf({ ...pf, name: v })} />
               <Field label="Date of Birth"    value={pf.dob}           editing={editMode} onChange={v => setPf({ ...pf, dob: v })} type="date" />
               <SelectField
@@ -449,7 +456,7 @@ export default function Profile() {
 
             {/* Contact */}
             <SectionTitle title="Contact Details" sub="Your registered contact information" />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 18, marginBottom: 28 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(220px,1fr))', gap: 18, marginBottom: 28 }}>
               <Field label="Mobile Number"    value={pf.phone}          editing={editMode} onChange={v => setPf({ ...pf, phone: v })} type="tel" />
               <Field label="Email Address"    value={pf.email}          editing={editMode} onChange={v => setPf({ ...pf, email: v })} type="email" />
               <Field label="Alternate Phone"  value={pf.alternatePhone} editing={editMode} onChange={v => setPf({ ...pf, alternatePhone: v })} type="tel" />
@@ -469,7 +476,7 @@ export default function Profile() {
 
             {/* Emergency contact */}
             <SectionTitle title="Emergency Contact" sub="Person to contact in case of emergency" />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 18 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(220px,1fr))', gap: 18 }}>
               <Field label="Contact Name"     value={pf.emergencyName}     editing={editMode} onChange={v => setPf({ ...pf, emergencyName: v })} />
               <Field label="Contact Phone"    value={pf.emergencyPhone}    editing={editMode} onChange={v => setPf({ ...pf, emergencyPhone: v })} type="tel" />
               <Field label="Relation"         value={pf.emergencyRelation} editing={editMode} onChange={v => setPf({ ...pf, emergencyRelation: v })} />
@@ -488,7 +495,7 @@ export default function Profile() {
                 />
 
                 {/* IDs */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 18, marginBottom: 28 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(220px,1fr))', gap: 18, marginBottom: 28 }}>
                   <ReadOnlyField label="Student ID"   value={DEMO_STUDENT.studentId} accent />
                   <ReadOnlyField label="Roll Number"  value={DEMO_STUDENT.rollNo} />
                   <ReadOnlyField label="Department"   value={DEMO_STUDENT.department} />
@@ -516,7 +523,7 @@ export default function Profile() {
 
                 {/* Hostel */}
                 <SectionTitle title="Residential Status" />
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 18, marginBottom: 28 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(220px,1fr))', gap: 18, marginBottom: 28 }}>
                   <ReadOnlyField label="Hostel Status"    value={DEMO_STUDENT.hostelStatus} />
                   {DEMO_STUDENT.hostelStatus !== 'Day Scholar' && (
                     <>
@@ -528,7 +535,7 @@ export default function Profile() {
 
                 {/* Guardian */}
                 <SectionTitle title="Guardian / Parent Details" />
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 18 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(220px,1fr))', gap: 18 }}>
                   <ReadOnlyField label="Guardian Name"    value={DEMO_STUDENT.guardianName} />
                   <ReadOnlyField label="Guardian Contact" value={DEMO_STUDENT.guardianContact} />
                   <ReadOnlyField label="Guardian Email"   value={DEMO_STUDENT.guardianEmail} />
@@ -539,7 +546,7 @@ export default function Profile() {
                 <SectionTitle title="Employment Information" sub="Your official employment details" />
 
                 {/* IDs */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 18, marginBottom: 28 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(220px,1fr))', gap: 18, marginBottom: 28 }}>
                   <ReadOnlyField label="Employee ID"      value={DEMO_FACULTY.employeeId} accent />
                   <ReadOnlyField label="Department"       value={DEMO_FACULTY.department} />
                   <ReadOnlyField label="Designation"      value={DEMO_FACULTY.designation} />
@@ -676,7 +683,7 @@ export default function Profile() {
                 padding: '20px 22px', borderRadius: 12,
                 border: `1px solid ${BORDER}`, background: SURFACE, marginBottom: 20,
               }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 18 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(220px,1fr))', gap: 18 }}>
                   {[
                     { key: 'cur',  lbl: 'Current Password', val: pwForm.current,  field: 'current' },
                     { key: 'new',  lbl: 'New Password',      val: pwForm.newPw,    field: 'newPw'   },
@@ -797,7 +804,7 @@ export default function Profile() {
 
             {/* Timeline */}
             <SectionTitle title="Activity Timeline" sub="Chronological view of your recent actions" />
-            <div style={{ position: 'relative', paddingLeft: 28 }}>
+            <div style={{ position: 'relative', paddingLeft: 28, width: '100%' }}>
               {/* Vertical line */}
               <div style={{
                 position: 'absolute', left: 12, top: 10, bottom: 10,

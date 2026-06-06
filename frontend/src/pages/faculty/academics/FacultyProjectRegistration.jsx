@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -193,7 +193,8 @@ function RegistrationSection() {
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: 600, fontSize: 15, color: TEXT }}>
           Project Registrations — Under This Faculty
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
           <thead>
             <tr>{['Team ID', 'Project Title', 'Members', 'Dept', 'Type', 'Date', 'Status', 'Actions'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
           </thead>
@@ -250,6 +251,7 @@ function RegistrationSection() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -431,33 +433,35 @@ function FoilCardGenSection({ multidisciplinary = false }) {
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: 600, fontSize: 15, color: TEXT }}>
           {multidisciplinary ? 'Multidisciplinary ' : ''}Teams — {phase} | {semester}
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr>{['Team ID', 'Project Title', 'Dept(s)', 'Status', 'Action'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
-          </thead>
-          <tbody>
-            {projects.length === 0 ? (
-              <tr>
-                <td colSpan={5} style={{ padding: 28, textAlign: 'center', color: MUTED, fontSize: 14 }}>No approved projects found for the selected semester.</td>
-              </tr>
-            ) : (
-              projects.map((p, i) => (
-                <tr key={i} style={{ background: selectedTeam?.teamId === p.teamId ? '#f5f3ff' : 'transparent' }}>
-                  <td style={{ ...tdStyle, fontWeight: 700, color: ACCENT }}>{p.teamId}</td>
-                  <td style={{ ...tdStyle, fontWeight: 600 }}>{p.title}</td>
-                  <td style={tdStyle}>{p.dept}</td>
-                  <td style={tdStyle}>{statusBadge(p.status)}</td>
-                  <td style={tdStyle}>
-                    <button onClick={() => generateCard(p)}
-                      style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 6, padding: '5px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                      Generate Foil Card
-                    </button>
-                  </td>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+            <thead>
+              <tr>{['Team ID', 'Project Title', 'Dept(s)', 'Status', 'Action'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
+            </thead>
+            <tbody>
+              {projects.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ padding: 28, textAlign: 'center', color: MUTED, fontSize: 14 }}>No approved projects found for the selected semester.</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                projects.map((p, i) => (
+                  <tr key={i} style={{ background: selectedTeam?.teamId === p.teamId ? '#f5f3ff' : 'transparent' }}>
+                    <td style={{ ...tdStyle, fontWeight: 700, color: ACCENT }}>{p.teamId}</td>
+                    <td style={{ ...tdStyle, fontWeight: 600 }}>{p.title}</td>
+                    <td style={tdStyle}>{p.dept}</td>
+                    <td style={tdStyle}>{statusBadge(p.status)}</td>
+                    <td style={tdStyle}>
+                      <button onClick={() => generateCard(p)}
+                        style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 6, padding: '5px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                        Generate Foil Card
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {preview && selectedTeam && (
@@ -559,32 +563,54 @@ function FoilCardGenSection({ multidisciplinary = false }) {
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function FacultyProjectRegistration() {
   const [activeNav, setActiveNav] = useState('Registration')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: 32 }}>
+    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: isMobile ? 16 : 32 }}>
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: TEXT }}>Academics — Project Registration</h1>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 26, fontWeight: 700, color: TEXT }}>Academics — Project Registration</h1>
         <p style={{ margin: '6px 0 0', color: MUTED, fontSize: 15 }}>Manage project registrations, marks and foil card generation</p>
       </div>
 
-      <div style={{ ...card, display: 'flex', overflow: 'hidden' }}>
+      <div style={{ ...card, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
         {/* Left Nav */}
-        <div style={{ width: 210, borderRight: '1px solid #f1f5f9', padding: '16px 0', flexShrink: 0 }}>
+        <div style={isMobile ? {
+          borderBottom: '1px solid #f1f5f9', padding: '8px 12px',
+          display: 'flex', overflowX: 'auto', gap: 8, flexShrink: 0,
+        } : {
+          width: 210, borderRight: '1px solid #f1f5f9', padding: '16px 0', flexShrink: 0,
+        }}>
           {navItems.map(item => (
-            <button key={item} onClick={() => setActiveNav(item)}
-              style={{
-                display: 'block', width: '100%', padding: '11px 20px',
-                background: activeNav === item ? '#eef2ff' : 'transparent',
-                border: 'none', borderLeft: activeNav === item ? '3px solid #6366f1' : '3px solid transparent',
-                textAlign: 'left', fontSize: 13, fontWeight: activeNav === item ? 600 : 400,
-                color: activeNav === item ? ACCENT : TEXT, cursor: 'pointer',
-              }}
-            >{item}</button>
+            isMobile ? (
+              <button key={item} onClick={() => setActiveNav(item)}
+                style={{
+                  padding: '6px 14px', background: activeNav === item ? '#eef2ff' : '#f1f5f9',
+                  border: activeNav === item ? '1.5px solid #6366f1' : '1.5px solid transparent',
+                  borderRadius: 20, fontSize: 12, fontWeight: activeNav === item ? 600 : 400,
+                  color: activeNav === item ? ACCENT : TEXT, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                }}
+              >{item}</button>
+            ) : (
+              <button key={item} onClick={() => setActiveNav(item)}
+                style={{
+                  display: 'block', width: '100%', padding: '11px 20px',
+                  background: activeNav === item ? '#eef2ff' : 'transparent',
+                  border: 'none', borderLeft: activeNav === item ? '3px solid #6366f1' : '3px solid transparent',
+                  textAlign: 'left', fontSize: 13, fontWeight: activeNav === item ? 600 : 400,
+                  color: activeNav === item ? ACCENT : TEXT, cursor: 'pointer',
+                }}
+              >{item}</button>
+            )
           ))}
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, padding: 28, minWidth: 0 }}>
+        <div style={{ flex: 1, padding: isMobile ? 14 : 28, minWidth: 0 }}>
           {activeNav === 'Registration' && <RegistrationSection />}
           {activeNav === 'Mark Entry' && <MarkEntrySection multidisciplinary={false} />}
           {activeNav === 'Foil Card Generation' && <FoilCardGenSection multidisciplinary={false} />}

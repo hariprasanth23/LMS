@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -333,7 +333,8 @@ function CourseFeedback24x7() {
       {/* Previous 24x7 Feedbacks */}
       <div style={{ ...card, padding: 24 }}>
         <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 700, color: TEXT }}>My Previous 24x7 Feedbacks</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 500 }}>
           <thead>
             <tr style={{ background: '#f8fafc' }}>
               {['Course', 'Type', 'Topic', 'Rating', 'Date', 'Status'].map(h => (
@@ -354,6 +355,7 @@ function CourseFeedback24x7() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -362,6 +364,13 @@ function CourseFeedback24x7() {
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function FeedbackGeneral() {
   const [activeNav, setActiveNav] = useState('Feedback Form')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: 32 }}>
@@ -372,26 +381,39 @@ export default function FeedbackGeneral() {
       </div>
 
       {/* Card: left nav + content */}
-      <div style={{ ...card, display: 'flex', overflow: 'hidden' }}>
+      <div style={{ ...card, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
         {/* Left Nav */}
-        <div style={{ width: 210, borderRight: '1px solid #f1f5f9', padding: '16px 0', flexShrink: 0 }}>
+        <div style={{
+          width: isMobile ? '100%' : 210,
+          borderRight: isMobile ? 'none' : '1px solid #f1f5f9',
+          borderBottom: isMobile ? '1px solid #e2e8f0' : 'none',
+          padding: isMobile ? '8px 4px' : '16px 0',
+          flexShrink: 0,
+          display: isMobile ? 'flex' : 'block',
+          flexDirection: isMobile ? 'row' : undefined,
+          flexWrap: isMobile ? 'wrap' : undefined,
+          overflowX: isMobile ? 'auto' : undefined,
+        }}>
           {navItems.map(item => (
             <button
               key={item}
               onClick={() => setActiveNav(item)}
               style={{
-                display: 'block',
-                width: '100%',
-                padding: '11px 20px',
+                display: isMobile ? 'inline-block' : 'block',
+                width: isMobile ? 'auto' : '100%',
+                padding: isMobile ? '6px 12px' : '11px 20px',
                 background: activeNav === item ? '#eef2ff' : 'transparent',
                 border: 'none',
-                borderLeft: activeNav === item ? '3px solid #6366f1' : '3px solid transparent',
+                borderLeft: isMobile ? 'none' : (activeNav === item ? '3px solid #6366f1' : '3px solid transparent'),
+                borderBottom: isMobile ? (activeNav === item ? '2px solid #6366f1' : '2px solid transparent') : 'none',
+                borderRadius: isMobile ? 100 : 0,
                 textAlign: 'left',
-                fontSize: 14,
+                fontSize: isMobile ? 12 : 14,
                 fontWeight: activeNav === item ? 600 : 400,
                 color: activeNav === item ? ACCENT : TEXT,
                 cursor: 'pointer',
                 transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
               }}
             >
               {item}
@@ -400,7 +422,7 @@ export default function FeedbackGeneral() {
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, padding: 28, minWidth: 0 }}>
+        <div style={{ flex: 1, padding: isMobile ? '16px' : 28, minWidth: 0 }}>
           {activeNav === 'Feedback Form' && <FeedbackForm />}
           {activeNav === 'Course Feedback 24x7' && <CourseFeedback24x7 />}
         </div>

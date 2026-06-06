@@ -5,7 +5,7 @@ import {
   MdMenuBook, MdAssignment, MdPayment, MdMiscellaneousServices,
   MdScience, MdFeedback, MdArrowForward, MdCheck, MdShield,
   MdSpeed, MdPublic, MdAccessTime, MdLayers, MdAnalytics,
-  MdDashboard, MdContentCopy
+  MdDashboard
 } from 'react-icons/md'
 
 // ─── Counter Component (copied from mymoneyman) ───────────────────────────────
@@ -137,14 +137,6 @@ const PORTALS = [
   { key: 'alumni', label: 'Alumni', color: '#14b8a6', icon: MdStar, description: 'Alumni network' },
 ]
 
-const DEMO_CREDS = {
-  admin: { email: 'admin@demo.com', password: 'Demo@123' },
-  student: { email: 'student@demo.com', password: 'Demo@123' },
-  staff: { email: 'staff@demo.com', password: 'Demo@123' },
-  parent: { email: 'parent@demo.com', password: 'Demo@123' },
-  alumni: { email: 'alumni@demo.com', password: 'Demo@123' },
-}
-
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function LandingPage() {
@@ -153,14 +145,12 @@ export default function LandingPage() {
   const [showAnnouncement, setShowAnnouncement] = useState(true)
   const [hoveredFeature, setHoveredFeature] = useState(null)
   const [hoveredPortal, setHoveredPortal] = useState(null)
-  const [hoveredDemo, setHoveredDemo] = useState(null)
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
   const [isSmall, setIsSmall] = useState(window.innerWidth <= 640)
   const [hoveredNav, setHoveredNav] = useState(null)
   const [hoveredCTA, setHoveredCTA] = useState(null)
   const [hoveredStat, setHoveredStat] = useState(null)
   const [hoveredFinance, setHoveredFinance] = useState(null)
-  const [copiedDemo, setCopiedDemo] = useState({})
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -184,17 +174,11 @@ export default function LandingPage() {
 
   const announcementH = showAnnouncement ? 36 : 0
 
-  const copyToClipboard = (text, key, field) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedDemo(prev => ({ ...prev, [`${key}-${field}`]: true }))
-      setTimeout(() => setCopiedDemo(prev => ({ ...prev, [`${key}-${field}`]: false })), 1600)
-    })
-  }
 
   const FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
 
   return (
-    <div style={{ fontFamily: FONT, color: '#1e293b', margin: 0, padding: 0, overflowX: 'hidden' }}>
+    <div style={{ fontFamily: FONT, color: '#1e293b', margin: 0, padding: 0, overflowX: 'hidden', background: '#0f172a' }}>
 
       {/* ── Keyframes ──────────────────────────────────────────────────────── */}
       <style>{`
@@ -204,6 +188,7 @@ export default function LandingPage() {
         @keyframes pulse-glow { 0%,100% { opacity: 1 } 50% { opacity: 0.5 } }
         @keyframes float { 0%,100% { transform: translateY(0px) } 50% { transform: translateY(-8px) } }
         * { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; background: #0f172a; }
       `}</style>
 
       {/* ── 1. Announcement Bar ────────────────────────────────────────────── */}
@@ -265,7 +250,6 @@ export default function LandingPage() {
               { label: 'Features', id: 'features' },
               { label: 'Portals', id: 'portals' },
               { label: 'Academics', id: 'academics' },
-              { label: 'Demo', id: 'demo' },
             ].map(link => (
               <button
                 key={link.id}
@@ -310,26 +294,28 @@ export default function LandingPage() {
           >
             Sign In
           </button>
-          <button
-            onMouseEnter={() => setHoveredCTA('start')}
-            onMouseLeave={() => setHoveredCTA(null)}
-            onClick={() => navigate('/auth/login')}
-            style={{
-              padding: '9px 22px',
-              background: hoveredCTA === 'start'
-                ? 'linear-gradient(135deg, #4f46e5, #7c3aed)'
-                : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-              border: 'none', borderRadius: 9, fontSize: 14, fontWeight: 600,
-              color: '#fff', cursor: 'pointer', fontFamily: FONT,
-              boxShadow: hoveredCTA === 'start'
-                ? '0 6px 28px rgba(99,102,241,0.65)'
-                : '0 4px 18px rgba(99,102,241,0.45)',
-              transform: hoveredCTA === 'start' ? 'translateY(-1px)' : 'none',
-              transition: 'all 0.15s'
-            }}
-          >
-            Get Started
-          </button>
+          {!isMobile && (
+            <button
+              onMouseEnter={() => setHoveredCTA('start')}
+              onMouseLeave={() => setHoveredCTA(null)}
+              onClick={() => navigate('/auth/login')}
+              style={{
+                padding: '9px 22px',
+                background: hoveredCTA === 'start'
+                  ? 'linear-gradient(135deg, #4f46e5, #7c3aed)'
+                  : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                border: 'none', borderRadius: 9, fontSize: 14, fontWeight: 600,
+                color: '#fff', cursor: 'pointer', fontFamily: FONT,
+                boxShadow: hoveredCTA === 'start'
+                  ? '0 6px 28px rgba(99,102,241,0.65)'
+                  : '0 4px 18px rgba(99,102,241,0.45)',
+                transform: hoveredCTA === 'start' ? 'translateY(-1px)' : 'none',
+                transition: 'all 0.15s'
+              }}
+            >
+              Get Started
+            </button>
+          )}
         </div>
       </nav>
 
@@ -412,7 +398,7 @@ export default function LandingPage() {
             </p>
 
             {/* CTA Buttons */}
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 36 }}>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 36, flexDirection: isMobile ? 'column' : 'row' }}>
               <button
                 onMouseEnter={() => setHoveredCTA('hero-start')}
                 onMouseLeave={() => setHoveredCTA(null)}
@@ -641,10 +627,10 @@ export default function LandingPage() {
       </div>
 
       {/* ── 5. Stats Bar ───────────────────────────────────────────────────── */}
-      <section style={{ background: '#fff', padding: '72px 48px' }}>
+      <section style={{ background: '#fff', padding: isSmall ? '48px 20px' : '72px 48px' }}>
         <div style={{
           maxWidth: 1100, margin: '0 auto',
-          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24
+          display: 'grid', gridTemplateColumns: isSmall ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 24
         }}>
           {STATS_DATA.map((stat, i) => {
             const Icon = stat.icon
@@ -687,7 +673,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 6. Features Grid ───────────────────────────────────────────────── */}
-      <section id="features" style={{ background: '#f8fafc', padding: '88px 48px' }}>
+      <section id="features" style={{ background: '#f8fafc', padding: isMobile ? '60px 20px' : '88px 48px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
@@ -771,7 +757,7 @@ export default function LandingPage() {
       {/* ── 7. Academics Deep Section ──────────────────────────────────────── */}
       <section id="academics" style={{
         background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-        padding: '96px 48px', position: 'relative', overflow: 'hidden'
+        padding: isMobile ? '60px 20px' : '96px 48px', position: 'relative', overflow: 'hidden'
       }}>
         {/* Glow blobs */}
         <div style={{
@@ -880,7 +866,7 @@ export default function LandingPage() {
       {/* ── 8. Examinations Section ────────────────────────────────────────── */}
       <section id="examinations" style={{
         background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-        padding: '96px 48px'
+        padding: isMobile ? '60px 20px' : '96px 48px'
       }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
@@ -999,7 +985,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 9. Finance Section ─────────────────────────────────────────────── */}
-      <section style={{ background: '#fff', padding: '96px 48px' }}>
+      <section style={{ background: '#fff', padding: isMobile ? '60px 20px' : '96px 48px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <div style={{
@@ -1062,7 +1048,7 @@ export default function LandingPage() {
       {/* ── 10. Portal Section ─────────────────────────────────────────────── */}
       <section id="portals" style={{
         background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-        padding: '96px 48px', position: 'relative', overflow: 'hidden'
+        padding: isMobile ? '60px 20px' : '96px 48px', position: 'relative', overflow: 'hidden'
       }}>
         <div style={{
           position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)',
@@ -1140,139 +1126,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 11. Demo Access Section ────────────────────────────────────────── */}
-      <section id="demo" style={{ background: '#f8fafc', padding: '96px 48px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)',
-              borderRadius: 100, padding: '6px 16px', marginBottom: 20
-            }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981', display: 'inline-block' }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#10b981' }}>DEMO ACCESS</span>
-            </div>
-            <h2 style={{
-              fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: '#1e293b',
-              margin: '0 0 16px', letterSpacing: '-1px', fontFamily: FONT
-            }}>
-              Try the Demo — No Sign Up Required
-            </h2>
-            <p style={{ fontSize: 17, color: '#64748b', maxWidth: 540, margin: '0 auto', lineHeight: 1.7 }}>
-              Click any portal below to instantly access it with pre-filled demo credentials.
-            </p>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: 20
-          }}>
-            {PORTALS.map(portal => {
-              const Icon = portal.icon
-              const creds = DEMO_CREDS[portal.key]
-              const hov = hoveredDemo === portal.key
-              return (
-                <div
-                  key={portal.key}
-                  onMouseEnter={() => setHoveredDemo(portal.key)}
-                  onMouseLeave={() => setHoveredDemo(null)}
-                  style={{
-                    background: '#fff', borderRadius: 18,
-                    border: `1.5px solid ${hov ? portal.color + '40' : '#f1f5f9'}`,
-                    overflow: 'hidden',
-                    boxShadow: hov ? `0 16px 48px ${portal.color}18` : '0 2px 12px rgba(0,0,0,0.04)',
-                    transform: hov ? 'translateY(-4px)' : 'none',
-                    transition: 'all 0.22s ease'
-                  }}
-                >
-                  {/* Color header strip */}
-                  <div style={{ height: 8, background: portal.color }} />
-                  <div style={{ padding: '20px 20px 22px' }}>
-                    {/* Portal name + badge */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                      <div style={{
-                        width: 34, height: 34, borderRadius: 9,
-                        background: `${portal.color}15`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}>
-                        <Icon style={{ fontSize: 19, color: portal.color }} />
-                      </div>
-                      <span style={{ fontSize: 15, fontWeight: 700, color: '#1e293b' }}>{portal.label}</span>
-                      <span style={{
-                        background: `${portal.color}12`, color: portal.color,
-                        fontSize: 9, fontWeight: 800, padding: '2px 7px',
-                        borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.05em'
-                      }}>Demo</span>
-                    </div>
-
-                    {/* Email */}
-                    <div style={{ marginBottom: 8 }}>
-                      <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</div>
-                      <div
-                        onClick={() => copyToClipboard(creds.email, portal.key, 'email')}
-                        style={{
-                          fontFamily: 'monospace', fontSize: 11, color: '#1e293b',
-                          background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7,
-                          padding: '7px 10px', cursor: 'pointer',
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          userSelect: 'none', transition: 'background 0.15s'
-                        }}
-                      >
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {copiedDemo[`${portal.key}-email`] ? '✓ Copied!' : creds.email}
-                        </span>
-                        {copiedDemo[`${portal.key}-email`]
-                          ? <MdCheck style={{ fontSize: 13, color: '#10b981', flexShrink: 0 }} />
-                          : <MdContentCopy style={{ fontSize: 12, color: '#94a3b8', flexShrink: 0 }} />}
-                      </div>
-                    </div>
-
-                    {/* Password */}
-                    <div style={{ marginBottom: 16 }}>
-                      <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</div>
-                      <div
-                        onClick={() => copyToClipboard(creds.password, portal.key, 'pass')}
-                        style={{
-                          fontFamily: 'monospace', fontSize: 11, color: '#1e293b',
-                          background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7,
-                          padding: '7px 10px', cursor: 'pointer',
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          userSelect: 'none'
-                        }}
-                      >
-                        <span>{copiedDemo[`${portal.key}-pass`] ? '✓ Copied!' : creds.password}</span>
-                        {copiedDemo[`${portal.key}-pass`]
-                          ? <MdCheck style={{ fontSize: 13, color: '#10b981', flexShrink: 0 }} />
-                          : <MdContentCopy style={{ fontSize: 12, color: '#94a3b8', flexShrink: 0 }} />}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => navigate(`/auth/login?portal=${portal.key}&demo=true`)}
-                      style={{
-                        width: '100%', padding: '11px 16px',
-                        background: portal.color, border: 'none', borderRadius: 10,
-                        fontSize: 13, fontWeight: 700, color: '#fff',
-                        cursor: 'pointer', fontFamily: FONT,
-                        boxShadow: `0 4px 14px ${portal.color}40`,
-                        transition: 'opacity 0.15s'
-                      }}
-                      onMouseEnter={e => e.target.style.opacity = '0.88'}
-                      onMouseLeave={e => e.target.style.opacity = '1'}
-                    >
-                      Login as {portal.label}
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
       {/* ── 12. Services Spotlight ─────────────────────────────────────────── */}
-      <section style={{ background: '#fff', padding: '96px 48px' }}>
+      <section style={{ background: '#fff', padding: isMobile ? '60px 20px' : '96px 48px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <div style={{
@@ -1341,7 +1196,7 @@ export default function LandingPage() {
       {/* ── 13. Research Section ───────────────────────────────────────────── */}
       <section style={{
         background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-        padding: '96px 48px', position: 'relative', overflow: 'hidden'
+        padding: isMobile ? '60px 20px' : '96px 48px', position: 'relative', overflow: 'hidden'
       }}>
         <div style={{
           position: 'absolute', bottom: '-10%', right: '-5%', width: 400, height: 400,
@@ -1457,7 +1312,7 @@ export default function LandingPage() {
       {/* ── 14. Final CTA ──────────────────────────────────────────────────── */}
       <section style={{
         background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
-        padding: '96px 48px', position: 'relative', overflow: 'hidden', textAlign: 'center'
+        padding: isMobile ? '60px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', textAlign: 'center'
       }}>
         <div style={{
           position: 'absolute', top: '50%', left: '50%',
@@ -1523,24 +1378,7 @@ export default function LandingPage() {
             >
               Get Started Free <MdArrowForward style={{ fontSize: 20 }} />
             </button>
-            <button
-              onMouseEnter={() => setHoveredCTA('cta-demo')}
-              onMouseLeave={() => setHoveredCTA(null)}
-              onClick={() => scrollTo('demo')}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                padding: '16px 34px', borderRadius: 12,
-                background: hoveredCTA === 'cta-demo' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)',
-                border: '1.5px solid rgba(255,255,255,0.2)',
-                color: '#fff', fontSize: 16, fontWeight: 700,
-                cursor: 'pointer', fontFamily: FONT,
-                transform: hoveredCTA === 'cta-demo' ? 'translateY(-2px)' : 'none',
-                boxShadow: hoveredCTA === 'cta-demo' ? '0 8px 24px rgba(0,0,0,0.3)' : 'none',
-                transition: 'all 0.18s'
-              }}
-            >
-              <MdSpeed style={{ fontSize: 20 }} /> Try Demo
-            </button>
+
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: 28, marginTop: 40, flexWrap: 'wrap' }}>
@@ -1560,7 +1398,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 15. Footer ─────────────────────────────────────────────────────── */}
-      <footer style={{ background: '#0f172a', padding: '72px 48px 0', fontFamily: FONT }}>
+      <footer style={{ background: '#0f172a', padding: isMobile ? '48px 20px 0' : '72px 48px 0', fontFamily: FONT }}>
         <div style={{
           maxWidth: 1280, margin: '0 auto',
           display: 'grid',
@@ -1609,7 +1447,6 @@ export default function LandingPage() {
               { label: 'Academics', id: 'academics' },
               { label: 'Examinations', id: 'examinations' },
               { label: 'Finance', id: null, path: null },
-              { label: 'Demo Access', id: 'demo' },
             ].map(link => (
               <div key={link.label} style={{ marginBottom: 12 }}>
                 <button
@@ -1659,7 +1496,7 @@ export default function LandingPage() {
               Get Started
             </div>
             <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, marginBottom: 20 }}>
-              Sign in to your portal or try the demo — no registration required.
+              Sign in to your portal to access your dashboard.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button
@@ -1673,18 +1510,7 @@ export default function LandingPage() {
               >
                 Sign In →
               </button>
-              <button
-                onClick={() => scrollTo('demo')}
-                style={{
-                  padding: '10px 20px',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 9, fontSize: 13, fontWeight: 600,
-                  color: '#94a3b8', cursor: 'pointer', fontFamily: FONT, textAlign: 'center'
-                }}
-              >
-                Try Demo
-              </button>
+
             </div>
           </div>
         </div>
@@ -1693,8 +1519,8 @@ export default function LandingPage() {
         <div style={{
           maxWidth: 1280, margin: '0 auto',
           padding: '22px 0',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          flexWrap: 'wrap', gap: 12
+          display: 'flex', justifyContent: isMobile ? 'center' : 'space-between', alignItems: 'center',
+          flexWrap: 'wrap', gap: 12, flexDirection: isMobile ? 'column' : 'row', textAlign: isMobile ? 'center' : 'left'
         }}>
           <span style={{ fontSize: 13, color: '#334155', fontWeight: 400 }}>
             © 2025 College ERP · Built for Modern Institutions · Chennai, India

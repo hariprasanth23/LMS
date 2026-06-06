@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -190,27 +190,29 @@ function FDPRegistration() {
 
       <div style={{ ...card, padding: 24 }}>
         <h3 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: TEXT }}>My Registered FDPs</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              {['FDP Name', 'Date', 'Mode', 'Status'].map(h => (
-                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 13, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {myFDPRegistrations.map((f, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>{f.name}</td>
-                <td style={{ padding: '12px 14px', color: MUTED }}>{f.date}</td>
-                <td style={{ padding: '12px 14px', color: TEXT }}>{f.mode}</td>
-                <td style={{ padding: '12px 14px' }}>
-                  <span style={{ background: f.status === 'Completed' ? '#dcfce7' : '#eef2ff', color: f.status === 'Completed' ? '#16a34a' : ACCENT, borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{f.status}</span>
-                </td>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                {['FDP Name', 'Date', 'Mode', 'Status'].map(h => (
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 13, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {myFDPRegistrations.map((f, i) => (
+                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>{f.name}</td>
+                  <td style={{ padding: '12px 14px', color: MUTED }}>{f.date}</td>
+                  <td style={{ padding: '12px 14px', color: TEXT }}>{f.mode}</td>
+                  <td style={{ padding: '12px 14px' }}>
+                    <span style={{ background: f.status === 'Completed' ? '#dcfce7' : '#eef2ff', color: f.status === 'Completed' ? '#16a34a' : ACCENT, borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{f.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
@@ -324,28 +326,30 @@ function EventRecommendation() {
       </div>
       <div style={{ ...card, padding: 24 }}>
         <h3 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: TEXT }}>Past Recommendations</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              {['Event Name', 'Organizer', 'Date', 'Mode', 'Status'].map(h => (
-                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 13, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {pastRecommendations.map((r, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>{r.eventName}</td>
-                <td style={{ padding: '12px 14px', color: TEXT }}>{r.organizer}</td>
-                <td style={{ padding: '12px 14px', color: MUTED }}>{r.date}</td>
-                <td style={{ padding: '12px 14px', color: TEXT }}>{r.mode}</td>
-                <td style={{ padding: '12px 14px' }}>
-                  <span style={{ background: r.status === 'Approved' ? '#dcfce7' : '#fef3c7', color: r.status === 'Approved' ? '#16a34a' : '#d97706', borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{r.status}</span>
-                </td>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                {['Event Name', 'Organizer', 'Date', 'Mode', 'Status'].map(h => (
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 13, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {pastRecommendations.map((r, i) => (
+                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>{r.eventName}</td>
+                  <td style={{ padding: '12px 14px', color: TEXT }}>{r.organizer}</td>
+                  <td style={{ padding: '12px 14px', color: MUTED }}>{r.date}</td>
+                  <td style={{ padding: '12px 14px', color: TEXT }}>{r.mode}</td>
+                  <td style={{ padding: '12px 14px' }}>
+                    <span style={{ background: r.status === 'Approved' ? '#dcfce7' : '#fef3c7', color: r.status === 'Approved' ? '#16a34a' : '#d97706', borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{r.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
@@ -366,7 +370,8 @@ function PreProposalApprovalView() {
     <div>
       <h2 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700, color: TEXT }}>Pre-Proposal Approval View</h2>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
           <thead>
             <tr style={{ background: '#f8fafc' }}>
               {['Title', 'Submitted By', 'Date', 'Type', 'Status', 'Actions'].map(h => (
@@ -415,6 +420,7 @@ function PreProposalApprovalView() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -514,29 +520,31 @@ function UpdateResourcePerson() {
           <div style={{ fontWeight: 600, color: TEXT, fontSize: 14 }}>Resource Persons for: <span style={{ color: ACCENT }}>{selectedEvent}</span></div>
           <button onClick={() => setAddMode(true)} style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>+ Add Resource Person</button>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, marginBottom: addMode ? 20 : 0 }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              {['Name', 'Designation', 'Institution', 'Topic', 'Contact', 'Actions'].map(h => (
-                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 13, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rps.map((rp, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>{rp.name}</td>
-                <td style={{ padding: '12px 14px', color: TEXT }}>{rp.designation}</td>
-                <td style={{ padding: '12px 14px', color: MUTED }}>{rp.institution}</td>
-                <td style={{ padding: '12px 14px', color: TEXT }}>{rp.topic}</td>
-                <td style={{ padding: '12px 14px', color: MUTED }}>{rp.contact}</td>
-                <td style={{ padding: '12px 14px' }}>
-                  <button onClick={() => setRPs(p => p.filter((_, idx) => idx !== i))} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: 6, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
-                </td>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, marginBottom: addMode ? 20 : 0, minWidth: 600 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                {['Name', 'Designation', 'Institution', 'Topic', 'Contact', 'Actions'].map(h => (
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 13, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rps.map((rp, i) => (
+                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>{rp.name}</td>
+                  <td style={{ padding: '12px 14px', color: TEXT }}>{rp.designation}</td>
+                  <td style={{ padding: '12px 14px', color: MUTED }}>{rp.institution}</td>
+                  <td style={{ padding: '12px 14px', color: TEXT }}>{rp.topic}</td>
+                  <td style={{ padding: '12px 14px', color: MUTED }}>{rp.contact}</td>
+                  <td style={{ padding: '12px 14px' }}>
+                    <button onClick={() => setRPs(p => p.filter((_, idx) => idx !== i))} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: 6, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {addMode && (
           <div style={{ background: '#f8fafc', borderRadius: 10, padding: 20, border: '1px solid #e2e8f0' }}>
             <div style={{ fontWeight: 700, color: TEXT, fontSize: 14, marginBottom: 14 }}>Add New Resource Person</div>
@@ -718,32 +726,34 @@ function BiometricLog() {
         Attendance is marked automatically via biometric device. Use "Request Correction" for any discrepancies.
       </div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              {['Event Name', 'Date', 'Time In', 'Time Out', 'Duration', 'Status', 'Action'].map(h => (
-                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 13, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {biometricLogs.map((log, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>{log.event}</td>
-                <td style={{ padding: '12px 14px', color: MUTED }}>{log.date}</td>
-                <td style={{ padding: '12px 14px', color: TEXT }}>{log.timeIn}</td>
-                <td style={{ padding: '12px 14px', color: TEXT }}>{log.timeOut}</td>
-                <td style={{ padding: '12px 14px', color: TEXT }}>{log.duration}</td>
-                <td style={{ padding: '12px 14px' }}>
-                  <span style={{ background: log.status === 'Present' ? '#dcfce7' : '#fee2e2', color: log.status === 'Present' ? '#16a34a' : '#ef4444', borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{log.status}</span>
-                </td>
-                <td style={{ padding: '12px 14px' }}>
-                  <button style={{ background: '#fef3c7', color: '#d97706', border: 'none', borderRadius: 6, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Request Correction</button>
-                </td>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                {['Event Name', 'Date', 'Time In', 'Time Out', 'Duration', 'Status', 'Action'].map(h => (
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 13, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {biometricLogs.map((log, i) => (
+                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                  <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>{log.event}</td>
+                  <td style={{ padding: '12px 14px', color: MUTED }}>{log.date}</td>
+                  <td style={{ padding: '12px 14px', color: TEXT }}>{log.timeIn}</td>
+                  <td style={{ padding: '12px 14px', color: TEXT }}>{log.timeOut}</td>
+                  <td style={{ padding: '12px 14px', color: TEXT }}>{log.duration}</td>
+                  <td style={{ padding: '12px 14px' }}>
+                    <span style={{ background: log.status === 'Present' ? '#dcfce7' : '#fee2e2', color: log.status === 'Present' ? '#16a34a' : '#ef4444', borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{log.status}</span>
+                  </td>
+                  <td style={{ padding: '12px 14px' }}>
+                    <button style={{ background: '#fef3c7', color: '#d97706', border: 'none', borderRadius: 6, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Request Correction</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
@@ -832,41 +842,74 @@ const contentMap = {
 
 export default function FacultyTLCEFDP() {
   const [activeNav, setActiveNav] = useState('FDP Requisition Form')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
   const ActiveComponent = contentMap[activeNav] || (() => <div style={{ color: MUTED }}>Coming soon.</div>)
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: 32 }}>
+    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: isMobile ? 16 : 32 }}>
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: TEXT }}>Events — TLCE FDP</h1>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 26, fontWeight: 700, color: TEXT }}>Events — TLCE FDP</h1>
         <p style={{ margin: '6px 0 0', color: MUTED, fontSize: 15 }}>Faculty Development Programme management and coordination</p>
       </div>
 
-      <div style={{ ...card, display: 'flex', overflow: 'hidden' }}>
-        <div style={{ width: 210, borderRight: '1px solid #f1f5f9', padding: '16px 0', flexShrink: 0 }}>
+      <div style={{ ...card, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
+        <div style={isMobile ? {
+          borderBottom: '1px solid #f1f5f9', padding: '8px 12px',
+          display: 'flex', overflowX: 'auto', gap: 8, flexShrink: 0,
+        } : {
+          width: 210, borderRight: '1px solid #f1f5f9', padding: '16px 0', flexShrink: 0,
+        }}>
           {navItems.map(item => (
-            <button
-              key={item}
-              onClick={() => setActiveNav(item)}
-              style={{
-                display: 'block',
-                width: '100%',
-                padding: '10px 20px',
-                background: activeNav === item ? '#eef2ff' : 'transparent',
-                border: 'none',
-                borderLeft: activeNav === item ? '3px solid #6366f1' : '3px solid transparent',
-                textAlign: 'left',
-                fontSize: 13,
-                fontWeight: activeNav === item ? 600 : 400,
-                color: activeNav === item ? ACCENT : TEXT,
-                cursor: 'pointer',
-                lineHeight: 1.4,
-              }}
-            >
-              {item}
-            </button>
+            isMobile ? (
+              <button
+                key={item}
+                onClick={() => setActiveNav(item)}
+                style={{
+                  padding: '6px 14px',
+                  background: activeNav === item ? '#eef2ff' : '#f1f5f9',
+                  border: activeNav === item ? '1.5px solid #6366f1' : '1.5px solid transparent',
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: activeNav === item ? 600 : 400,
+                  color: activeNav === item ? ACCENT : TEXT,
+                  cursor: 'pointer',
+                  lineHeight: 1.4,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+              >
+                {item}
+              </button>
+            ) : (
+              <button
+                key={item}
+                onClick={() => setActiveNav(item)}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '10px 20px',
+                  background: activeNav === item ? '#eef2ff' : 'transparent',
+                  border: 'none',
+                  borderLeft: activeNav === item ? '3px solid #6366f1' : '3px solid transparent',
+                  textAlign: 'left',
+                  fontSize: 13,
+                  fontWeight: activeNav === item ? 600 : 400,
+                  color: activeNav === item ? ACCENT : TEXT,
+                  cursor: 'pointer',
+                  lineHeight: 1.4,
+                }}
+              >
+                {item}
+              </button>
+            )
           ))}
         </div>
-        <div style={{ flex: 1, padding: 28, minWidth: 0, overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: isMobile ? 14 : 28, minWidth: 0, overflowY: 'auto' }}>
           <ActiveComponent />
         </div>
       </div>

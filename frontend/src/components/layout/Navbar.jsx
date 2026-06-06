@@ -13,6 +13,7 @@ import {
   MdPayment,
   MdHome,
   MdChevronRight,
+  MdMenu,
 } from 'react-icons/md'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -482,7 +483,7 @@ function UserMenuDropdown({ user, roleStyle, onClose, onLogout, onProfile }) {
 
 // ─── Main Navbar ──────────────────────────────────────────────────────────────
 
-export default function Navbar() {
+export default function Navbar({ onToggleSidebar, isMobile }) {
   const { user, logout, portalType } = useAuth()
   const location  = useLocation()
   const navigate  = useNavigate()
@@ -524,74 +525,102 @@ export default function Navbar() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 24px',
+      padding: isMobile ? '0 16px' : '0 24px',
       flexShrink: 0,
       fontFamily: 'system-ui, -apple-system, sans-serif',
-      gap: 16,
+      gap: isMobile ? 10 : 16,
     }}>
 
-      {/* ── Left: Page title + breadcrumbs ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-        <h1 style={{
-          margin: 0,
-          fontSize: 16,
-          fontWeight: 700,
-          color: TEXT,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          lineHeight: 1.3,
-        }}>
-          {title}
-        </h1>
+      {/* ── Left: Hamburger (mobile) + Page title + breadcrumbs ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 0, minWidth: 0, flex: 1 }}>
 
-        {/* Breadcrumbs */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          marginTop: 2,
-          flexWrap: 'nowrap',
-          overflow: 'hidden',
-        }}>
-          {breadcrumbs.map((crumb, idx) => {
-            const isLast = idx === breadcrumbs.length - 1
-            return (
-              <React.Fragment key={crumb.path}>
-                {idx > 0 && (
-                  <MdChevronRight style={{ color: '#cbd5e1', fontSize: 13, flexShrink: 0 }} />
-                )}
-                <span
-                  onClick={isLast ? undefined : () => navigate(crumb.path)}
-                  style={{
-                    fontFamily: 'system-ui, sans-serif',
-                    fontSize: 11,
-                    fontWeight: isLast ? 600 : 400,
-                    color: isLast ? ACCENT : MUTED,
-                    cursor: isLast ? 'default' : 'pointer',
-                    whiteSpace: 'nowrap',
-                    transition: 'color 0.12s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 3,
-                  }}
-                  onMouseEnter={e => { if (!isLast) e.currentTarget.style.color = TEXT }}
-                  onMouseLeave={e => { if (!isLast) e.currentTarget.style.color = MUTED }}
-                >
-                  {idx === 0 && <MdHome style={{ fontSize: 12 }} />}
-                  {crumb.label}
-                </span>
-              </React.Fragment>
-            )
-          })}
+        {/* Hamburger button — mobile only */}
+        {isMobile && (
+          <button
+            onClick={() => onToggleSidebar?.()}
+            aria-label="Toggle sidebar"
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              border: '1px solid #e2e8f0',
+              background: '#f8fafc',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              flexShrink: 0,
+              padding: 0,
+            }}
+          >
+            <MdMenu style={{ color: MUTED, fontSize: 22 }} />
+          </button>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, flex: 1 }}>
+          <h1 style={{
+            margin: 0,
+            fontSize: isMobile ? 14 : 16,
+            fontWeight: 700,
+            color: TEXT,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            lineHeight: 1.3,
+          }}>
+            {title}
+          </h1>
+
+          {/* Breadcrumbs — hidden on mobile */}
+          {!isMobile && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              marginTop: 2,
+              flexWrap: 'nowrap',
+              overflow: 'hidden',
+            }}>
+              {breadcrumbs.map((crumb, idx) => {
+                const isLast = idx === breadcrumbs.length - 1
+                return (
+                  <React.Fragment key={crumb.path}>
+                    {idx > 0 && (
+                      <MdChevronRight style={{ color: '#cbd5e1', fontSize: 13, flexShrink: 0 }} />
+                    )}
+                    <span
+                      onClick={isLast ? undefined : () => navigate(crumb.path)}
+                      style={{
+                        fontFamily: 'system-ui, sans-serif',
+                        fontSize: 11,
+                        fontWeight: isLast ? 600 : 400,
+                        color: isLast ? ACCENT : MUTED,
+                        cursor: isLast ? 'default' : 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'color 0.12s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 3,
+                      }}
+                      onMouseEnter={e => { if (!isLast) e.currentTarget.style.color = TEXT }}
+                      onMouseLeave={e => { if (!isLast) e.currentTarget.style.color = MUTED }}
+                    >
+                      {idx === 0 && <MdHome style={{ fontSize: 12 }} />}
+                      {crumb.label}
+                    </span>
+                  </React.Fragment>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
 
       {/* ── Right: Actions ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 10, flexShrink: 0 }}>
 
-        {/* Portal badge */}
-        {portalLabel && (
+        {/* Portal badge — hidden on mobile */}
+        {portalLabel && !isMobile && (
           <span style={{
             padding: '3px 10px',
             borderRadius: 99,
@@ -608,10 +637,12 @@ export default function Navbar() {
           </span>
         )}
 
-        {/* Search button */}
-        <CircleButton onClick={() => alert('Search coming soon')}>
-          <MdSearch style={{ color: MUTED, fontSize: 18 }} />
-        </CircleButton>
+        {/* Search button — hidden on mobile */}
+        {!isMobile && (
+          <CircleButton onClick={() => alert('Search coming soon')}>
+            <MdSearch style={{ color: MUTED, fontSize: 18 }} />
+          </CircleButton>
+        )}
 
         {/* Notifications bell */}
         <div ref={notifRef} style={{ position: 'relative' }}>

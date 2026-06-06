@@ -62,7 +62,7 @@ function PageHeader({ user, roleLabel }) {
   )
 }
 
-function StatCard({ icon, label, value, color, bg, trend, trendColor }) {
+function StatCard({ icon, label, value, color, bg, trend, trendColor, isMobile }) {
   return (
     <div style={{
       ...CARD,
@@ -71,7 +71,7 @@ function StatCard({ icon, label, value, color, bg, trend, trendColor }) {
       alignItems: 'center',
       gap: 18,
       flex: 1,
-      minWidth: 180,
+      minWidth: isMobile ? '45%' : 180,
       transition: 'box-shadow 0.2s'
     }}>
       <div style={{
@@ -178,41 +178,43 @@ function ProgressBar({ value, max, color }) {
 function BarChart({ data, title, subtitle, valueLabel = '%', maxHeight = 180 }) {
   const maxVal = Math.max(...data.map(d => d.value))
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: maxHeight + 30, paddingLeft: 32, position: 'relative' }}>
-        {/* Y-axis labels */}
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 30, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          {[100, 75, 50, 25, 0].map(v => (
-            <span key={v} style={{ fontFamily: 'system-ui, sans-serif', fontSize: 10, color: MUTED }}>{v}{valueLabel}</span>
-          ))}
+    <div style={{ overflowX: 'auto' }}>
+      <div style={{ minWidth: 400 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: maxHeight + 30, paddingLeft: 32, position: 'relative' }}>
+          {/* Y-axis labels */}
+          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 30, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            {[100, 75, 50, 25, 0].map(v => (
+              <span key={v} style={{ fontFamily: 'system-ui, sans-serif', fontSize: 10, color: MUTED }}>{v}{valueLabel}</span>
+            ))}
+          </div>
+          {data.map((d, i) => {
+            const barH = Math.round((d.value / 100) * maxHeight)
+            return (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, justifyContent: 'flex-end', height: maxHeight + 30 }}>
+                <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: 10, fontWeight: 700, color: d.highlight ? ACCENT : MUTED }}>
+                  {d.value}{valueLabel}
+                </span>
+                <div
+                  title={`${d.label}: ${d.value}${valueLabel}`}
+                  style={{
+                    width: '70%',
+                    height: barH,
+                    background: d.highlight
+                      ? `linear-gradient(180deg, ${ACCENT} 0%, #818cf8 100%)`
+                      : 'rgba(99,102,241,0.25)',
+                    borderRadius: '5px 5px 0 0',
+                    transition: 'height 0.4s',
+                    border: d.highlight ? `2px solid ${ACCENT}` : '2px solid transparent',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: 11, color: d.highlight ? TEXT : MUTED, fontWeight: d.highlight ? 700 : 400, height: 30, display: 'flex', alignItems: 'center' }}>
+                  {d.label}
+                </span>
+              </div>
+            )
+          })}
         </div>
-        {data.map((d, i) => {
-          const barH = Math.round((d.value / 100) * maxHeight)
-          return (
-            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, justifyContent: 'flex-end', height: maxHeight + 30 }}>
-              <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: 10, fontWeight: 700, color: d.highlight ? ACCENT : MUTED }}>
-                {d.value}{valueLabel}
-              </span>
-              <div
-                title={`${d.label}: ${d.value}${valueLabel}`}
-                style={{
-                  width: '70%',
-                  height: barH,
-                  background: d.highlight
-                    ? `linear-gradient(180deg, ${ACCENT} 0%, #818cf8 100%)`
-                    : 'rgba(99,102,241,0.25)',
-                  borderRadius: '5px 5px 0 0',
-                  transition: 'height 0.4s',
-                  border: d.highlight ? `2px solid ${ACCENT}` : '2px solid transparent',
-                  boxSizing: 'border-box'
-                }}
-              />
-              <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: 11, color: d.highlight ? TEXT : MUTED, fontWeight: d.highlight ? 700 : 400, height: 30, display: 'flex', alignItems: 'center' }}>
-                {d.label}
-              </span>
-            </div>
-          )
-        })}
       </div>
     </div>
   )
@@ -275,7 +277,7 @@ function DaysLeft({ days }) {
 }
 
 // ─── ADMIN DASHBOARD ─────────────────────────────────────────────────────────
-function AdminDashboard() {
+function AdminDashboard({ isMobile }) {
   const [stats, setStats] = useState({ students: 0, faculty: 0, courses: 0, pendingLeaves: 0 })
   const [leaves, setLeaves] = useState([])
 
@@ -330,15 +332,15 @@ function AdminDashboard() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Stat Cards */}
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        <StatCard icon={<MdPeople />} label="Total Students" value={stats.students || 1284} color="#6366f1" bg="#eef2ff" trend="+5 this month" trendColor="#10b981" />
-        <StatCard icon={<MdSchool />} label="Faculty Members" value={stats.faculty || 87} color="#10b981" bg="#f0fdf4" trend="+2 this month" trendColor="#10b981" />
-        <StatCard icon={<MdBook />} label="Active Courses" value={stats.courses || 64} color="#f59e0b" bg="#fffbeb" trend="+3 this sem" trendColor="#10b981" />
-        <StatCard icon={<MdBeachAccess />} label="Pending Leaves" value={stats.pendingLeaves || 12} color="#ef4444" bg="#fef2f2" trend="Needs review" trendColor="#ef4444" />
+        <StatCard icon={<MdPeople />} label="Total Students" value={stats.students || 1284} color="#6366f1" bg="#eef2ff" trend="+5 this month" trendColor="#10b981" isMobile={isMobile} />
+        <StatCard icon={<MdSchool />} label="Faculty Members" value={stats.faculty || 87} color="#10b981" bg="#f0fdf4" trend="+2 this month" trendColor="#10b981" isMobile={isMobile} />
+        <StatCard icon={<MdBook />} label="Active Courses" value={stats.courses || 64} color="#f59e0b" bg="#fffbeb" trend="+3 this sem" trendColor="#10b981" isMobile={isMobile} />
+        <StatCard icon={<MdBeachAccess />} label="Pending Leaves" value={stats.pendingLeaves || 12} color="#ef4444" bg="#fef2f2" trend="Needs review" trendColor="#ef4444" isMobile={isMobile} />
       </div>
 
       {/* Quick Actions */}
       <SectionCard title="Quick Actions" subtitle="Frequently used admin operations">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)', gap: 12 }}>
           {quickActions.map((a, i) => (
             <QuickActionCard key={i} icon={a.icon} label={a.label} color={a.color} bg={a.bg} />
           ))}
@@ -346,7 +348,7 @@ function AdminDashboard() {
       </SectionCard>
 
       {/* Chart + Activity row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.4fr 1fr', gap: 20 }}>
         <SectionCard title="Monthly Attendance Overview" subtitle="Jan – Jun 2025 (Overall %)">
           <BarChart data={monthlyAttendance} />
         </SectionCard>
@@ -368,9 +370,9 @@ function AdminDashboard() {
 
       {/* Recent Leave Requests */}
       <SectionCard title="Recent Leave Requests" action="Manage All">
-        {leaves.length === 0 ? (
-          <div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13 }}>
+        <div style={{ overflowX: 'auto' }}>
+          {leaves.length === 0 ? (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13, minWidth: 400 }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {['Employee ID', 'Type', 'From', 'To', 'Status'].map(h => (
@@ -394,36 +396,36 @@ function AdminDashboard() {
                 ))}
               </tbody>
             </table>
-          </div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                {['Employee ID', 'Type', 'From', 'To', 'Status'].map(h => (
-                  <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: MUTED, fontWeight: 600 }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {leaves.map(l => (
-                <tr key={l.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '10px 12px', color: TEXT }}>{l.employeeId?.slice(0, 8)}...</td>
-                  <td style={{ padding: '10px 12px', color: TEXT }}>{l.leaveType}</td>
-                  <td style={{ padding: '10px 12px', color: MUTED }}>{l.fromDate}</td>
-                  <td style={{ padding: '10px 12px', color: MUTED }}>{l.toDate}</td>
-                  <td style={{ padding: '10px 12px' }}><Badge status={l.status} /></td>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13, minWidth: 400 }}>
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  {['Employee ID', 'Type', 'From', 'To', 'Status'].map(h => (
+                    <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: MUTED, fontWeight: 600 }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody>
+                {leaves.map(l => (
+                  <tr key={l.id} style={{ borderTop: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '10px 12px', color: TEXT }}>{l.employeeId?.slice(0, 8)}...</td>
+                    <td style={{ padding: '10px 12px', color: TEXT }}>{l.leaveType}</td>
+                    <td style={{ padding: '10px 12px', color: MUTED }}>{l.fromDate}</td>
+                    <td style={{ padding: '10px 12px', color: MUTED }}>{l.toDate}</td>
+                    <td style={{ padding: '10px 12px' }}><Badge status={l.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </SectionCard>
     </div>
   )
 }
 
 // ─── FACULTY DASHBOARD ────────────────────────────────────────────────────────
-function FacultyDashboard() {
+function FacultyDashboard({ isMobile }) {
   const [courses, setCourses] = useState([])
   const [assignments, setAssignments] = useState([])
 
@@ -472,53 +474,55 @@ function FacultyDashboard() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Stat Cards */}
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        <StatCard icon={<MdBook />} label="My Courses" value={courses.length || 4} color="#6366f1" bg="#eef2ff" trend="This semester" />
-        <StatCard icon={<MdPeople />} label="Total Students" value={242} color="#10b981" bg="#f0fdf4" trend="Across all sections" />
-        <StatCard icon={<MdListAlt />} label="Pending Marks" value={33} color="#f59e0b" bg="#fffbeb" trend="Due Jun 20" trendColor="#ef4444" />
-        <StatCard icon={<MdCalendarToday />} label="Classes Today" value={4} color="#8b5cf6" bg="#f5f3ff" trend="Next: 10:00 AM" />
+        <StatCard icon={<MdBook />} label="My Courses" value={courses.length || 4} color="#6366f1" bg="#eef2ff" trend="This semester" isMobile={isMobile} />
+        <StatCard icon={<MdPeople />} label="Total Students" value={242} color="#10b981" bg="#f0fdf4" trend="Across all sections" isMobile={isMobile} />
+        <StatCard icon={<MdListAlt />} label="Pending Marks" value={33} color="#f59e0b" bg="#fffbeb" trend="Due Jun 20" trendColor="#ef4444" isMobile={isMobile} />
+        <StatCard icon={<MdCalendarToday />} label="Classes Today" value={4} color="#8b5cf6" bg="#f5f3ff" trend="Next: 10:00 AM" isMobile={isMobile} />
       </div>
 
       {/* Today's Schedule */}
       <SectionCard title="Today's Schedule" subtitle={new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13 }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              {['Time', 'Course', 'Section', 'Room', 'Type'].map(h => (
-                <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: MUTED, fontWeight: 600 }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {todaySchedule.map((s, i) => (
-              <tr key={i} style={{
-                borderTop: '1px solid #f1f5f9',
-                background: s.current ? '#eef2ff' : 'transparent'
-              }}>
-                <td style={{ padding: '11px 12px', color: s.current ? ACCENT : TEXT, fontWeight: s.current ? 700 : 400, whiteSpace: 'nowrap' }}>
-                  {s.current && <span style={{ width: 7, height: 7, borderRadius: '50%', background: ACCENT, display: 'inline-block', marginRight: 6 }} />}
-                  {s.time}
-                </td>
-                <td style={{ padding: '11px 12px', color: TEXT, fontWeight: 600 }}>{s.course}</td>
-                <td style={{ padding: '11px 12px', color: MUTED }}>{s.section}</td>
-                <td style={{ padding: '11px 12px', color: MUTED }}>{s.room}</td>
-                <td style={{ padding: '11px 12px' }}>
-                  <span style={{
-                    background: typeColor[s.type]?.bg || '#f1f5f9',
-                    color: typeColor[s.type]?.color || MUTED,
-                    borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700
-                  }}>
-                    {s.type}
-                  </span>
-                </td>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13, minWidth: 400 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                {['Time', 'Course', 'Section', 'Room', 'Type'].map(h => (
+                  <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: MUTED, fontWeight: 600 }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {todaySchedule.map((s, i) => (
+                <tr key={i} style={{
+                  borderTop: '1px solid #f1f5f9',
+                  background: s.current ? '#eef2ff' : 'transparent'
+                }}>
+                  <td style={{ padding: '11px 12px', color: s.current ? ACCENT : TEXT, fontWeight: s.current ? 700 : 400, whiteSpace: 'nowrap' }}>
+                    {s.current && <span style={{ width: 7, height: 7, borderRadius: '50%', background: ACCENT, display: 'inline-block', marginRight: 6 }} />}
+                    {s.time}
+                  </td>
+                  <td style={{ padding: '11px 12px', color: TEXT, fontWeight: 600 }}>{s.course}</td>
+                  <td style={{ padding: '11px 12px', color: MUTED }}>{s.section}</td>
+                  <td style={{ padding: '11px 12px', color: MUTED }}>{s.room}</td>
+                  <td style={{ padding: '11px 12px' }}>
+                    <span style={{
+                      background: typeColor[s.type]?.bg || '#f1f5f9',
+                      color: typeColor[s.type]?.color || MUTED,
+                      borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700
+                    }}>
+                      {s.type}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </SectionCard>
 
       {/* Quick Actions */}
       <SectionCard title="Quick Actions">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)', gap: 12 }}>
           {quickActions.map((a, i) => (
             <QuickActionCard key={i} icon={a.icon} label={a.label} color={a.color} bg={a.bg} />
           ))}
@@ -526,7 +530,7 @@ function FacultyDashboard() {
       </SectionCard>
 
       {/* Marks Status + Announcements */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
         <SectionCard title="Marks Entry Status" subtitle="Internal assessment progress">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {marksStatus.map((m, i) => {
@@ -566,7 +570,7 @@ function FacultyDashboard() {
 }
 
 // ─── STUDENT DASHBOARD ────────────────────────────────────────────────────────
-function StudentDashboard() {
+function StudentDashboard({ isMobile }) {
   const [courses, setCourses] = useState([])
   const [assignments, setAssignments] = useState([])
 
@@ -622,7 +626,7 @@ function StudentDashboard() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Attendance Summary — Top Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
         <SectionCard title="Attendance Summary" subtitle="Current semester">
           <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
             <CircularProgress pct={attendancePct} size={110} color={ACCENT} label="Overall" />
@@ -646,32 +650,34 @@ function StudentDashboard() {
         </SectionCard>
 
         <SectionCard title="Upcoming Exams" subtitle="End semester — June 2025">
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                {['Date', 'Course', 'Time', 'Venue', ''].map((h, i) => (
-                  <th key={i} style={{ padding: '7px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 12 }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {exams.map((e, i) => (
-                <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '10px 10px', color: TEXT, fontWeight: 600, whiteSpace: 'nowrap', fontSize: 12 }}>{e.date}</td>
-                  <td style={{ padding: '10px 10px', color: TEXT, fontSize: 12 }}>{e.course}</td>
-                  <td style={{ padding: '10px 10px', color: MUTED, fontSize: 12, whiteSpace: 'nowrap' }}>{e.time}</td>
-                  <td style={{ padding: '10px 10px', color: MUTED, fontSize: 12 }}>{e.venue}</td>
-                  <td style={{ padding: '10px 10px' }}><DaysLeft days={e.days} /></td>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13, minWidth: 400 }}>
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  {['Date', 'Course', 'Time', 'Venue', ''].map((h, i) => (
+                    <th key={i} style={{ padding: '7px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 12 }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {exams.map((e, i) => (
+                  <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '10px 10px', color: TEXT, fontWeight: 600, whiteSpace: 'nowrap', fontSize: 12 }}>{e.date}</td>
+                    <td style={{ padding: '10px 10px', color: TEXT, fontSize: 12 }}>{e.course}</td>
+                    <td style={{ padding: '10px 10px', color: MUTED, fontSize: 12, whiteSpace: 'nowrap' }}>{e.time}</td>
+                    <td style={{ padding: '10px 10px', color: MUTED, fontSize: 12 }}>{e.venue}</td>
+                    <td style={{ padding: '10px 10px' }}><DaysLeft days={e.days} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </SectionCard>
       </div>
 
       {/* Quick Actions */}
       <SectionCard title="Quick Actions">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)', gap: 12 }}>
           {quickActions.map((a, i) => (
             <QuickActionCard key={i} icon={a.icon} label={a.label} color={a.color} bg={a.bg} />
           ))}
@@ -679,7 +685,7 @@ function StudentDashboard() {
       </SectionCard>
 
       {/* CGPA Trend + Notifications */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.3fr 1fr', gap: 20 }}>
         <SectionCard title="CGPA Trend" subtitle="Semester-wise GPA">
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
             <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: 13, color: MUTED }}>Cumulative GPA:</span>
@@ -721,7 +727,7 @@ function StudentDashboard() {
 }
 
 // ─── STAFF DASHBOARD ──────────────────────────────────────────────────────────
-function StaffDashboard() {
+function StaffDashboard({ isMobile }) {
   const [balance, setBalance] = useState(null)
 
   useEffect(() => {
@@ -745,44 +751,46 @@ function StaffDashboard() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        <StatCard icon={<MdBeachAccess />} label="Casual Leave" value={balance?.casualBalance ?? 12} color="#6366f1" bg="#eef2ff" trend="Available days" />
-        <StatCard icon={<MdBeachAccess />} label="Sick Leave" value={balance?.sickBalance ?? 8} color="#10b981" bg="#f0fdf4" trend="Available days" />
-        <StatCard icon={<MdBeachAccess />} label="Earned Leave" value={balance?.earnedBalance ?? 18} color="#f59e0b" bg="#fffbeb" trend="Available days" />
-        <StatCard icon={<MdCheckCircle />} label="Attendance" value="96%" color="#10b981" bg="#f0fdf4" trend="This month" />
+        <StatCard icon={<MdBeachAccess />} label="Casual Leave" value={balance?.casualBalance ?? 12} color="#6366f1" bg="#eef2ff" trend="Available days" isMobile={isMobile} />
+        <StatCard icon={<MdBeachAccess />} label="Sick Leave" value={balance?.sickBalance ?? 8} color="#10b981" bg="#f0fdf4" trend="Available days" isMobile={isMobile} />
+        <StatCard icon={<MdBeachAccess />} label="Earned Leave" value={balance?.earnedBalance ?? 18} color="#f59e0b" bg="#fffbeb" trend="Available days" isMobile={isMobile} />
+        <StatCard icon={<MdCheckCircle />} label="Attendance" value="96%" color="#10b981" bg="#f0fdf4" trend="This month" isMobile={isMobile} />
       </div>
 
       <SectionCard title="Quick Actions">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)', gap: 12 }}>
           {quickActions.map((a, i) => (
             <QuickActionCard key={i} icon={a.icon} label={a.label} color={a.color} bg={a.bg} />
           ))}
         </div>
       </SectionCard>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
         <SectionCard title="Leave History" subtitle="Recent leave records">
           {recentLeaves.length === 0 ? (
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: 13, color: MUTED, margin: 0 }}>No leave records</p>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13 }}>
-              <thead>
-                <tr style={{ background: '#f8fafc' }}>
-                  {['Type', 'From', 'To', 'Status'].map(h => (
-                    <th key={h} style={{ padding: '7px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 12 }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {recentLeaves.map((l, i) => (
-                  <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '10px 10px', color: TEXT }}>{l.type}</td>
-                    <td style={{ padding: '10px 10px', color: MUTED }}>{l.from}</td>
-                    <td style={{ padding: '10px 10px', color: MUTED }}>{l.to}</td>
-                    <td style={{ padding: '10px 10px' }}><Badge status={l.status} /></td>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    {['Type', 'From', 'To', 'Status'].map(h => (
+                      <th key={h} style={{ padding: '7px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 12 }}>{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {recentLeaves.map((l, i) => (
+                    <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '10px 10px', color: TEXT }}>{l.type}</td>
+                      <td style={{ padding: '10px 10px', color: MUTED }}>{l.from}</td>
+                      <td style={{ padding: '10px 10px', color: MUTED }}>{l.to}</td>
+                      <td style={{ padding: '10px 10px' }}><Badge status={l.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </SectionCard>
 
@@ -809,7 +817,7 @@ function StaffDashboard() {
 }
 
 // ─── PARENT DASHBOARD ─────────────────────────────────────────────────────────
-function ParentDashboard() {
+function ParentDashboard({ isMobile }) {
   const ward = { name: 'Arjun Kumar', dept: 'Computer Science & Engineering', sem: 'Semester 6', roll: 'CSE2022001', cgpa: 8.30 }
   const attendancePct = 87.5
 
@@ -861,7 +869,7 @@ function ParentDashboard() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1.2fr 1fr', gap: 20 }}>
         {/* Circular Attendance */}
         <SectionCard title="Overall Attendance">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '8px 0' }}>
@@ -874,35 +882,37 @@ function ParentDashboard() {
 
         {/* Exam Marks Summary */}
         <SectionCard title="Recent Exam Performance">
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                {['Exam', 'Marks', 'Grade'].map(h => (
-                  <th key={h} style={{ padding: '7px 10px', textAlign: 'left', color: MUTED, fontWeight: 600 }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {examMarks.map((e, i) => (
-                <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '10px 10px', color: TEXT, fontWeight: 500 }}>{e.exam}</td>
-                  <td style={{ padding: '10px 10px', color: TEXT }}>
-                    <span style={{ fontWeight: 700 }}>{e.marks}</span>
-                    <span style={{ color: MUTED }}>/{e.max}</span>
-                  </td>
-                  <td style={{ padding: '10px 10px' }}>
-                    <span style={{
-                      background: e.grade.startsWith('A') ? '#f0fdf4' : '#fffbeb',
-                      color: e.grade.startsWith('A') ? '#10b981' : '#d97706',
-                      borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700
-                    }}>
-                      {e.grade}
-                    </span>
-                  </td>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  {['Exam', 'Marks', 'Grade'].map(h => (
+                    <th key={h} style={{ padding: '7px 10px', textAlign: 'left', color: MUTED, fontWeight: 600 }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {examMarks.map((e, i) => (
+                  <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '10px 10px', color: TEXT, fontWeight: 500 }}>{e.exam}</td>
+                    <td style={{ padding: '10px 10px', color: TEXT }}>
+                      <span style={{ fontWeight: 700 }}>{e.marks}</span>
+                      <span style={{ color: MUTED }}>/{e.max}</span>
+                    </td>
+                    <td style={{ padding: '10px 10px' }}>
+                      <span style={{
+                        background: e.grade.startsWith('A') ? '#f0fdf4' : '#fffbeb',
+                        color: e.grade.startsWith('A') ? '#10b981' : '#d97706',
+                        borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700
+                      }}>
+                        {e.grade}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </SectionCard>
 
         {/* Fee Status */}
@@ -924,7 +934,7 @@ function ParentDashboard() {
 
       {/* Quick Links */}
       <SectionCard title="Quick Links">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12 }}>
           {quickLinks.map((a, i) => (
             <QuickActionCard key={i} icon={a.icon} label={a.label} color={a.color} bg={a.bg} />
           ))}
@@ -935,7 +945,7 @@ function ParentDashboard() {
 }
 
 // ─── ALUMNI DASHBOARD ─────────────────────────────────────────────────────────
-function AlumniDashboard() {
+function AlumniDashboard({ isMobile }) {
   const alumniInfo = {
     name: 'Priya Rajan',
     gradYear: 2022,
@@ -989,7 +999,7 @@ function AlumniDashboard() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1.2fr', gap: 20 }}>
         {/* Current Status */}
         <SectionCard title="Current Status">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1035,7 +1045,7 @@ function AlumniDashboard() {
 
       {/* Upcoming Alumni Events */}
       <SectionCard title="Upcoming Alumni Events" action="View All">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 14 }}>
           {[
             { title: 'Alumni Meet 2025', date: 'Aug 10, 2025', location: 'Campus Auditorium', color: '#6366f1', bg: '#eef2ff' },
             { title: 'Tech Talk: AI in Industry', date: 'Jul 5, 2025', location: 'Online (Zoom)', color: '#10b981', bg: '#f0fdf4' },
@@ -1059,16 +1069,23 @@ export default function Dashboard() {
   const role = user?.role
   const roleLabel = roleLabelMap[role] || 'User'
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
+
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', color: TEXT }}>
       <PageHeader user={user} roleLabel={roleLabel} />
 
-      {role === 'ADMIN'   && <AdminDashboard />}
-      {role === 'FACULTY' && <FacultyDashboard />}
-      {role === 'STUDENT' && <StudentDashboard />}
-      {role === 'STAFF'   && <StaffDashboard />}
-      {role === 'PARENT'  && <ParentDashboard />}
-      {role === 'ALUMNI'  && <AlumniDashboard />}
+      {role === 'ADMIN'   && <AdminDashboard isMobile={isMobile} />}
+      {role === 'FACULTY' && <FacultyDashboard isMobile={isMobile} />}
+      {role === 'STUDENT' && <StudentDashboard isMobile={isMobile} />}
+      {role === 'STAFF'   && <StaffDashboard isMobile={isMobile} />}
+      {role === 'PARENT'  && <ParentDashboard isMobile={isMobile} />}
+      {role === 'ALUMNI'  && <AlumniDashboard isMobile={isMobile} />}
     </div>
   )
 }

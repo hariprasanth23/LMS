@@ -106,6 +106,24 @@ export default function Layout() {
     }
   })
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768)
+
+  useEffect(() => {
+    const h = () => {
+      const mobile = window.innerWidth <= 768
+      setIsMobile(mobile)
+      // On resize to desktop, ensure sidebar is open; on resize to mobile, close it
+      if (!mobile) {
+        setSidebarOpen(true)
+      } else {
+        setSidebarOpen(false)
+      }
+    }
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
+
   const mainScrollRef = useRef(null)
 
   const handleCollapsedChange = useCallback((collapsed) => {
@@ -136,7 +154,25 @@ export default function Layout() {
         background: '#f8fafc',
         fontFamily: FONT
       }}>
-        <Sidebar onCollapsedChange={handleCollapsedChange} />
+        {/* Mobile backdrop overlay */}
+        {isMobile && sidebarOpen && (
+          <div
+            onClick={() => setSidebarOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.4)',
+              zIndex: 499
+            }}
+          />
+        )}
+
+        <Sidebar
+          onCollapsedChange={handleCollapsedChange}
+          isMobile={isMobile}
+          sidebarOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
 
         <div style={{
           flex: 1,
@@ -145,13 +181,16 @@ export default function Layout() {
           minWidth: 0,
           transition: 'margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
         }}>
-          <Navbar />
+          <Navbar
+            onToggleSidebar={() => setSidebarOpen(prev => !prev)}
+            isMobile={isMobile}
+          />
 
           <main
             ref={mainScrollRef}
             style={{
               flex: 1,
-              padding: 28,
+              padding: isMobile ? 16 : 28,
               overflow: 'auto',
               display: 'flex',
               flexDirection: 'column'

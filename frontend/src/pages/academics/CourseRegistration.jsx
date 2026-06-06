@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -28,7 +28,8 @@ function WishList() {
         </div>
         <button style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 7, padding: '6px 14px', fontSize: 12, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600 }}>+ Browse Catalog</button>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
         <thead>
           <tr style={{ background: '#f8fafc' }}>
             {['Course Code', 'Name', 'Faculty', 'Credits', 'Slot', 'Seats', 'Actions'].map(h => (
@@ -59,6 +60,7 @@ function WishList() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -81,7 +83,8 @@ function CourseWithdraw() {
           <span style={{ color: '#92400e' }}> — Courses marked as ineligible cannot be withdrawn after the deadline.</span>
         </div>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 500 }}>
         <thead>
           <tr style={{ background: '#f8fafc' }}>
             {['Course Code', 'Name', 'Credits', 'Faculty', 'Action'].map(h => (
@@ -105,6 +108,7 @@ function CourseWithdraw() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -147,7 +151,8 @@ function EXCRegistration() {
         </div>
       </div>
       <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, fontFamily: 'system-ui', marginBottom: 10 }}>Previously Registered EXC Courses</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 400 }}>
         <thead>
           <tr style={{ background: '#f8fafc' }}>
             {['Code', 'Course Name', 'Credits', 'Semester', 'Status'].map(h => (
@@ -167,6 +172,7 @@ function EXCRegistration() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -258,7 +264,8 @@ function IndustrialInternship() {
         <button style={{ marginTop: 14, background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 0', fontSize: 13, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600, width: '100%' }}>Submit Internship Details</button>
       </div>
       <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, fontFamily: 'system-ui', marginBottom: 10 }}>Registered Internships</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 500 }}>
         <thead>
           <tr style={{ background: '#f8fafc' }}>
             {['Company', 'Role', 'Duration', 'Start', 'End', 'Status'].map(h => (
@@ -279,6 +286,7 @@ function IndustrialInternship() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -369,7 +377,8 @@ function SETConferenceRegistration() {
         <button style={{ marginTop: 14, background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 0', fontSize: 13, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600, width: '100%' }}>Register for Conference</button>
       </div>
       <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, fontFamily: 'system-ui', marginBottom: 10 }}>Registered Conferences</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 500 }}>
         <thead>
           <tr style={{ background: '#f8fafc' }}>
             {['Conference', 'Date', 'Venue', 'Paper Title', 'Status'].map(h => (
@@ -389,6 +398,7 @@ function SETConferenceRegistration() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -441,7 +451,14 @@ const CONTENT_MAP = [
 
 export default function CourseRegistration() {
   const [active, setActive] = useState(0)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
   const ActiveComponent = CONTENT_MAP[active]
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100%', padding: 1 }}>
@@ -449,19 +466,33 @@ export default function CourseRegistration() {
         <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#1e293b', fontFamily: 'system-ui' }}>Academics — Course Registration</h1>
         <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748b', fontFamily: 'system-ui' }}>Register, withdraw, and manage your course enrollments</p>
       </div>
-      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', minHeight: 520 }}>
-        <div style={{ width: 210, borderRight: '1px solid #e2e8f0', padding: '12px 0', flexShrink: 0 }}>
+      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: 520 }}>
+        <div style={{
+          width: isMobile ? '100%' : 210,
+          borderRight: isMobile ? 'none' : '1px solid #e2e8f0',
+          borderBottom: isMobile ? '1px solid #e2e8f0' : 'none',
+          padding: isMobile ? '8px 4px' : '12px 0',
+          flexShrink: 0,
+          display: isMobile ? 'flex' : 'block',
+          flexDirection: isMobile ? 'row' : undefined,
+          flexWrap: isMobile ? 'wrap' : undefined,
+          overflowX: isMobile ? 'auto' : undefined,
+        }}>
           {ITEMS.map((item, i) => (
             <div key={i} onClick={() => setActive(i)} style={{
-              padding: '9px 16px', cursor: 'pointer', fontSize: 13,
+              padding: isMobile ? '6px 12px' : '9px 16px', cursor: 'pointer',
+              fontSize: isMobile ? 12 : 13,
               fontFamily: 'system-ui', color: active === i ? '#6366f1' : '#475569',
               background: active === i ? '#eef2ff' : 'transparent',
-              borderLeft: active === i ? '3px solid #6366f1' : '3px solid transparent',
-              fontWeight: active === i ? 600 : 400
+              borderLeft: isMobile ? 'none' : (active === i ? '3px solid #6366f1' : '3px solid transparent'),
+              borderBottom: isMobile ? (active === i ? '2px solid #6366f1' : '2px solid transparent') : 'none',
+              borderRadius: isMobile ? 100 : 0,
+              fontWeight: active === i ? 600 : 400,
+              whiteSpace: 'nowrap',
             }}>{item}</div>
           ))}
         </div>
-        <div style={{ flex: 1, padding: 28, overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: isMobile ? '16px' : 28, overflowY: 'auto' }}>
           <ActiveComponent />
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -46,7 +46,8 @@ function MyCurriculum() {
             Semester {s.sem}
             {s.sem === 6 && <span style={{ background: '#eef2ff', color: ACCENT, fontSize: 11, borderRadius: 10, padding: '1px 8px', fontWeight: 600 }}>Current</span>}
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
             <thead>
               <tr style={{ background: '#f8fafc' }}>
                 {['Course Code', 'Course Name', 'Credits', 'Grade'].map(h => (
@@ -65,6 +66,7 @@ function MyCurriculum() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       ))}
     </div>
@@ -115,7 +117,8 @@ function FacultyInfo() {
   return (
     <div>
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or subject..." style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', marginBottom: 16, outline: 'none', boxSizing: 'border-box' }} />
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
         <thead>
           <tr style={{ background: '#f8fafc' }}>
             {['S.No', 'Faculty Name', 'Designation', 'Subject Handling', 'Cabin No', 'Email'].map(h => (
@@ -136,6 +139,7 @@ function FacultyInfo() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -385,7 +389,8 @@ function CoursePageConsolidated() {
   ]
   const badge = (n, color) => <span style={{ background: color + '22', color, fontSize: 11, borderRadius: 10, padding: '1px 7px', fontWeight: 700, fontFamily: 'system-ui', marginLeft: 4 }}>{n}</span>
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+    <div style={{ overflowX: 'auto' }}>
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
       <thead>
         <tr style={{ background: '#f8fafc' }}>
           {['Course Code', 'Course Name', 'Materials', 'Assignments', 'Announcements'].map(h => (
@@ -405,6 +410,7 @@ function CoursePageConsolidated() {
         ))}
       </tbody>
     </table>
+    </div>
   )
 }
 
@@ -452,7 +458,8 @@ function DigitalAssignmentUpload() {
         </div>
       </div>
       <div style={{ fontSize: 14, fontWeight: 700, color: TEXT, fontFamily: 'system-ui', marginBottom: 10 }}>Submitted Assignments</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
         <thead>
           <tr style={{ background: '#f8fafc' }}>
             {['Course', 'Title', 'Submitted', 'Due Date', 'Status', 'Marks'].map(h => (
@@ -476,6 +483,7 @@ function DigitalAssignmentUpload() {
           })}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -490,7 +498,8 @@ function QCMView() {
   ]
   const pctColor = (p) => p >= 80 ? ['#dcfce7', '#15803d'] : p >= 60 ? ['#fef3c7', '#b45309'] : ['#fee2e2', '#dc2626']
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+    <div style={{ overflowX: 'auto' }}>
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 500 }}>
       <thead>
         <tr style={{ background: '#f8fafc' }}>
           {['Course', 'Quiz Name', 'Date', 'Max Marks', 'Scored', 'Percentage'].map(h => (
@@ -515,6 +524,7 @@ function QCMView() {
         })}
       </tbody>
     </table>
+    </div>
   )
 }
 
@@ -528,7 +538,8 @@ function OutcomeSETConference() {
   const cellColor = (v) => v >= 80 ? '#dcfce7' : v >= 70 ? '#fef9c3' : '#fee2e2'
   const cellText = (v) => v >= 80 ? '#15803d' : v >= 70 ? '#854d0e' : '#dc2626'
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+    <div style={{ overflowX: 'auto' }}>
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 500 }}>
       <thead>
         <tr style={{ background: '#f8fafc' }}>
           {['Course', 'Name', 'CO1', 'CO2', 'CO3', 'CO4', 'CO5'].map(h => (
@@ -550,6 +561,7 @@ function OutcomeSETConference() {
         ))}
       </tbody>
     </table>
+    </div>
   )
 }
 
@@ -664,7 +676,8 @@ function CourseRegistrationAllocation() {
         <span style={{ fontSize: 13, fontWeight: 600, color: ACCENT, fontFamily: 'system-ui' }}>Semester 6 — Current Registration</span>
         <span style={{ fontSize: 13, fontFamily: 'system-ui' }}><span style={{ color: MUTED }}>Total Credits: </span><span style={{ color: ACCENT, fontWeight: 800, fontSize: 16 }}>{total}</span></span>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
         <thead>
           <tr style={{ background: '#f8fafc' }}>
             {['Course Code', 'Course Name', 'Credits', 'Faculty', 'Slot'].map(h => (
@@ -684,6 +697,7 @@ function CourseRegistrationAllocation() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -747,7 +761,8 @@ function ProjectMarkView() {
         <div><div style={{ fontSize: 24, fontWeight: 800, color: '#6b7280', fontFamily: 'system-ui' }}>50</div><div style={{ fontSize: 11, color: MUTED, fontFamily: 'system-ui' }}>Total marks</div></div>
         <div><div style={{ fontSize: 24, fontWeight: 800, color: '#059669', fontFamily: 'system-ui' }}>{maxSoFar > 0 ? Math.round(scored / maxSoFar * 100) : 0}%</div><div style={{ fontSize: 11, color: MUTED, fontFamily: 'system-ui' }}>Current %</div></div>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui' }}>
+      <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 400 }}>
         <thead>
           <tr style={{ background: '#f8fafc' }}>
             {['Component', 'Date', 'Marks', 'Status'].map(h => (
@@ -772,6 +787,7 @@ function ProjectMarkView() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -823,7 +839,14 @@ const CONTENT_MAP = [
 
 export default function AcademicsGeneral() {
   const [active, setActive] = useState(0)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
   const ActiveComponent = CONTENT_MAP[active]
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100%', padding: 1 }}>
@@ -831,19 +854,33 @@ export default function AcademicsGeneral() {
         <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#1e293b', fontFamily: 'system-ui' }}>Academics — General</h1>
         <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748b', fontFamily: 'system-ui' }}>Curriculum, faculty, schedule and course information</p>
       </div>
-      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', minHeight: 520 }}>
-        <div style={{ width: 210, borderRight: '1px solid #e2e8f0', padding: '12px 0', flexShrink: 0 }}>
+      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: 520 }}>
+        <div style={{
+          width: isMobile ? '100%' : 210,
+          borderRight: isMobile ? 'none' : '1px solid #e2e8f0',
+          borderBottom: isMobile ? '1px solid #e2e8f0' : 'none',
+          padding: isMobile ? '8px 4px' : '12px 0',
+          flexShrink: 0,
+          display: isMobile ? 'flex' : 'block',
+          flexDirection: isMobile ? 'row' : undefined,
+          flexWrap: isMobile ? 'wrap' : undefined,
+          overflowX: isMobile ? 'auto' : undefined,
+        }}>
           {ITEMS.map((item, i) => (
             <div key={i} onClick={() => setActive(i)} style={{
-              padding: '9px 16px', cursor: 'pointer', fontSize: 13,
+              padding: isMobile ? '6px 12px' : '9px 16px', cursor: 'pointer',
+              fontSize: isMobile ? 12 : 13,
               fontFamily: 'system-ui', color: active === i ? '#6366f1' : '#475569',
               background: active === i ? '#eef2ff' : 'transparent',
-              borderLeft: active === i ? '3px solid #6366f1' : '3px solid transparent',
-              fontWeight: active === i ? 600 : 400
+              borderLeft: isMobile ? 'none' : (active === i ? '3px solid #6366f1' : '3px solid transparent'),
+              borderBottom: isMobile ? (active === i ? '2px solid #6366f1' : '2px solid transparent') : 'none',
+              borderRadius: isMobile ? 100 : 0,
+              fontWeight: active === i ? 600 : 400,
+              whiteSpace: 'nowrap',
             }}>{item}</div>
           ))}
         </div>
-        <div style={{ flex: 1, padding: 28, overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: isMobile ? '16px' : 28, overflowY: 'auto' }}>
           <ActiveComponent />
         </div>
       </div>

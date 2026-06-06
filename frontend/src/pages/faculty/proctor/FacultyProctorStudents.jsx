@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -126,23 +126,25 @@ function WishListSection() {
     <div>
       <div style={{ ...card, overflow: 'hidden', marginBottom: 20 }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: 600, fontSize: 15, color: TEXT }}>Course Wishlist — Upcoming Semester</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr>{['Course Code', 'Course Name', 'Credits', 'Faculty', 'Slot', 'Status'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
-          </thead>
-          <tbody>
-            {wishlistData.map((r, i) => (
-              <tr key={i}>
-                <td style={{ ...tdStyle, fontWeight: 600, color: ACCENT }}>{r.code}</td>
-                <td style={tdStyle}>{r.name}</td>
-                <td style={{ ...tdStyle, textAlign: 'center' }}>{r.credits}</td>
-                <td style={tdStyle}>{r.faculty}</td>
-                <td style={tdStyle}>{r.slot}</td>
-                <td style={tdStyle}>{statusBadge(r.status)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+            <thead>
+              <tr>{['Course Code', 'Course Name', 'Credits', 'Faculty', 'Slot', 'Status'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
+            </thead>
+            <tbody>
+              {wishlistData.map((r, i) => (
+                <tr key={i}>
+                  <td style={{ ...tdStyle, fontWeight: 600, color: ACCENT }}>{r.code}</td>
+                  <td style={tdStyle}>{r.name}</td>
+                  <td style={{ ...tdStyle, textAlign: 'center' }}>{r.credits}</td>
+                  <td style={tdStyle}>{r.faculty}</td>
+                  <td style={tdStyle}>{r.slot}</td>
+                  <td style={tdStyle}>{statusBadge(r.status)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <div style={{ ...card, padding: 24 }}>
         <h4 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 700, color: TEXT }}>Proctor Notes</h4>
@@ -235,23 +237,25 @@ function RegistrationSection() {
         <span style={{ fontWeight: 600, fontSize: 15, color: TEXT }}>Current Semester Registrations</span>
         <span style={{ fontSize: 13, color: MUTED }}>Semester 6 · 2024-25</span>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-        <thead>
-          <tr>{['Course Code', 'Course Name', 'Faculty', 'Slot', 'Credits', 'Type'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
-        </thead>
-        <tbody>
-          {registrationData.map((r, i) => (
-            <tr key={i}>
-              <td style={{ ...tdStyle, fontWeight: 600, color: ACCENT }}>{r.code}</td>
-              <td style={tdStyle}>{r.name}</td>
-              <td style={tdStyle}>{r.faculty}</td>
-              <td style={tdStyle}>{r.slot}</td>
-              <td style={{ ...tdStyle, textAlign: 'center' }}>{r.credits}</td>
-              <td style={tdStyle}>{statusBadge(r.type)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+          <thead>
+            <tr>{['Course Code', 'Course Name', 'Faculty', 'Slot', 'Credits', 'Type'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
+          </thead>
+          <tbody>
+            {registrationData.map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...tdStyle, fontWeight: 600, color: ACCENT }}>{r.code}</td>
+                <td style={tdStyle}>{r.name}</td>
+                <td style={tdStyle}>{r.faculty}</td>
+                <td style={tdStyle}>{r.slot}</td>
+                <td style={{ ...tdStyle, textAlign: 'center' }}>{r.credits}</td>
+                <td style={tdStyle}>{statusBadge(r.type)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <div style={{ padding: '12px 20px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', fontSize: 13, color: MUTED }}>
         Total Credits: <strong style={{ color: TEXT }}>13</strong> &nbsp;·&nbsp; Regular: <strong style={{ color: '#16a34a' }}>3</strong> &nbsp;·&nbsp; Arrear: <strong style={{ color: '#dc2626' }}>1</strong>
       </div>
@@ -328,23 +332,25 @@ function MarkDetailsSection() {
         <span style={{ fontWeight: 600, fontSize: 15, color: TEXT }}>Internal Assessment Marks</span>
         <span style={{ fontSize: 12, color: MUTED }}>Red cells indicate below minimum</span>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-        <thead>
-          <tr>{['Course', 'CA1 (/20)', 'CA2 (/20)', 'CA3 (/20)', 'Model (/50)', 'Total (/110)'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
-        </thead>
-        <tbody>
-          {markData.map((r, i) => (
-            <tr key={i}>
-              <td style={{ ...tdStyle, fontWeight: 600, color: ACCENT }}>{r.course}</td>
-              <td style={cell(r.ca1, minCA)}>{r.ca1}</td>
-              <td style={cell(r.ca2, minCA)}>{r.ca2}</td>
-              <td style={cell(r.ca3, minCA)}>{r.ca3}</td>
-              <td style={cell(r.model, minModel)}>{r.model}</td>
-              <td style={{ ...tdStyle, fontWeight: 700 }}>{r.ca1 + r.ca2 + r.ca3 + r.model}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+          <thead>
+            <tr>{['Course', 'CA1 (/20)', 'CA2 (/20)', 'CA3 (/20)', 'Model (/50)', 'Total (/110)'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
+          </thead>
+          <tbody>
+            {markData.map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...tdStyle, fontWeight: 600, color: ACCENT }}>{r.course}</td>
+                <td style={cell(r.ca1, minCA)}>{r.ca1}</td>
+                <td style={cell(r.ca2, minCA)}>{r.ca2}</td>
+                <td style={cell(r.ca3, minCA)}>{r.ca3}</td>
+                <td style={cell(r.model, minModel)}>{r.model}</td>
+                <td style={{ ...tdStyle, fontWeight: 700 }}>{r.ca1 + r.ca2 + r.ca3 + r.model}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <div style={{ padding: '10px 20px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', fontSize: 12, color: MUTED }}>
         Minimum: CA — 8/20 &nbsp;|&nbsp; Model Exam — 20/50
       </div>
@@ -364,26 +370,28 @@ function ExamScheduleSection() {
   return (
     <div style={{ ...card, overflow: 'hidden' }}>
       <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: 600, fontSize: 15, color: TEXT }}>Upcoming End-Semester Exams</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-        <thead>
-          <tr>{['Date', 'Course', 'Time', 'Venue', 'Exam Type'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
-        </thead>
-        <tbody>
-          {examScheduleData.map((r, i) => (
-            <tr key={i}>
-              <td style={{ ...tdStyle, fontWeight: 600 }}>{r.date}</td>
-              <td style={tdStyle}>{r.course}</td>
-              <td style={tdStyle}>{r.time}</td>
-              <td style={tdStyle}>{r.venue}</td>
-              <td style={tdStyle}>
-                <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: r.type === 'Arrear' ? '#fee2e2' : '#dbeafe', color: r.type === 'Arrear' ? '#dc2626' : '#1d4ed8' }}>
-                  {r.type}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+          <thead>
+            <tr>{['Date', 'Course', 'Time', 'Venue', 'Exam Type'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
+          </thead>
+          <tbody>
+            {examScheduleData.map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...tdStyle, fontWeight: 600 }}>{r.date}</td>
+                <td style={tdStyle}>{r.course}</td>
+                <td style={tdStyle}>{r.time}</td>
+                <td style={tdStyle}>{r.venue}</td>
+                <td style={tdStyle}>
+                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: r.type === 'Arrear' ? '#fee2e2' : '#dbeafe', color: r.type === 'Arrear' ? '#dc2626' : '#1d4ed8' }}>
+                    {r.type}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -551,23 +559,25 @@ function GradeDetails() {
       </div>
       <div style={{ ...card, overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: 600, fontSize: 15, color: TEXT }}>Current Semester Grades</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr>{['Course Code', 'Course Name', 'Credits', 'Grade', 'Grade Points', 'Credit Points'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
-          </thead>
-          <tbody>
-            {gradeDetails.map((r, i) => (
-              <tr key={i}>
-                <td style={{ ...tdStyle, fontWeight: 600, color: ACCENT }}>{r.code}</td>
-                <td style={tdStyle}>{r.name}</td>
-                <td style={{ ...tdStyle, textAlign: 'center' }}>{r.credits}</td>
-                <td style={tdStyle}><span style={{ fontWeight: 700, color: r.grade === 'O' ? '#16a34a' : r.grade === 'U' ? '#dc2626' : TEXT }}>{r.grade}</span></td>
-                <td style={{ ...tdStyle, textAlign: 'center' }}>{r.points}</td>
-                <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 700 }}>{r.credits * r.points}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+            <thead>
+              <tr>{['Course Code', 'Course Name', 'Credits', 'Grade', 'Grade Points', 'Credit Points'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
+            </thead>
+            <tbody>
+              {gradeDetails.map((r, i) => (
+                <tr key={i}>
+                  <td style={{ ...tdStyle, fontWeight: 600, color: ACCENT }}>{r.code}</td>
+                  <td style={tdStyle}>{r.name}</td>
+                  <td style={{ ...tdStyle, textAlign: 'center' }}>{r.credits}</td>
+                  <td style={tdStyle}><span style={{ fontWeight: 700, color: r.grade === 'O' ? '#16a34a' : r.grade === 'U' ? '#dc2626' : TEXT }}>{r.grade}</span></td>
+                  <td style={{ ...tdStyle, textAlign: 'center' }}>{r.points}</td>
+                  <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 700 }}>{r.credits * r.points}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
@@ -601,22 +611,24 @@ function GradeHistory() {
       </div>
       <div style={{ ...card, overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: 600, fontSize: 15, color: TEXT }}>Semester-wise GPA History</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr>{['Semester', 'SGPA', 'CGPA', 'Arrears', 'Status'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
-          </thead>
-          <tbody>
-            {gradeHistory.map((g, i) => (
-              <tr key={i}>
-                <td style={{ ...tdStyle, fontWeight: 600 }}>Semester {g.sem}</td>
-                <td style={{ ...tdStyle, fontWeight: 700, color: ACCENT }}>{g.sgpa}</td>
-                <td style={tdStyle}>{g.cgpa}</td>
-                <td style={{ ...tdStyle, color: g.arrears > 0 ? '#dc2626' : '#16a34a', fontWeight: 600 }}>{g.arrears}</td>
-                <td style={tdStyle}>{statusBadge(g.status)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+            <thead>
+              <tr>{['Semester', 'SGPA', 'CGPA', 'Arrears', 'Status'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
+            </thead>
+            <tbody>
+              {gradeHistory.map((g, i) => (
+                <tr key={i}>
+                  <td style={{ ...tdStyle, fontWeight: 600 }}>Semester {g.sem}</td>
+                  <td style={{ ...tdStyle, fontWeight: 700, color: ACCENT }}>{g.sgpa}</td>
+                  <td style={tdStyle}>{g.cgpa}</td>
+                  <td style={{ ...tdStyle, color: g.arrears > 0 ? '#dc2626' : '#16a34a', fontWeight: 600 }}>{g.arrears}</td>
+                  <td style={tdStyle}>{statusBadge(g.status)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
@@ -626,30 +638,52 @@ function GradeHistory() {
 export default function FacultyProctorStudents() {
   const [activeNav, setActiveNav] = useState('Student Profile Info')
   const [selectedRoll, setSelectedRoll] = useState(proctees[0].rollNo)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
   const student = proctees.find(p => p.rollNo === selectedRoll)
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: 32 }}>
+    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: isMobile ? 16 : 32 }}>
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: TEXT }}>Proctor — Students Info</h1>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 26, fontWeight: 700, color: TEXT }}>Proctor — Students Info</h1>
         <p style={{ margin: '6px 0 0', color: MUTED, fontSize: 15 }}>Complete academic and personal details of proctees</p>
       </div>
 
-      <div style={{ ...card, display: 'flex', overflow: 'hidden' }}>
-        <div style={{ width: 210, borderRight: '1px solid #f1f5f9', padding: '16px 0', flexShrink: 0 }}>
+      <div style={{ ...card, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
+        <div style={isMobile ? {
+          borderBottom: '1px solid #f1f5f9', padding: '8px 12px',
+          display: 'flex', overflowX: 'auto', gap: 8, flexShrink: 0,
+        } : {
+          width: 210, borderRight: '1px solid #f1f5f9', padding: '16px 0', flexShrink: 0,
+        }}>
           {navItems.map(item => (
-            <button key={item} onClick={() => setActiveNav(item)}
-              style={{
-                display: 'block', width: '100%', padding: '11px 20px',
-                background: activeNav === item ? '#eef2ff' : 'transparent',
-                border: 'none', borderLeft: activeNav === item ? '3px solid #6366f1' : '3px solid transparent',
-                textAlign: 'left', fontSize: 14, fontWeight: activeNav === item ? 600 : 400,
-                color: activeNav === item ? ACCENT : TEXT, cursor: 'pointer',
-              }}
-            >{item}</button>
+            isMobile ? (
+              <button key={item} onClick={() => setActiveNav(item)}
+                style={{
+                  padding: '6px 14px', background: activeNav === item ? '#eef2ff' : '#f1f5f9',
+                  border: activeNav === item ? '1.5px solid #6366f1' : '1.5px solid transparent',
+                  borderRadius: 20, fontSize: 12, fontWeight: activeNav === item ? 600 : 400,
+                  color: activeNav === item ? ACCENT : TEXT, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                }}
+              >{item}</button>
+            ) : (
+              <button key={item} onClick={() => setActiveNav(item)}
+                style={{
+                  display: 'block', width: '100%', padding: '11px 20px',
+                  background: activeNav === item ? '#eef2ff' : 'transparent',
+                  border: 'none', borderLeft: activeNav === item ? '3px solid #6366f1' : '3px solid transparent',
+                  textAlign: 'left', fontSize: 14, fontWeight: activeNav === item ? 600 : 400,
+                  color: activeNav === item ? ACCENT : TEXT, cursor: 'pointer',
+                }}
+              >{item}</button>
+            )
           ))}
         </div>
-        <div style={{ flex: 1, padding: 28, minWidth: 0 }}>
+        <div style={{ flex: 1, padding: isMobile ? 14 : 28, minWidth: 0 }}>
           <ProcteeSelector selected={selectedRoll} onChange={setSelectedRoll} />
           {activeNav === 'Student Profile Info' && <StudentProfileInfo student={student} />}
           {activeNav === 'WishList Registration' && <WishListSection />}

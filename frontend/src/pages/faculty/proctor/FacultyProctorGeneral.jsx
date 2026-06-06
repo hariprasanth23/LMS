@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -47,7 +47,7 @@ function ProcteeDashboard() {
   return (
     <div>
       <h2 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700, color: TEXT }}>Proctee Dashboard</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, marginBottom: 24 }}>
         {summary.map(s => (
           <div key={s.label} style={{ ...card, padding: 20, borderLeft: `4px solid ${s.color}` }}>
             <div style={{ fontSize: 28, fontWeight: 700, color: s.color }}>{s.value}</div>
@@ -56,7 +56,8 @@ function ProcteeDashboard() {
         ))}
       </div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
           <thead>
             <tr style={{ background: '#f8fafc' }}>
               {['Roll No', 'Name', 'Dept', 'Sem', 'Attendance %', 'GPA', 'Type', ''].map(h => (
@@ -109,6 +110,7 @@ function ProcteeDashboard() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
@@ -198,48 +200,50 @@ function LeaveApproval() {
       <h2 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700, color: TEXT }}>Leave Approval</h2>
       <p style={{ margin: '0 0 20px', fontSize: 14, color: MUTED }}>Pending leave requests from your proctees. Review and take action.</p>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              {['Student', 'Roll No', 'Leave Type', 'From', 'To', 'Days', 'Reason', 'Docs', 'Action'].map(h => (
-                <th key={h} style={{ padding: '10px 12px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 12, borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {leaveRequests.map((r) => {
-              const status = statuses[r.roll]
-              const tc = leaveTypeColor[r.type]
-              return (
-                <tr key={r.roll} style={{ borderBottom: '1px solid #f1f5f9', background: status ? '#fafafa' : '#fff' }}>
-                  <td style={{ padding: '12px 12px', color: TEXT, fontWeight: 600 }}>{r.name}</td>
-                  <td style={{ padding: '12px 12px', color: ACCENT, fontWeight: 600 }}>{r.roll}</td>
-                  <td style={{ padding: '12px 12px' }}>
-                    <span style={{ background: tc.bg, color: tc.color, borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600 }}>{r.type}</span>
-                  </td>
-                  <td style={{ padding: '12px 12px', color: MUTED, fontSize: 13 }}>{r.from}</td>
-                  <td style={{ padding: '12px 12px', color: MUTED, fontSize: 13 }}>{r.to}</td>
-                  <td style={{ padding: '12px 12px', color: TEXT, fontWeight: 600, textAlign: 'center' }}>{r.days}</td>
-                  <td style={{ padding: '12px 12px', color: TEXT, maxWidth: 160, fontSize: 13 }}>{r.reason}</td>
-                  <td style={{ padding: '12px 12px', textAlign: 'center' }}>
-                    {r.doc ? <span style={{ color: '#16a34a', fontSize: 18 }}>✓</span> : <span style={{ color: '#ef4444', fontSize: 15 }}>—</span>}
-                  </td>
-                  <td style={{ padding: '12px 12px' }}>
-                    {status ? (
-                      <span style={{ background: status === 'Approved' ? '#dcfce7' : status === 'Rejected' ? '#fee2e2' : '#fef3c7', color: status === 'Approved' ? '#16a34a' : status === 'Rejected' ? '#ef4444' : '#92400e', borderRadius: 6, padding: '3px 10px', fontSize: 12, fontWeight: 700 }}>{status}</span>
-                    ) : (
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'nowrap' }}>
-                        <button onClick={() => setStatuses(p => ({ ...p, [r.roll]: 'Approved' }))} style={{ background: '#dcfce7', color: '#166534', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Approve</button>
-                        <button onClick={() => setStatuses(p => ({ ...p, [r.roll]: 'Rejected' }))} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Reject</button>
-                        <button onClick={() => setStatuses(p => ({ ...p, [r.roll]: 'More Info' }))} style={{ background: '#fef3c7', color: '#92400e', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Ask Info</button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                {['Student', 'Roll No', 'Leave Type', 'From', 'To', 'Days', 'Reason', 'Docs', 'Action'].map(h => (
+                  <th key={h} style={{ padding: '10px 12px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 12, borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {leaveRequests.map((r) => {
+                const status = statuses[r.roll]
+                const tc = leaveTypeColor[r.type]
+                return (
+                  <tr key={r.roll} style={{ borderBottom: '1px solid #f1f5f9', background: status ? '#fafafa' : '#fff' }}>
+                    <td style={{ padding: '12px 12px', color: TEXT, fontWeight: 600 }}>{r.name}</td>
+                    <td style={{ padding: '12px 12px', color: ACCENT, fontWeight: 600 }}>{r.roll}</td>
+                    <td style={{ padding: '12px 12px' }}>
+                      <span style={{ background: tc.bg, color: tc.color, borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600 }}>{r.type}</span>
+                    </td>
+                    <td style={{ padding: '12px 12px', color: MUTED, fontSize: 13 }}>{r.from}</td>
+                    <td style={{ padding: '12px 12px', color: MUTED, fontSize: 13 }}>{r.to}</td>
+                    <td style={{ padding: '12px 12px', color: TEXT, fontWeight: 600, textAlign: 'center' }}>{r.days}</td>
+                    <td style={{ padding: '12px 12px', color: TEXT, maxWidth: 160, fontSize: 13 }}>{r.reason}</td>
+                    <td style={{ padding: '12px 12px', textAlign: 'center' }}>
+                      {r.doc ? <span style={{ color: '#16a34a', fontSize: 18 }}>✓</span> : <span style={{ color: '#ef4444', fontSize: 15 }}>—</span>}
+                    </td>
+                    <td style={{ padding: '12px 12px' }}>
+                      {status ? (
+                        <span style={{ background: status === 'Approved' ? '#dcfce7' : status === 'Rejected' ? '#fee2e2' : '#fef3c7', color: status === 'Approved' ? '#16a34a' : status === 'Rejected' ? '#ef4444' : '#92400e', borderRadius: 6, padding: '3px 10px', fontSize: 12, fontWeight: 700 }}>{status}</span>
+                      ) : (
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'nowrap' }}>
+                          <button onClick={() => setStatuses(p => ({ ...p, [r.roll]: 'Approved' }))} style={{ background: '#dcfce7', color: '#166534', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Approve</button>
+                          <button onClick={() => setStatuses(p => ({ ...p, [r.roll]: 'Rejected' }))} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Reject</button>
+                          <button onClick={() => setStatuses(p => ({ ...p, [r.roll]: 'More Info' }))} style={{ background: '#fef3c7', color: '#92400e', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Ask Info</button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
@@ -516,37 +520,39 @@ function HostelAttendance() {
         <span style={{ marginLeft: 'auto', fontSize: 13, color: MUTED }}>Showing: {view === 'month' ? 'May 2024 (26 working days)' : 'May 20–26, 2024'}</span>
       </div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              {['Student Name', 'Roll No', 'Block', 'Room', 'Present', 'Absent', 'Attendance %', 'Status'].map(h => (
-                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 13, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {hostelAttendanceData.map((p, i) => (
-              <tr key={p.roll} style={{ borderBottom: '1px solid #f1f5f9', background: p.attendance < 75 ? '#fff7f7' : (i % 2 === 0 ? '#fff' : '#fafafa') }}>
-                <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>{p.name}</td>
-                <td style={{ padding: '12px 14px', color: ACCENT, fontWeight: 600 }}>{p.roll}</td>
-                <td style={{ padding: '12px 14px', color: TEXT }}>Block {p.block}</td>
-                <td style={{ padding: '12px 14px', color: TEXT }}>{p.room}</td>
-                <td style={{ padding: '12px 14px', color: '#16a34a', fontWeight: 600 }}>{view === 'month' ? p.present : Math.floor(p.present / 4)}</td>
-                <td style={{ padding: '12px 14px', color: '#ef4444', fontWeight: 600 }}>{view === 'month' ? p.absent : Math.ceil(p.absent / 4)}</td>
-                <td style={{ padding: '12px 14px' }}>
-                  <span style={{ fontWeight: 700, color: p.attendance < 75 ? '#ef4444' : '#16a34a' }}>{p.attendance}%</span>
-                </td>
-                <td style={{ padding: '12px 14px' }}>
-                  {p.attendance < 75 ? (
-                    <span style={{ background: '#fee2e2', color: '#ef4444', borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>Flagged</span>
-                  ) : (
-                    <span style={{ background: '#dcfce7', color: '#16a34a', borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>Regular</span>
-                  )}
-                </td>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                {['Student Name', 'Roll No', 'Block', 'Room', 'Present', 'Absent', 'Attendance %', 'Status'].map(h => (
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 13, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {hostelAttendanceData.map((p, i) => (
+                <tr key={p.roll} style={{ borderBottom: '1px solid #f1f5f9', background: p.attendance < 75 ? '#fff7f7' : (i % 2 === 0 ? '#fff' : '#fafafa') }}>
+                  <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>{p.name}</td>
+                  <td style={{ padding: '12px 14px', color: ACCENT, fontWeight: 600 }}>{p.roll}</td>
+                  <td style={{ padding: '12px 14px', color: TEXT }}>Block {p.block}</td>
+                  <td style={{ padding: '12px 14px', color: TEXT }}>{p.room}</td>
+                  <td style={{ padding: '12px 14px', color: '#16a34a', fontWeight: 600 }}>{view === 'month' ? p.present : Math.floor(p.present / 4)}</td>
+                  <td style={{ padding: '12px 14px', color: '#ef4444', fontWeight: 600 }}>{view === 'month' ? p.absent : Math.ceil(p.absent / 4)}</td>
+                  <td style={{ padding: '12px 14px' }}>
+                    <span style={{ fontWeight: 700, color: p.attendance < 75 ? '#ef4444' : '#16a34a' }}>{p.attendance}%</span>
+                  </td>
+                  <td style={{ padding: '12px 14px' }}>
+                    {p.attendance < 75 ? (
+                      <span style={{ background: '#fee2e2', color: '#ef4444', borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>Flagged</span>
+                    ) : (
+                      <span style={{ background: '#dcfce7', color: '#16a34a', borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>Regular</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <div style={{ marginTop: 14, padding: '12px 16px', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, fontSize: 13, color: '#92400e' }}>
         <strong>Note:</strong> Students with hostel attendance below 75% are automatically flagged and a report is sent to the hostel warden.
@@ -577,44 +583,46 @@ function LateHourRequest() {
       <h2 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700, color: TEXT }}>Late Hour Request</h2>
       <p style={{ margin: '0 0 20px', fontSize: 14, color: MUTED }}>Hostel proctees requesting permission to stay out past curfew hours.</p>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              {['Student Name', 'Roll No', 'Requested Date', 'Purpose', 'Duration', 'Status', 'Action'].map(h => (
-                <th key={h} style={{ padding: '10px 12px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 12, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {lateHourRequests.map((r) => {
-              const key = r.roll + r.date
-              const status = statuses[key]
-              const sc = lateStatusColor[status] || lateStatusColor.Pending
-              return (
-                <tr key={key} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 12px', color: TEXT, fontWeight: 600 }}>{r.name}</td>
-                  <td style={{ padding: '12px 12px', color: ACCENT, fontWeight: 600 }}>{r.roll}</td>
-                  <td style={{ padding: '12px 12px', color: MUTED, fontSize: 13 }}>{r.date}</td>
-                  <td style={{ padding: '12px 12px', color: TEXT, fontSize: 13 }}>{r.purpose}</td>
-                  <td style={{ padding: '12px 12px', color: MUTED, fontSize: 13, whiteSpace: 'nowrap' }}>{r.duration}</td>
-                  <td style={{ padding: '12px 12px' }}>
-                    <span style={{ background: sc.bg, color: sc.color, borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{status}</span>
-                  </td>
-                  <td style={{ padding: '12px 12px' }}>
-                    {status === 'Pending' ? (
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => updateStatus(key, 'Approved')} style={{ background: '#dcfce7', color: '#166534', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Approve</button>
-                        <button onClick={() => updateStatus(key, 'Rejected')} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Reject</button>
-                      </div>
-                    ) : (
-                      <button onClick={() => updateStatus(key, 'Pending')} style={{ background: '#f1f5f9', color: MUTED, border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, cursor: 'pointer' }}>Undo</button>
-                    )}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 600 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                {['Student Name', 'Roll No', 'Requested Date', 'Purpose', 'Duration', 'Status', 'Action'].map(h => (
+                  <th key={h} style={{ padding: '10px 12px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 12, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {lateHourRequests.map((r) => {
+                const key = r.roll + r.date
+                const status = statuses[key]
+                const sc = lateStatusColor[status] || lateStatusColor.Pending
+                return (
+                  <tr key={key} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px 12px', color: TEXT, fontWeight: 600 }}>{r.name}</td>
+                    <td style={{ padding: '12px 12px', color: ACCENT, fontWeight: 600 }}>{r.roll}</td>
+                    <td style={{ padding: '12px 12px', color: MUTED, fontSize: 13 }}>{r.date}</td>
+                    <td style={{ padding: '12px 12px', color: TEXT, fontSize: 13 }}>{r.purpose}</td>
+                    <td style={{ padding: '12px 12px', color: MUTED, fontSize: 13, whiteSpace: 'nowrap' }}>{r.duration}</td>
+                    <td style={{ padding: '12px 12px' }}>
+                      <span style={{ background: sc.bg, color: sc.color, borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{status}</span>
+                    </td>
+                    <td style={{ padding: '12px 12px' }}>
+                      {status === 'Pending' ? (
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button onClick={() => updateStatus(key, 'Approved')} style={{ background: '#dcfce7', color: '#166534', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Approve</button>
+                          <button onClick={() => updateStatus(key, 'Rejected')} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Reject</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => updateStatus(key, 'Pending')} style={{ background: '#f1f5f9', color: MUTED, border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 12, cursor: 'pointer' }}>Undo</button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
@@ -724,46 +732,73 @@ const contentMap = {
 
 export default function FacultyProctorGeneral() {
   const [activeNav, setActiveNav] = useState('Proctee Dashboard')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
   const ActiveComponent = contentMap[activeNav] || (() => <div style={{ color: MUTED }}>Coming soon.</div>)
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: 32 }}>
+    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: isMobile ? 16 : 32 }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: TEXT }}>Proctor — General</h1>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 26, fontWeight: 700, color: TEXT }}>Proctor — General</h1>
         <p style={{ margin: '6px 0 0', color: MUTED, fontSize: 15 }}>Manage proctees — attendance, leave, messages and hostel</p>
       </div>
 
       {/* Card: left nav + content */}
-      <div style={{ ...card, display: 'flex', overflow: 'hidden' }}>
+      <div style={{ ...card, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden' }}>
         {/* Left Nav */}
-        <div style={{ width: 210, borderRight: '1px solid #f1f5f9', padding: '16px 0', flexShrink: 0 }}>
+        <div style={isMobile ? {
+          borderBottom: '1px solid #f1f5f9', padding: '8px 12px',
+          display: 'flex', overflowX: 'auto', gap: 8, flexShrink: 0,
+        } : {
+          width: 210, borderRight: '1px solid #f1f5f9', padding: '16px 0', flexShrink: 0,
+        }}>
           {navItems.map(item => (
-            <button
-              key={item}
-              onClick={() => setActiveNav(item)}
-              style={{
-                display: 'block',
-                width: '100%',
-                padding: '10px 20px',
-                background: activeNav === item ? '#eef2ff' : 'transparent',
-                border: 'none',
-                borderLeft: activeNav === item ? '3px solid #6366f1' : '3px solid transparent',
-                textAlign: 'left',
-                fontSize: 13,
-                fontWeight: activeNav === item ? 600 : 400,
-                color: activeNav === item ? ACCENT : TEXT,
-                cursor: 'pointer',
-                lineHeight: 1.4,
-              }}
-            >
-              {item}
-            </button>
+            isMobile ? (
+              <button
+                key={item}
+                onClick={() => setActiveNav(item)}
+                style={{
+                  padding: '6px 14px', background: activeNav === item ? '#eef2ff' : '#f1f5f9',
+                  border: activeNav === item ? '1.5px solid #6366f1' : '1.5px solid transparent',
+                  borderRadius: 20, fontSize: 12, fontWeight: activeNav === item ? 600 : 400,
+                  color: activeNav === item ? ACCENT : TEXT, cursor: 'pointer',
+                  whiteSpace: 'nowrap', flexShrink: 0, lineHeight: 1.4,
+                }}
+              >
+                {item}
+              </button>
+            ) : (
+              <button
+                key={item}
+                onClick={() => setActiveNav(item)}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '10px 20px',
+                  background: activeNav === item ? '#eef2ff' : 'transparent',
+                  border: 'none',
+                  borderLeft: activeNav === item ? '3px solid #6366f1' : '3px solid transparent',
+                  textAlign: 'left',
+                  fontSize: 13,
+                  fontWeight: activeNav === item ? 600 : 400,
+                  color: activeNav === item ? ACCENT : TEXT,
+                  cursor: 'pointer',
+                  lineHeight: 1.4,
+                }}
+              >
+                {item}
+              </button>
+            )
           ))}
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, padding: 28, minWidth: 0, overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: isMobile ? 14 : 28, minWidth: 0, overflowY: 'auto' }}>
           <ActiveComponent />
         </div>
       </div>
