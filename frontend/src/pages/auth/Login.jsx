@@ -358,6 +358,51 @@ export default function Login() {
             {row3.map((p) => renderPortalButton(p))}
           </div>
 
+          {/* ── Demo Credentials Card (always visible) ── */}
+          <div style={{
+            marginTop: 16,
+            background: 'linear-gradient(135deg, #f0f9ff 0%, #eff6ff 100%)',
+            border: '1.5px solid #bfdbfe',
+            borderRadius: 12,
+            padding: '14px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 8,
+                background: 'linear-gradient(135deg, #6366f1, #3b82f6)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <span style={{ fontSize: 15 }}>🎓</span>
+              </div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#1e40af', marginBottom: 2, fontFamily: ff }}>
+                  Demo Account · Works with all portals
+                </div>
+                <div style={{ fontSize: 12, color: '#3b82f6', fontFamily: 'monospace' }}>
+                  demo@college.com
+                </div>
+              </div>
+            </div>
+            <div style={{
+              background: '#fff',
+              border: '1px solid #bfdbfe',
+              borderRadius: 8,
+              padding: '6px 14px',
+              textAlign: 'center',
+              flexShrink: 0,
+            }}>
+              <div style={{ fontSize: 10, color: '#64748b', fontWeight: 600, fontFamily: ff, marginBottom: 1 }}>PASSWORD</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#1e293b', fontFamily: 'monospace', letterSpacing: 1 }}>
+                Demo@123
+              </div>
+            </div>
+          </div>
+
           {/* Login form — fades in after portal selected */}
           {selectedPortal && (
             <div className="login-form-appear">

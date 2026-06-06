@@ -52,7 +52,10 @@ public class DataInitializer implements ApplicationRunner {
                 .name("Business Administration").code("MBA")
                 .description("Department of Business Administration").build());
 
-        // ── Demo Portal Users (matches frontend demo credentials) ─────────────────
+        // ── Single unified demo account (works with any portal selection) ──────────
+        createUser("Demo User", "demo@college.com", "9000000000", User.Role.ADMIN);
+
+        // ── Per-role demo accounts (legacy, kept for backend testing) ─────────────
         User admin   = createUser("Admin User",        "admin@demo.com",   "9000000001", User.Role.ADMIN);
         User student = createUser("Arjun Kumar",       "student@demo.com", "9000000002", User.Role.STUDENT);
         User staff   = createUser("Dr. Priya Sharma",  "staff@demo.com",   "9000000003", User.Role.FACULTY);
@@ -113,17 +116,9 @@ public class DataInitializer implements ApplicationRunner {
 
         log.info("[DataInitializer] ✓ Demo data seeded successfully");
         log.info("──────────────────────────────────────────────");
-        log.info("  DEMO CREDENTIALS (password: Demo@123)");
-        log.info("  ADMIN   → admin@demo.com");
-        log.info("  STUDENT → student@demo.com");
-        log.info("  STAFF   → staff@demo.com");
-        log.info("  PARENT  → parent@demo.com");
-        log.info("  ALUMNI  → alumni@demo.com");
-        log.info("──────────────────────────────────────────────");
-        log.info("  ADMIN   → admin@college.edu   (role: ADMIN)");
-        log.info("  FACULTY → rajan.kumar@college.edu");
-        log.info("  STUDENT → meena.devi@college.edu");
-        log.info("  STAFF   → ramesh.babu@college.edu");
+        log.info("  UNIFIED DEMO ACCOUNT (all portals)");
+        log.info("  Email    → demo@college.com");
+        log.info("  Password → Demo@123");
         log.info("──────────────────────────────────────────────");
     }
 
