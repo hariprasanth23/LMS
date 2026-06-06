@@ -473,15 +473,19 @@ export default function Login() {
                     <input type="checkbox" style={{ accentColor: activeColor, width: 14, height: 14 }} />
                     Remember me
                   </label>
-                  <span style={{
-                    fontSize: 13,
-                    color: activeColor,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    fontFamily: ff,
-                  }}>
+                  <Link
+                    to="/auth/forgot-password"
+                    style={{
+                      fontSize: 13,
+                      color: activeColor,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontFamily: ff,
+                      textDecoration: 'none',
+                    }}
+                  >
                     Forgot Password?
-                  </span>
+                  </Link>
                 </div>
 
                 {/* Sign In button */}

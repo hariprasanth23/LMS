@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
-import { MdAdd, MdSearch, MdBadge, MdEdit, MdDeleteOutline } from 'react-icons/md'
+import { MdAdd, MdSearch, MdBadge, MdEdit, MdDeleteOutline, MdClose, MdPerson, MdEmail, MdPhone, MdWork, MdCalendarToday } from 'react-icons/md'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -13,20 +13,61 @@ const DESIGNATIONS = [
   'Lecturer', 'Lab Instructor', 'Admin Staff', 'Support Staff'
 ]
 
-const EMP_TYPES = ['FACULTY', 'STAFF']
+const EMP_TYPES = ['FACULTY', 'STAFF', 'ADMIN']
+
+const DEPARTMENTS = [
+  'Computer Science', 'Mathematics', 'Physics', 'Chemistry',
+  'Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering',
+  'Administration', 'Library', 'Accounts'
+]
+
+const AVATAR_COLORS = [
+  ['#eef2ff', ACCENT], ['#f0fdf4', '#10b981'], ['#fffbeb', '#f59e0b'],
+  ['#fef2f2', '#ef4444'], ['#f0f9ff', '#0ea5e9'], ['#fdf4ff', '#a855f7']
+]
+
+function getAvatarColors(name) {
+  const idx = (name?.charCodeAt(0) || 0) % AVATAR_COLORS.length
+  return AVATAR_COLORS[idx]
+}
+
+function AvatarCircle({ name, size = 40 }) {
+  const [bg, color] = getAvatarColors(name)
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%', background: bg,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      flexShrink: 0, fontFamily: 'system-ui, sans-serif',
+      fontSize: size * 0.38, fontWeight: 700, color
+    }}>
+      {name?.charAt(0)?.toUpperCase() || '?'}
+    </div>
+  )
+}
+
+const typeColors = {
+  FACULTY: { bg: '#eef2ff', color: ACCENT },
+  STAFF: { bg: '#fffbeb', color: '#f59e0b' },
+  ADMIN: { bg: '#f0fdf4', color: '#10b981' }
+}
 
 export default function Employees() {
   const { user } = useAuth()
   const [employees, setEmployees] = useState([])
   const [search, setSearch] = useState('')
+  const [filterDept, setFilterDept] = useState('')
+  const [filterType, setFilterType] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
+  const [sortBy, setSortBy] = useState('name-asc')
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editEmp, setEditEmp] = useState(null)
+  const [detailEmp, setDetailEmp] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState({
     empCode: '', name: '', email: '', phone: '',
     designation: 'Professor', employeeType: 'FACULTY',
-    joinDate: '', baseSalary: '', qualifications: ''
+    department: '', joinDate: '', baseSalary: '', qualifications: ''
   })
 
   const fetchEmployees = async () => {
@@ -42,29 +83,44 @@ export default function Employees() {
 
   useEffect(() => { fetchEmployees() }, [])
 
-  const filtered = employees.filter(e =>
-    e.name?.toLowerCase().includes(search.toLowerCase()) ||
-    e.empCode?.toLowerCase().includes(search.toLowerCase()) ||
-    e.email?.toLowerCase().includes(search.toLowerCase())
-  )
+  // Stats
+  const total = employees.length
+  const faculty = employees.filter(e => e.employeeType === 'FACULTY').length
+  const staff = employees.filter(e => e.employeeType === 'STAFF').length
+  const active = employees.filter(e => (e.status || 'ACTIVE') === 'ACTIVE').length
+  const onLeave = employees.filter(e => e.status === 'ON_LEAVE').length
+
+  // Filter + search + sort
+  let filtered = employees.filter(e => {
+    const q = search.toLowerCase()
+    const matchSearch = !q || e.name?.toLowerCase().includes(q) || e.empCode?.toLowerCase().includes(q)
+    const matchDept = !filterDept || e.department === filterDept
+    const matchType = !filterType || e.employeeType === filterType
+    const matchStatus = !filterStatus || (e.status || 'ACTIVE') === filterStatus
+    return matchSearch && matchDept && matchType && matchStatus
+  })
+
+  filtered = [...filtered].sort((a, b) => {
+    if (sortBy === 'name-asc') return (a.name || '').localeCompare(b.name || '')
+    if (sortBy === 'name-desc') return (b.name || '').localeCompare(a.name || '')
+    if (sortBy === 'newest') return new Date(b.joinDate || 0) - new Date(a.joinDate || 0)
+    if (sortBy === 'dept') return (a.department || '').localeCompare(b.department || '')
+    return 0
+  })
 
   const openCreate = () => {
     setEditEmp(null)
-    setForm({ empCode: '', name: '', email: '', phone: '', designation: 'Professor', employeeType: 'FACULTY', joinDate: '', baseSalary: '', qualifications: '' })
+    setForm({ empCode: '', name: '', email: '', phone: '', designation: 'Professor', employeeType: 'FACULTY', department: '', joinDate: '', baseSalary: '', qualifications: '' })
     setShowModal(true)
   }
 
   const openEdit = (emp) => {
     setEditEmp(emp)
     setForm({
-      empCode: emp.empCode || '',
-      name: emp.name || '',
-      email: emp.email || '',
-      phone: emp.phone || '',
-      designation: emp.designation || 'Professor',
-      employeeType: emp.employeeType || 'FACULTY',
-      joinDate: emp.joinDate || '',
-      baseSalary: emp.baseSalary || '',
+      empCode: emp.empCode || '', name: emp.name || '', email: emp.email || '',
+      phone: emp.phone || '', designation: emp.designation || 'Professor',
+      employeeType: emp.employeeType || 'FACULTY', department: emp.department || '',
+      joinDate: emp.joinDate || '', baseSalary: emp.baseSalary || '',
       qualifications: emp.qualifications || ''
     })
     setShowModal(true)
@@ -111,14 +167,18 @@ export default function Employees() {
     color: TEXT, outline: 'none', boxSizing: 'border-box'
   }
 
-  const typeColors = { FACULTY: { bg: '#eef2ff', color: ACCENT }, STAFF: { bg: '#fffbeb', color: '#f59e0b' } }
+  const labelStyle = {
+    display: 'block', fontSize: 12, fontWeight: 600,
+    color: '#374151', marginBottom: 5, fontFamily: 'system-ui, sans-serif'
+  }
 
   return (
-    <div>
+    <div style={{ fontFamily: 'system-ui, sans-serif' }}>
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: TEXT, fontFamily: 'system-ui, sans-serif' }}>Employees</h1>
-          <p style={{ margin: '4px 0 0', fontSize: 13, color: MUTED, fontFamily: 'system-ui, sans-serif' }}>{employees.length} employees</p>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: TEXT }}>Employees</h1>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: MUTED }}>{total} employees total</p>
         </div>
         {user?.role === 'ADMIN' && (
           <button
@@ -126,7 +186,7 @@ export default function Employees() {
             style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px',
               background: ACCENT, color: '#fff', border: 'none', borderRadius: 8,
-              fontSize: 13, fontWeight: 600, fontFamily: 'system-ui, sans-serif', cursor: 'pointer'
+              fontSize: 13, fontWeight: 600, cursor: 'pointer'
             }}
           >
             <MdAdd size={18} /> Add Employee
@@ -134,113 +194,292 @@ export default function Employees() {
         )}
       </div>
 
-      <div style={{ marginBottom: 16, position: 'relative' }}>
-        <MdSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: MUTED, fontSize: 18 }} />
-        <input
-          type="text"
-          placeholder="Search employees..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{
-            width: '100%', padding: '10px 12px 10px 38px', border: '1px solid #e2e8f0',
-            borderRadius: 8, fontSize: 13, fontFamily: 'system-ui, sans-serif',
-            color: TEXT, outline: 'none', boxSizing: 'border-box', background: '#fff'
-          }}
-        />
+      {/* Stats Bar */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }}>
+        {[
+          { label: 'Total', value: total, color: TEXT, bg: '#f8fafc', border: '#e2e8f0' },
+          { label: 'Faculty', value: faculty, color: ACCENT, bg: '#eef2ff', border: '#c7d2fe' },
+          { label: 'Staff', value: staff, color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
+          { label: 'Active', value: active, color: '#10b981', bg: '#f0fdf4', border: '#a7f3d0' },
+          { label: 'On Leave', value: onLeave, color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
+        ].map(s => (
+          <div key={s.label} style={{
+            background: s.bg, border: `1px solid ${s.border}`,
+            borderRadius: 12, padding: '14px 18px'
+          }}>
+            <div style={{ fontSize: 26, fontWeight: 800, color: s.color }}>{s.value}</div>
+            <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{s.label}</div>
+          </div>
+        ))}
       </div>
 
-      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-        {loading ? (
-          <div style={{ padding: 32, textAlign: 'center', fontFamily: 'system-ui, sans-serif', color: MUTED }}>Loading employees...</div>
-        ) : filtered.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', fontFamily: 'system-ui, sans-serif', color: MUTED }}>
-            <MdBadge style={{ fontSize: 44, opacity: 0.3, display: 'block', margin: '0 auto 10px' }} />
-            {search ? 'No employees match your search' : 'No employees found'}
-          </div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                {['Emp Code', 'Name', 'Designation', 'Type', 'Email', 'Status', 'Actions'].map(h => (
-                  <th key={h} style={{ padding: '12px 16px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 12, borderBottom: '1px solid #f1f5f9' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(emp => {
-                const tc = typeColors[emp.employeeType] || { bg: '#f8fafc', color: MUTED }
-                return (
-                  <tr key={emp.id} style={{ borderBottom: '1px solid #f8fafc' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#fafbff'}
-                    onMouseLeave={e => e.currentTarget.style.background = ''}>
-                    <td style={{ padding: '12px 16px', fontWeight: 700, color: ACCENT }}>{emp.empCode}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <MdBadge style={{ color: ACCENT, fontSize: 17 }} />
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 600, color: TEXT }}>{emp.name}</div>
-                          <div style={{ fontSize: 11, color: MUTED }}>{emp.phone || ''}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '12px 16px', color: MUTED }}>{emp.designation || '-'}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: tc.bg, color: tc.color }}>
-                        {emp.employeeType}
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px 16px', color: MUTED }}>{emp.email || '-'}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{
-                        padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-                        background: emp.status === 'ACTIVE' ? '#f0fdf4' : '#fef2f2',
-                        color: emp.status === 'ACTIVE' ? '#10b981' : '#ef4444'
-                      }}>
-                        {emp.status || 'ACTIVE'}
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      {user?.role === 'ADMIN' && (
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button
-                            onClick={() => openEdit(emp)}
-                            style={{ padding: '5px 10px', background: '#eef2ff', border: 'none', borderRadius: 6, cursor: 'pointer', color: ACCENT, fontSize: 12 }}
-                          >
-                            <MdEdit size={14} />
-                          </button>
-                          {emp.status === 'ACTIVE' && (
-                            <button
-                              onClick={() => handleDeactivate(emp.id)}
-                              style={{ padding: '5px 10px', background: '#fef2f2', border: 'none', borderRadius: 6, cursor: 'pointer', color: '#ef4444', fontSize: 12 }}
-                            >
-                              <MdDeleteOutline size={14} />
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+      {/* Search + Filter Bar */}
+      <div style={{
+        background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+        padding: '14px 16px', marginBottom: 16,
+        display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end'
+      }}>
+        {/* Search */}
+        <div style={{ flex: 2, minWidth: 200, position: 'relative' }}>
+          <MdSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: MUTED, fontSize: 17, pointerEvents: 'none' }} />
+          <input
+            type="text"
+            placeholder="Search by name or emp code..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ ...inputStyle, paddingLeft: 34 }}
+          />
+        </div>
+        {/* Department */}
+        <div style={{ flex: 1, minWidth: 150 }}>
+          <label style={labelStyle}>Department</label>
+          <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+            <option value="">All Departments</option>
+            {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+        {/* Type */}
+        <div style={{ flex: 1, minWidth: 130 }}>
+          <label style={labelStyle}>Type</label>
+          <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+            <option value="">All Types</option>
+            {EMP_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        {/* Status */}
+        <div style={{ flex: 1, minWidth: 120 }}>
+          <label style={labelStyle}>Status</label>
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+            <option value="">All Status</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+            <option value="ON_LEAVE">On Leave</option>
+          </select>
+        </div>
+        {/* Sort */}
+        <div style={{ flex: 1, minWidth: 150 }}>
+          <label style={labelStyle}>Sort By</label>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+            <option value="name-asc">Name A-Z</option>
+            <option value="name-desc">Name Z-A</option>
+            <option value="newest">Newest First</option>
+            <option value="dept">Department</option>
+          </select>
+        </div>
+        {(search || filterDept || filterType || filterStatus) && (
+          <button
+            onClick={() => { setSearch(''); setFilterDept(''); setFilterType(''); setFilterStatus('') }}
+            style={{ padding: '9px 14px', background: '#f1f5f9', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: MUTED, alignSelf: 'flex-end' }}
+          >
+            Clear
+          </button>
         )}
       </div>
 
-      {/* Modal */}
+      {/* Card Grid */}
+      {loading ? (
+        <div style={{ padding: 32, textAlign: 'center', color: MUTED }}>Loading employees...</div>
+      ) : filtered.length === 0 ? (
+        <div style={{ padding: 48, textAlign: 'center', color: MUTED }}>
+          <MdBadge style={{ fontSize: 44, opacity: 0.3, display: 'block', margin: '0 auto 10px' }} />
+          {search ? 'No employees match your search' : 'No employees found'}
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          {filtered.map(emp => {
+            const tc = typeColors[emp.employeeType] || { bg: '#f8fafc', color: MUTED }
+            const status = emp.status || 'ACTIVE'
+            return (
+              <div
+                key={emp.id}
+                style={{
+                  background: '#fff', borderRadius: 14,
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
+                  padding: 20, display: 'flex', flexDirection: 'column', gap: 14,
+                  border: '1px solid #f1f5f9',
+                  transition: 'box-shadow 0.15s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 16px rgba(99,102,241,0.10)'}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.07)'}
+              >
+                {/* Top: avatar + name + status */}
+                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                  <AvatarCircle name={emp.name} size={48} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: TEXT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {emp.name}
+                    </div>
+                    <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{emp.empCode}</div>
+                    <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: tc.bg, color: tc.color }}>
+                        {emp.employeeType}
+                      </span>
+                      <span style={{
+                        padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700,
+                        background: status === 'ACTIVE' ? '#f0fdf4' : status === 'ON_LEAVE' ? '#fffbeb' : '#fef2f2',
+                        color: status === 'ACTIVE' ? '#10b981' : status === 'ON_LEAVE' ? '#f59e0b' : '#ef4444'
+                      }}>
+                        {status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info rows */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {emp.designation && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: MUTED }}>
+                      <MdWork size={13} style={{ flexShrink: 0, color: ACCENT, opacity: 0.7 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.designation}</span>
+                    </div>
+                  )}
+                  {emp.department && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: MUTED }}>
+                      <MdBadge size={13} style={{ flexShrink: 0, color: ACCENT, opacity: 0.7 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.department}</span>
+                    </div>
+                  )}
+                  {emp.email && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: MUTED }}>
+                      <MdEmail size={13} style={{ flexShrink: 0, color: ACCENT, opacity: 0.7 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.email}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
+                  <button
+                    onClick={() => setDetailEmp(emp)}
+                    style={{
+                      flex: 1, padding: '7px', background: '#f8fafc', border: '1px solid #e2e8f0',
+                      borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: TEXT
+                    }}
+                  >
+                    View Details
+                  </button>
+                  {user?.role === 'ADMIN' && (
+                    <>
+                      <button
+                        onClick={() => openEdit(emp)}
+                        style={{ padding: '7px 10px', background: '#eef2ff', border: 'none', borderRadius: 7, cursor: 'pointer', color: ACCENT, display: 'flex', alignItems: 'center' }}
+                      >
+                        <MdEdit size={14} />
+                      </button>
+                      {(emp.status || 'ACTIVE') === 'ACTIVE' && (
+                        <button
+                          onClick={() => handleDeactivate(emp.id)}
+                          style={{ padding: '7px 10px', background: '#fef2f2', border: 'none', borderRadius: 7, cursor: 'pointer', color: '#ef4444', display: 'flex', alignItems: 'center' }}
+                        >
+                          <MdDeleteOutline size={14} />
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* View Details Side Panel */}
+      {detailEmp && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1000, display: 'flex', justifyContent: 'flex-end' }}
+          onClick={e => { if (e.target === e.currentTarget) setDetailEmp(null) }}>
+          <div style={{
+            background: '#fff', width: 380, height: '100%', overflowY: 'auto',
+            boxShadow: '-4px 0 20px rgba(0,0,0,0.12)', padding: 28
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+              <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TEXT }}>Employee Profile</h2>
+              <button onClick={() => setDetailEmp(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4 }}>
+                <MdClose size={20} />
+              </button>
+            </div>
+
+            {/* Avatar + name */}
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                <AvatarCircle name={detailEmp.name} size={72} />
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: TEXT }}>{detailEmp.name}</div>
+              <div style={{ fontSize: 13, color: MUTED, marginTop: 3 }}>{detailEmp.empCode}</div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 10 }}>
+                {(() => {
+                  const tc = typeColors[detailEmp.employeeType] || { bg: '#f8fafc', color: MUTED }
+                  const status = detailEmp.status || 'ACTIVE'
+                  return (
+                    <>
+                      <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: tc.bg, color: tc.color }}>
+                        {detailEmp.employeeType}
+                      </span>
+                      <span style={{
+                        padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+                        background: status === 'ACTIVE' ? '#f0fdf4' : '#fef2f2',
+                        color: status === 'ACTIVE' ? '#10b981' : '#ef4444'
+                      }}>
+                        {status}
+                      </span>
+                    </>
+                  )
+                })()}
+              </div>
+            </div>
+
+            {/* Detail rows */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {[
+                { icon: MdWork, label: 'Designation', value: detailEmp.designation },
+                { icon: MdBadge, label: 'Department', value: detailEmp.department },
+                { icon: MdEmail, label: 'Email', value: detailEmp.email },
+                { icon: MdPhone, label: 'Phone', value: detailEmp.phone },
+                { icon: MdCalendarToday, label: 'Join Date', value: detailEmp.joinDate ? new Date(detailEmp.joinDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : null },
+                { icon: MdPerson, label: 'Qualifications', value: detailEmp.qualifications },
+              ].filter(r => r.value).map(row => (
+                <div key={row.label} style={{ display: 'flex', gap: 12, padding: '12px 0', borderBottom: '1px solid #f1f5f9', alignItems: 'flex-start' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <row.icon size={15} style={{ color: ACCENT }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: MUTED, fontWeight: 600, marginBottom: 2 }}>{row.label}</div>
+                    <div style={{ fontSize: 13, color: TEXT, fontWeight: 500 }}>{row.value}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {user?.role === 'ADMIN' && (
+              <div style={{ marginTop: 24, display: 'flex', gap: 10 }}>
+                <button
+                  onClick={() => { setDetailEmp(null); openEdit(detailEmp) }}
+                  style={{ flex: 1, padding: '10px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Edit Employee
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Modal */}
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#fff', borderRadius: 14, padding: 28, width: '100%', maxWidth: 520, maxHeight: '90vh', overflow: 'auto' }}>
-            <h2 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700, color: TEXT, fontFamily: 'system-ui, sans-serif' }}>
-              {editEmp ? 'Edit Employee' : 'Add Employee'}
-            </h2>
+          <div style={{ background: '#fff', borderRadius: 14, padding: 28, width: '100%', maxWidth: 540, maxHeight: '90vh', overflow: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TEXT }}>
+                {editEmp ? 'Edit Employee' : 'Add Employee'}
+              </h2>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED }}>
+                <MdClose size={20} />
+              </button>
+            </div>
             <form onSubmit={handleSave}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 {[['Emp Code *', 'empCode', 'text'], ['Full Name *', 'name', 'text'], ['Email', 'email', 'email'], ['Phone', 'phone', 'tel'], ['Join Date', 'joinDate', 'date'], ['Base Salary', 'baseSalary', 'number']].map(([label, name, type]) => (
                   <div key={name}>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5, fontFamily: 'system-ui, sans-serif' }}>{label}</label>
+                    <label style={labelStyle}>{label}</label>
                     <input type={type} value={form[name]} onChange={e => setForm({ ...form, [name]: e.target.value })} style={inputStyle}
                       onFocus={e => e.target.style.borderColor = ACCENT} onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
                   </div>
@@ -248,25 +487,32 @@ export default function Employees() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 14 }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5, fontFamily: 'system-ui, sans-serif' }}>Designation</label>
+                  <label style={labelStyle}>Designation</label>
                   <select value={form.designation} onChange={e => setForm({ ...form, designation: e.target.value })} style={{ ...inputStyle, cursor: 'pointer' }}>
                     {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5, fontFamily: 'system-ui, sans-serif' }}>Employee Type *</label>
+                  <label style={labelStyle}>Employee Type *</label>
                   <select value={form.employeeType} onChange={e => setForm({ ...form, employeeType: e.target.value })} style={{ ...inputStyle, cursor: 'pointer' }}>
                     {EMP_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
               </div>
               <div style={{ marginTop: 14 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5, fontFamily: 'system-ui, sans-serif' }}>Qualifications</label>
+                <label style={labelStyle}>Department</label>
+                <select value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Select Department</option>
+                  {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+              <div style={{ marginTop: 14 }}>
+                <label style={labelStyle}>Qualifications</label>
                 <textarea value={form.qualifications} onChange={e => setForm({ ...form, qualifications: e.target.value })} rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
               </div>
               <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-                <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '10px', background: '#f1f5f9', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, fontFamily: 'system-ui, sans-serif', cursor: 'pointer', color: MUTED }}>Cancel</button>
-                <button type="submit" disabled={submitting} style={{ flex: 1, padding: '10px', background: submitting ? '#a5b4fc' : ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, fontFamily: 'system-ui, sans-serif', cursor: 'pointer' }}>
+                <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '10px', background: '#f1f5f9', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: MUTED }}>Cancel</button>
+                <button type="submit" disabled={submitting} style={{ flex: 1, padding: '10px', background: submitting ? '#a5b4fc' : ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                   {submitting ? 'Saving...' : editEmp ? 'Update' : 'Create'}
                 </button>
               </div>

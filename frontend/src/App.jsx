@@ -6,6 +6,7 @@ import LandingPage from './pages/landing/LandingPage'
 
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
+import ForgotPassword from './pages/auth/ForgotPassword'
 import Dashboard from './pages/dashboard/Dashboard'
 import Students from './pages/student/Students'
 import StudentDetail from './pages/student/StudentDetail'
@@ -109,6 +110,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/auth/login" element={<Login />} />
       <Route path="/auth/register" element={<Register />} />
+      <Route path="/auth/forgot-password" element={<ForgotPassword />} />
       <Route path="/" element={<LandingOrDashboard />} />
       <Route
         path="/"
