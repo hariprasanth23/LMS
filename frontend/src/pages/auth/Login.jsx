@@ -403,6 +403,40 @@ export default function Login() {
             </div>
           </div>
 
+          {/* ── Per-role demo credentials ── */}
+          <div style={{
+            marginTop: 10,
+            background: '#f8fafc',
+            border: '1.5px solid #e2e8f0',
+            borderRadius: 12,
+            padding: '12px 16px',
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10, fontFamily: ff }}>
+              Role-specific accounts · password: Demo@123
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {[
+                { role: 'Admin',   email: 'admin@demo.com',   color: '#dc2626', bg: '#fef2f2' },
+                { role: 'Student', email: 'student@demo.com', color: '#3b82f6', bg: '#eff6ff' },
+                { role: 'Staff',   email: 'staff@demo.com',   color: '#8b5cf6', bg: '#f5f3ff' },
+              ].map(({ role, email, color, bg }) => (
+                <div key={role} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  background: bg, borderRadius: 8, padding: '7px 12px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, color, background: '#fff',
+                      border: `1px solid ${color}30`, borderRadius: 4, padding: '2px 6px', fontFamily: ff,
+                    }}>{role}</span>
+                    <span style={{ fontSize: 12, color: '#475569', fontFamily: 'monospace' }}>{email}</span>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', fontFamily: 'monospace' }}>Demo@123</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Login form — fades in after portal selected */}
           {selectedPortal && (
             <div className="login-form-appear">
