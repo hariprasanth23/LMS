@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
@@ -13,6 +13,17 @@ import {
 } from 'react-icons/md'
 
 const ff = "'Inter', system-ui, sans-serif"
+
+// Mobile breakpoint hook
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return isMobile
+}
 
 const ROLES = [
   { key: 'STUDENT',  label: 'Student',      color: '#3b82f6', icon: MdSchool },
@@ -56,6 +67,7 @@ function getRequirements(pwd) {
 
 export default function Register() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -153,7 +165,7 @@ export default function Register() {
         width: '42%',
         background: 'linear-gradient(145deg, #0A0F1E 0%, #0f172a 40%, #1e1b4b 75%, #312e81 100%)',
         padding: '48px 40px',
-        display: 'flex',
+        display: isMobile ? 'none' : 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
         color: '#fff',
@@ -256,9 +268,9 @@ export default function Register() {
 
       {/* ── RIGHT PANEL ── */}
       <div style={{
-        width: '58%',
+        width: isMobile ? '100%' : '58%',
         background: '#fff',
-        padding: '40px 48px',
+        padding: isMobile ? '32px 20px' : '40px 48px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -290,7 +302,7 @@ export default function Register() {
             </div>
 
             {/* Two-column: Name + Email */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14, marginBottom: 14 }}>
               <div>
                 <label style={labelStyle}>Full Name <span style={{ color: '#ef4444' }}>*</span></label>
                 <input
@@ -475,38 +487,71 @@ export default function Register() {
             }}>
               Select Your Role
             </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-              {ROLES.map((role) => {
-                const Icon = role.icon
-                const isSelected = selectedRole === role.key
-                return (
-                  <button
-                    key={role.key}
-                    type="button"
-                    onClick={() => setSelectedRole(role.key)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '7px 14px',
-                      borderRadius: 20,
-                      border: isSelected ? `2px solid ${role.color}` : '2px solid #e2e8f0',
-                      background: isSelected ? `${role.color}12` : '#f8fafc',
-                      color: isSelected ? role.color : '#64748b',
-                      fontSize: 13,
-                      fontWeight: isSelected ? 700 : 500,
-                      fontFamily: ff,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                      outline: 'none',
-                    }}
-                  >
-                    <Icon style={{ fontSize: 15 }} />
-                    {role.label}
-                  </button>
-                )
-              })}
-            </div>
+            {/* Desktop: explicit 3+2 rows — Mobile: unified 2-col grid */}
+            {isMobile ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 24 }}>
+                {ROLES.map((role) => {
+                  const Icon = role.icon
+                  const isSelected = selectedRole === role.key
+                  return (
+                    <button
+                      key={role.key}
+                      type="button"
+                      onClick={() => setSelectedRole(role.key)}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        padding: '9px 10px', borderRadius: 10,
+                        border: isSelected ? `2px solid ${role.color}` : '2px solid #e2e8f0',
+                        background: isSelected ? `${role.color}12` : '#f8fafc',
+                        color: isSelected ? role.color : '#64748b',
+                        fontSize: 12, fontWeight: isSelected ? 700 : 500, fontFamily: ff,
+                        cursor: 'pointer', transition: 'all 0.15s ease', outline: 'none',
+                        overflow: 'hidden', whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <Icon style={{ fontSize: 14, flexShrink: 0 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{role.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              [ROLES.slice(0, 3), ROLES.slice(3)].map((rowRoles, rowIdx) => (
+                <div
+                  key={rowIdx}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: `repeat(${rowRoles.length}, 1fr)`,
+                    gap: 8,
+                    marginBottom: rowIdx === 0 ? 8 : 24,
+                  }}
+                >
+                  {rowRoles.map((role) => {
+                    const Icon = role.icon
+                    const isSelected = selectedRole === role.key
+                    return (
+                      <button
+                        key={role.key}
+                        type="button"
+                        onClick={() => setSelectedRole(role.key)}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          padding: '9px 14px', borderRadius: 10,
+                          border: isSelected ? `2px solid ${role.color}` : '2px solid #e2e8f0',
+                          background: isSelected ? `${role.color}12` : '#f8fafc',
+                          color: isSelected ? role.color : '#64748b',
+                          fontSize: 13, fontWeight: isSelected ? 700 : 500, fontFamily: ff,
+                          cursor: 'pointer', transition: 'all 0.15s ease', outline: 'none',
+                        }}
+                      >
+                        <Icon style={{ fontSize: 15 }} />
+                        {role.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              ))
+            )}
 
             {/* Submit */}
             <button

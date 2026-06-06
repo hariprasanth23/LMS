@@ -190,7 +190,7 @@ export default function Login() {
           <Icon style={{ fontSize: 13, color: '#fff' }} />
         </div>
         <div style={{ fontSize: 12, fontWeight: 700, color: color, lineHeight: 1.2 }}>{label}</div>
-        <div style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace', lineHeight: 1.3, wordBreak: 'break-all' }}>
+        <div style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
           {DEMO_CREDS[key].identifier}
         </div>
       </button>
@@ -246,7 +246,7 @@ export default function Login() {
         </div>
 
         {/* Admin badge */}
-        {isAdmin && (
+        {isAdmin && !isMobile && (
           <span style={{
             background: '#fff7ed',
             color: '#c2410c',

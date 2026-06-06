@@ -1,8 +1,19 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MdSchool, MdEmail, MdOpenInNew, MdRefresh, MdArrowBack } from 'react-icons/md'
 
 const ff = "'Inter', system-ui, sans-serif"
+
+// Mobile breakpoint hook
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return isMobile
+}
 
 const FEATURES = [
   'Complete Academic Management',
@@ -14,6 +25,7 @@ const FEATURES = [
 
 export default function ForgotPassword() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [email, setEmail]         = useState('')
   const [step, setStep]           = useState(1)   // 1 = form, 2 = success
   const [loading, setLoading]     = useState(false)
@@ -71,7 +83,7 @@ export default function ForgotPassword() {
         width: '42%',
         background: 'linear-gradient(145deg, #0A0F1E 0%, #0f172a 40%, #1e1b4b 75%, #312e81 100%)',
         padding: '48px 40px',
-        display: 'flex',
+        display: isMobile ? 'none' : 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
         color: '#fff',
@@ -174,9 +186,9 @@ export default function ForgotPassword() {
 
       {/* ── RIGHT PANEL ── */}
       <div style={{
-        width: '58%',
+        width: isMobile ? '100%' : '58%',
         background: '#fff',
-        padding: '48px 48px',
+        padding: isMobile ? '32px 20px' : '48px 48px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -188,21 +200,22 @@ export default function ForgotPassword() {
             <div className="fp-appear">
               {/* Icon */}
               <div style={{
-                width: 60,
-                height: 60,
-                background: 'linear-gradient(135deg, #6366f110 0%, #06b6d410 100%)',
-                border: '1.5px solid #e2e8f0',
-                borderRadius: 16,
+                width: 72,
+                height: 72,
+                background: 'linear-gradient(135deg, #eef2ff 0%, #e0f2fe 100%)',
+                border: '1.5px solid #c7d2fe',
+                borderRadius: 20,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: 20,
+                marginBottom: 24,
+                boxShadow: '0 4px 20px rgba(99,102,241,0.12)',
               }}>
-                <MdEmail style={{ fontSize: 28, color: '#6366f1' }} />
+                <MdEmail style={{ fontSize: 34, color: '#6366f1' }} />
               </div>
 
               {/* Heading */}
-              <h1 style={{ margin: '0 0 8px', fontSize: 28, fontWeight: 800, color: '#1e293b', fontFamily: ff }}>
+              <h1 style={{ margin: '0 0 8px', fontSize: 30, fontWeight: 800, color: '#1e293b', fontFamily: ff }}>
                 Forgot Password?
               </h1>
               <p style={{ margin: '0 0 32px', fontSize: 14, color: '#64748b', lineHeight: 1.6, fontFamily: ff }}>
@@ -239,14 +252,14 @@ export default function ForgotPassword() {
                   style={{
                     width: '100%',
                     padding: '13px',
-                    background: loading || !email || !validateEmail(email) ? '#a5b4fc' : '#6366f1',
+                    background: loading ? '#a5b4fc' : !email || !validateEmail(email) ? '#cbd5e1' : '#6366f1',
                     color: '#fff',
                     border: 'none',
                     borderRadius: 10,
                     fontSize: 15,
                     fontWeight: 700,
                     fontFamily: ff,
-                    cursor: loading || !email || !validateEmail(email) ? 'not-allowed' : 'pointer',
+                    cursor: loading || !email || !validateEmail(email) ? 'default' : 'pointer',
                     transition: 'background 0.2s',
                     letterSpacing: 0.2,
                     display: 'flex',
