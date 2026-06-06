@@ -211,7 +211,32 @@ export default function Login() {
         .login-form-appear {
           animation: fadeSlideIn 0.25s ease forwards;
         }
+        .back-home-btn:hover {
+          background: rgba(255,255,255,0.18) !important;
+          color: #fff !important;
+        }
       `}</style>
+
+      {/* ── Floating Back to Home button ── */}
+      <Link
+        to="/"
+        className="back-home-btn"
+        style={{
+          position: 'fixed', top: 20, left: 24, zIndex: 200,
+          display: 'flex', alignItems: 'center', gap: 6,
+          color: 'rgba(255,255,255,0.75)',
+          textDecoration: 'none',
+          fontSize: 13, fontWeight: 600,
+          background: 'rgba(255,255,255,0.1)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          borderRadius: 8, padding: '8px 14px',
+          backdropFilter: 'blur(8px)',
+          transition: 'all 0.2s',
+          fontFamily: ff,
+        }}
+      >
+        ← Home
+      </Link>
 
       {/* ── LEFT PANEL ── */}
       <div style={{
