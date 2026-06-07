@@ -105,41 +105,322 @@ function HODDeanInfo() {
 
 function FacultyInfo() {
   const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState(null)
+
+  const ff = 'system-ui, -apple-system, sans-serif'
+
   const faculty = [
-    { sno: 1, name: 'Dr. R. Sundaramurthy', designation: 'Professor & HOD', subject: 'Theory of Computation', cabin: 'CSE-101', email: 'sundaramurthy@college.edu' },
-    { sno: 2, name: 'Dr. A. Meenakshi', designation: 'Associate Professor', subject: 'Data Structures & Algorithms', cabin: 'CSE-104', email: 'meenakshi.a@college.edu' },
-    { sno: 3, name: 'Mr. K. Vignesh', designation: 'Assistant Professor', subject: 'Database Management Systems', cabin: 'CSE-107', email: 'vignesh.k@college.edu' },
-    { sno: 4, name: 'Dr. S. Priya', designation: 'Associate Professor', subject: 'Machine Learning', cabin: 'CSE-109', email: 'priya.s@college.edu' },
-    { sno: 5, name: 'Mr. T. Arun Kumar', designation: 'Assistant Professor', subject: 'Computer Networks', cabin: 'CSE-112', email: 'arunkumar.t@college.edu' },
-    { sno: 6, name: 'Ms. R. Divya', designation: 'Assistant Professor', subject: 'Software Engineering', cabin: 'CSE-115', email: 'divya.r@college.edu' }
+    {
+      sno: 1, name: 'Dr. R. Sundaramurthy', initials: 'RS', avatarColor: '#6366f1', avatarBg: '#eef2ff',
+      designation: 'Professor & HOD', department: 'Computer Science & Engineering',
+      subjects: ['Theory of Computation', 'Formal Languages & Automata'],
+      cabin: 'CSE-101', email: 'sundaramurthy@college.edu', phone: '+91 98400 11001',
+      experience: '22 years', qualification: 'Ph.D – IIT Madras, M.E – Anna University',
+      officeHours: [
+        { day: 'Monday',    time: '10:00 AM – 12:00 PM' },
+        { day: 'Wednesday', time: '2:00 PM – 4:00 PM'   },
+        { day: 'Friday',    time: '10:00 AM – 11:00 AM' },
+      ],
+      researchAreas: ['Automata Theory', 'Compiler Design', 'Formal Methods'],
+      publications: 28, projects: 4,
+    },
+    {
+      sno: 2, name: 'Dr. A. Meenakshi', initials: 'AM', avatarColor: '#059669', avatarBg: '#d1fae5',
+      designation: 'Associate Professor', department: 'Computer Science & Engineering',
+      subjects: ['Data Structures & Algorithms', 'Design & Analysis of Algorithms'],
+      cabin: 'CSE-104', email: 'meenakshi.a@college.edu', phone: '+91 98400 11002',
+      experience: '14 years', qualification: 'Ph.D – Anna University, B.E – PSG Tech',
+      officeHours: [
+        { day: 'Tuesday',  time: '9:00 AM – 11:00 AM' },
+        { day: 'Thursday', time: '3:00 PM – 5:00 PM'  },
+      ],
+      researchAreas: ['Graph Algorithms', 'Optimization', 'Computational Complexity'],
+      publications: 17, projects: 2,
+    },
+    {
+      sno: 3, name: 'Mr. K. Vignesh', initials: 'KV', avatarColor: '#0891b2', avatarBg: '#e0f2fe',
+      designation: 'Assistant Professor', department: 'Computer Science & Engineering',
+      subjects: ['Database Management Systems', 'Big Data Analytics'],
+      cabin: 'CSE-107', email: 'vignesh.k@college.edu', phone: '+91 98400 11003',
+      experience: '8 years', qualification: 'M.E – NIT Trichy, B.E – CEG Anna University',
+      officeHours: [
+        { day: 'Monday',   time: '2:00 PM – 4:00 PM'   },
+        { day: 'Thursday', time: '10:00 AM – 12:00 PM' },
+      ],
+      researchAreas: ['NoSQL Databases', 'Data Mining', 'Cloud Data Management'],
+      publications: 9, projects: 1,
+    },
+    {
+      sno: 4, name: 'Dr. S. Priya', initials: 'SP', avatarColor: '#7c3aed', avatarBg: '#ede9fe',
+      designation: 'Associate Professor', department: 'Computer Science & Engineering',
+      subjects: ['Machine Learning', 'Deep Learning', 'Cloud Computing'],
+      cabin: 'CSE-109', email: 'priya.s@college.edu', phone: '+91 98400 11004',
+      experience: '12 years', qualification: 'Ph.D – IIT Bombay, M.Tech – BITS Pilani',
+      officeHours: [
+        { day: 'Monday',   time: '11:00 AM – 1:00 PM' },
+        { day: 'Friday',   time: '2:00 PM – 4:00 PM'  },
+      ],
+      researchAreas: ['Deep Neural Networks', 'Computer Vision', 'NLP'],
+      publications: 21, projects: 5,
+    },
+    {
+      sno: 5, name: 'Mr. T. Arun Kumar', initials: 'TA', avatarColor: '#b45309', avatarBg: '#fef3c7',
+      designation: 'Assistant Professor', department: 'Computer Science & Engineering',
+      subjects: ['Computer Networks', 'Cryptography & Network Security'],
+      cabin: 'CSE-112', email: 'arunkumar.t@college.edu', phone: '+91 98400 11005',
+      experience: '6 years', qualification: 'M.E – Anna University, B.E – SRM University',
+      officeHours: [
+        { day: 'Wednesday', time: '10:00 AM – 12:00 PM' },
+        { day: 'Friday',    time: '3:00 PM – 5:00 PM'   },
+      ],
+      researchAreas: ['Network Security', 'IoT', 'Wireless Networks'],
+      publications: 6, projects: 1,
+    },
+    {
+      sno: 6, name: 'Ms. R. Divya', initials: 'RD', avatarColor: '#db2777', avatarBg: '#fce7f3',
+      designation: 'Assistant Professor', department: 'Computer Science & Engineering',
+      subjects: ['Software Engineering', 'Agile Development'],
+      cabin: 'CSE-115', email: 'divya.r@college.edu', phone: '+91 98400 11006',
+      experience: '5 years', qualification: 'M.E – Sathyabama University, B.E – Saveetha Engineering',
+      officeHours: [
+        { day: 'Tuesday',  time: '11:00 AM – 1:00 PM' },
+        { day: 'Thursday', time: '2:00 PM – 4:00 PM'  },
+      ],
+      researchAreas: ['Software Testing', 'DevOps', 'Agile Methodologies'],
+      publications: 5, projects: 1,
+    },
   ]
-  const filtered = faculty.filter(f => f.name.toLowerCase().includes(search.toLowerCase()) || f.subject.toLowerCase().includes(search.toLowerCase()))
+
+  const filtered = faculty.filter(f =>
+    f.name.toLowerCase().includes(search.toLowerCase()) ||
+    f.subjects.some(s => s.toLowerCase().includes(search.toLowerCase())) ||
+    f.designation.toLowerCase().includes(search.toLowerCase())
+  )
+
   return (
-    <div>
-      <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or subject..." style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', marginBottom: 16, outline: 'none', boxSizing: 'border-box' }} />
-      <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
-        <thead>
-          <tr style={{ background: '#f8fafc' }}>
-            {['S.No', 'Faculty Name', 'Designation', 'Subject Handling', 'Cabin No', 'Email'].map(h => (
-              <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map((f, i) => (
-            <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-              <td style={{ padding: '8px 10px', color: MUTED }}>{f.sno}</td>
-              <td style={{ padding: '8px 10px', color: TEXT, fontWeight: 600 }}>{f.name}</td>
-              <td style={{ padding: '8px 10px', color: MUTED }}>{f.designation}</td>
-              <td style={{ padding: '8px 10px', color: TEXT }}>{f.subject}</td>
-              <td style={{ padding: '8px 10px', color: ACCENT, fontWeight: 600 }}>{f.cabin}</td>
-              <td style={{ padding: '8px 10px', color: '#0891b2' }}>{f.email}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div style={{ fontFamily: ff }}>
+      {/* Search bar */}
+      <div style={{ position: 'relative', marginBottom: 16 }}>
+        <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: '#94a3b8' }}>🔍</span>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search by name, subject or designation…"
+          style={{
+            width: '100%', padding: '10px 14px 10px 38px',
+            border: '1.5px solid #e2e8f0', borderRadius: 10, fontSize: 13,
+            fontFamily: ff, outline: 'none', boxSizing: 'border-box',
+            background: '#f8fafc', transition: 'border-color 0.2s',
+          }}
+          onFocus={e => e.target.style.borderColor = ACCENT}
+          onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+        />
+        {search && (
+          <button onClick={() => setSearch('')} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 16 }}>×</button>
+        )}
       </div>
+
+      {/* Results count */}
+      <div style={{ fontSize: 12, color: MUTED, marginBottom: 12, fontFamily: ff }}>
+        {filtered.length} faculty member{filtered.length !== 1 ? 's' : ''} found
+      </div>
+
+      {/* Faculty cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: MUTED, fontSize: 14, fontFamily: ff }}>
+            No faculty found matching "{search}"
+          </div>
+        ) : filtered.map((f) => (
+          <div key={f.sno} style={{
+            display: 'flex', alignItems: 'center', gap: 14,
+            border: '1.5px solid #e2e8f0', borderRadius: 12, padding: '14px 16px',
+            background: '#fff', transition: 'border-color 0.15s, box-shadow 0.15s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#c7d2fe'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(99,102,241,0.08)' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = 'none' }}
+          >
+            {/* Avatar */}
+            <div style={{
+              width: 48, height: 48, borderRadius: '50%', background: f.avatarBg,
+              color: f.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 16, fontWeight: 800, flexShrink: 0, fontFamily: ff,
+              border: `2px solid ${f.avatarColor}30`,
+            }}>
+              {f.initials}
+            </div>
+
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: TEXT, fontFamily: ff, marginBottom: 2 }}>{f.name}</div>
+              <div style={{ fontSize: 12, color: f.avatarColor, fontWeight: 600, fontFamily: ff, marginBottom: 4 }}>{f.designation}</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {f.subjects.slice(0, 2).map(s => (
+                  <span key={s} style={{ background: '#f1f5f9', color: MUTED, fontSize: 11, borderRadius: 6, padding: '2px 8px', fontFamily: ff }}>{s}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Cabin + View */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
+              <span style={{ fontSize: 12, color: ACCENT, fontWeight: 600, fontFamily: ff }}>📍 {f.cabin}</span>
+              <button
+                onClick={() => setSelected(f)}
+                style={{
+                  background: ACCENT, color: '#fff', border: 'none', borderRadius: 8,
+                  padding: '6px 16px', fontSize: 12, fontWeight: 700, fontFamily: ff,
+                  cursor: 'pointer', transition: 'opacity 0.15s',
+                }}
+                onMouseEnter={e => e.target.style.opacity = '0.85'}
+                onMouseLeave={e => e.target.style.opacity = '1'}
+              >
+                View Profile
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Faculty Profile Modal ── */}
+      {selected && (
+        <div
+          onClick={() => setSelected(null)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.55)',
+            zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 20, backdropFilter: 'blur(4px)',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: '#fff', borderRadius: 20, width: '100%', maxWidth: 580,
+              maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.22)',
+            }}
+          >
+            {/* Modal header with gradient */}
+            <div style={{
+              background: `linear-gradient(135deg, ${selected.avatarColor}18 0%, ${selected.avatarColor}08 100%)`,
+              borderBottom: `1px solid ${selected.avatarColor}20`,
+              padding: '28px 28px 24px',
+              position: 'relative',
+            }}>
+              <button
+                onClick={() => setSelected(null)}
+                style={{
+                  position: 'absolute', top: 16, right: 16, background: 'rgba(0,0,0,0.06)',
+                  border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer',
+                  fontSize: 18, color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >×</button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                {/* Large avatar */}
+                <div style={{
+                  width: 80, height: 80, borderRadius: '50%', background: selected.avatarBg,
+                  color: selected.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 28, fontWeight: 800, fontFamily: ff, flexShrink: 0,
+                  border: `3px solid ${selected.avatarColor}40`,
+                  boxShadow: `0 4px 16px ${selected.avatarColor}30`,
+                }}>
+                  {selected.initials}
+                </div>
+                <div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: TEXT, fontFamily: ff, marginBottom: 4 }}>{selected.name}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: selected.avatarColor, fontFamily: ff, marginBottom: 6 }}>{selected.designation}</div>
+                  <div style={{ fontSize: 12, color: MUTED, fontFamily: ff }}>{selected.department}</div>
+                  <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+                    <span style={{ fontSize: 12, color: MUTED, fontFamily: ff }}>📚 {selected.publications} publications</span>
+                    <span style={{ fontSize: 12, color: MUTED, fontFamily: ff }}>🔬 {selected.projects} projects</span>
+                    <span style={{ fontSize: 12, color: MUTED, fontFamily: ff }}>⏱ {selected.experience}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal body */}
+            <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 22 }}>
+
+              {/* Contact info */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, fontFamily: ff }}>Contact Information</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  {[
+                    { icon: '📧', label: 'Email', value: selected.email },
+                    { icon: '📞', label: 'Phone', value: selected.phone },
+                    { icon: '🏢', label: 'Cabin', value: selected.cabin },
+                    { icon: '🎓', label: 'Qualification', value: selected.qualification },
+                  ].map(({ icon, label, value }) => (
+                    <div key={label} style={{ background: '#f8fafc', borderRadius: 10, padding: '10px 14px', border: '1px solid #f1f5f9' }}>
+                      <div style={{ fontSize: 11, color: MUTED, fontFamily: ff, marginBottom: 3 }}>{icon} {label}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: TEXT, fontFamily: ff, wordBreak: 'break-word' }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Office hours */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, fontFamily: ff }}>Office Hours</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {selected.officeHours.map(({ day, time }) => (
+                    <div key={day} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      background: `${selected.avatarColor}08`, border: `1px solid ${selected.avatarColor}20`,
+                      borderRadius: 10, padding: '10px 14px',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: selected.avatarColor, flexShrink: 0 }} />
+                        <span style={{ fontSize: 13, fontWeight: 600, color: TEXT, fontFamily: ff }}>{day}</span>
+                      </div>
+                      <span style={{ fontSize: 12, color: selected.avatarColor, fontWeight: 700, fontFamily: ff }}>{time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Subjects */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, fontFamily: ff }}>Subjects Handled</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {selected.subjects.map(s => (
+                    <span key={s} style={{
+                      background: `${selected.avatarColor}12`, color: selected.avatarColor,
+                      border: `1px solid ${selected.avatarColor}25`,
+                      borderRadius: 20, padding: '5px 14px', fontSize: 12, fontWeight: 600, fontFamily: ff,
+                    }}>{s}</span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Research areas */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, fontFamily: ff }}>Research Areas</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {selected.researchAreas.map(r => (
+                    <span key={r} style={{
+                      background: '#f1f5f9', color: '#475569',
+                      borderRadius: 20, padding: '5px 14px', fontSize: 12, fontWeight: 500, fontFamily: ff,
+                    }}>🔬 {r}</span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Close button */}
+              <button
+                onClick={() => setSelected(null)}
+                style={{
+                  width: '100%', padding: '12px', background: ACCENT, color: '#fff',
+                  border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                  fontFamily: ff, cursor: 'pointer', marginTop: 4,
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
