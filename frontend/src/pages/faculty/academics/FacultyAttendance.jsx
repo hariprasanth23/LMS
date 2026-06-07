@@ -1,157 +1,195 @@
 import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
 const ACCENT = '#6366f1'
 const BG = '#f8fafc'
 
-const ITEMS = ['Roster', 'Attendance Report', 'Biometric - Search by Venue']
+const ITEMS = ['Roster', 'Mark Attendance', 'Biometric - Search by Venue']
 
-// ─── Roster ───────────────────────────────────────────────────────────────────
-function Roster() {
-  const [course, setCourse] = useState('CS6001')
-  const [section, setSection] = useState('III-CSE-A')
-  const [search, setSearch] = useState('')
+const avatarColors = ['#6366f1', '#0891b2', '#7c3aed', '#059669', '#b45309', '#be185d', '#dc2626', '#1d4ed8']
 
-  const courses = ['CS6001 — Data Warehousing', 'CS6002 — Compiler Design', 'CS6003 — Cloud Computing', 'CS6004 — Cryptography & Security']
-  const sections = ['III-CSE-A', 'III-CSE-B', 'III-CSE-C']
+function fmt(dt) {
+  if (!dt) return '—'
+  return new Date(dt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+}
 
-  const avatarColors = ['#6366f1', '#0891b2', '#7c3aed', '#059669', '#b45309', '#be185d', '#dc2626', '#1d4ed8']
-
-  const allStudents = [
-    { rollNo: '21CS001', name: 'Arun S.', registered: 'Jun 12, 2023', status: 'Active' },
-    { rollNo: '21CS002', name: 'Bharathi K.', registered: 'Jun 12, 2023', status: 'Active' },
-    { rollNo: '21CS003', name: 'Divya R.', registered: 'Jun 12, 2023', status: 'Active' },
-    { rollNo: '21CS004', name: 'Karthik M.', registered: 'Jun 12, 2023', status: 'Active' },
-    { rollNo: '21CS005', name: 'Meenakshi V.', registered: 'Jun 12, 2023', status: 'Active' },
-    { rollNo: '21CS006', name: 'Naveen P.', registered: 'Jun 12, 2023', status: 'Active' },
-    { rollNo: '21CS007', name: 'Preethi A.', registered: 'Jun 12, 2023', status: 'Active' },
-    { rollNo: '21CS008', name: 'Ranjith S.', registered: 'Jun 14, 2023', status: 'Active' },
-    { rollNo: '21CS009', name: 'Sakthi V.', registered: 'Jun 14, 2023', status: 'On Leave' },
-    { rollNo: '21CS010', name: 'Tamil S.', registered: 'Jun 14, 2023', status: 'Active' },
-    { rollNo: '21CS011', name: 'Uma D.', registered: 'Jun 15, 2023', status: 'Active' },
-    { rollNo: '21CS012', name: 'Vijay A.', registered: 'Jun 15, 2023', status: 'Detained' },
-    { rollNo: '21CS013', name: 'Yamini K.', registered: 'Jun 15, 2023', status: 'Active' },
-  ]
-
-  const statusColor = {
-    Active: ['#dcfce7', '#15803d'],
-    'On Leave': ['#fef3c7', '#b45309'],
-    Detained: ['#fee2e2', '#dc2626'],
-  }
-
-  const filtered = allStudents.filter(s =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.rollNo.toLowerCase().includes(search.toLowerCase())
-  )
-
+function Spinner() {
   return (
-    <div>
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
-        <div style={{ flex: '1 1 200px' }}>
-          <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Course</label>
-          <select
-            value={course}
-            onChange={e => setCourse(e.target.value.split(' ')[0])}
-            style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui' }}
-          >
-            {courses.map(c => <option key={c}>{c}</option>)}
-          </select>
-        </div>
-        <div style={{ flex: '1 1 140px' }}>
-          <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Section</label>
-          <select
-            value={section}
-            onChange={e => setSection(e.target.value)}
-            style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui' }}
-          >
-            {sections.map(s => <option key={s}>{s}</option>)}
-          </select>
-        </div>
-        <div style={{ flex: '1 1 180px' }}>
-          <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Search</label>
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Roll No or Name..."
-            style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', boxSizing: 'border-box' }}
-          />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-          <button style={{ padding: '8px 16px', background: '#f1f5f9', color: TEXT, border: 'none', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600 }}>Print</button>
-          <button style={{ padding: '8px 16px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600 }}>Export CSV</button>
-        </div>
-      </div>
-
-      <div style={{ fontSize: 13, color: MUTED, fontFamily: 'system-ui', marginBottom: 12 }}>
-        {course} · {section} · {filtered.length} students
-      </div>
-
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              {['#', 'Roll No', 'Name', 'Registration Date', 'Status'].map(h => (
-                <th key={h} style={{ padding: '9px 12px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((s, i) => {
-              const initials = s.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-              const color = avatarColors[i % avatarColors.length]
-              const [sbg, scl] = statusColor[s.status] || ['#f1f5f9', MUTED]
-              return (
-                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '9px 12px', color: MUTED, fontSize: 12 }}>{i + 1}</td>
-                  <td style={{ padding: '9px 12px', color: ACCENT, fontWeight: 700 }}>{s.rollNo}</td>
-                  <td style={{ padding: '9px 12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: color + '22', color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>{initials}</div>
-                      <span style={{ color: TEXT, fontWeight: 600 }}>{s.name}</span>
-                    </div>
-                  </td>
-                  <td style={{ padding: '9px 12px', color: MUTED }}>{s.registered}</td>
-                  <td style={{ padding: '9px 12px' }}>
-                    <span style={{ background: sbg, color: scl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{s.status}</span>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+      <div style={{ width: 28, height: 28, border: '3px solid #e2e8f0', borderTopColor: ACCENT, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
     </div>
   )
 }
 
-// ─── Attendance Report ────────────────────────────────────────────────────────
-function AttendanceReport() {
-  const [selectedCourse, setSelectedCourse] = useState('CS6001 — Data Warehousing')
+// ─── Roster ───────────────────────────────────────────────────────────────────
+function Roster({ courses, allStudents, loading }) {
+  const [selectedCourseId, setSelectedCourseId] = useState('')
+  const [search, setSearch] = useState('')
+  const [enrollments, setEnrollments] = useState([])
+  const [loadingEnroll, setLoadingEnroll] = useState(false)
+
+  useEffect(() => {
+    if (courses.length && !selectedCourseId) setSelectedCourseId(courses[0].id)
+  }, [courses])
+
+  useEffect(() => {
+    if (!selectedCourseId) return
+    setLoadingEnroll(true)
+    api.get(`/enrollments/course/${selectedCourseId}`)
+      .then(r => setEnrollments(r.data?.data || []))
+      .catch(console.error)
+      .finally(() => setLoadingEnroll(false))
+  }, [selectedCourseId])
+
+  const rosterStudents = enrollments
+    .map(e => ({ ...allStudents[e.studentId], enrolledAt: e.enrolledAt, enrollStatus: e.status }))
+    .filter(s => s.id)
+    .filter(s =>
+      s.rollNumber?.toLowerCase().includes(search.toLowerCase()) ||
+      s.department?.name?.toLowerCase().includes(search.toLowerCase())
+    )
+
+  const statusColor = {
+    ACTIVE: ['#dcfce7', '#15803d'],
+    INACTIVE: ['#fee2e2', '#dc2626'],
+    GRADUATED: ['#dbeafe', '#1d4ed8'],
+    DROPPED: ['#f1f5f9', MUTED],
+  }
+
+  if (loading) return <Spinner />
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
+        <div style={{ flex: '1 1 220px' }}>
+          <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Course</label>
+          <select value={selectedCourseId} onChange={e => setSelectedCourseId(e.target.value)} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui' }}>
+            {courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
+          </select>
+        </div>
+        <div style={{ flex: '1 1 180px' }}>
+          <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Search</label>
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Roll No or Department..." style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', boxSizing: 'border-box' }} />
+        </div>
+      </div>
+
+      {loadingEnroll ? <Spinner /> : (
+        <>
+          <div style={{ fontSize: 13, color: MUTED, fontFamily: 'system-ui', marginBottom: 12 }}>
+            {courses.find(c => c.id === selectedCourseId)?.code} · {rosterStudents.length} students enrolled
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  {['#', 'Roll No', 'Department', 'Semester', 'Batch', 'Enrolled On', 'Status'].map(h => (
+                    <th key={h} style={{ padding: '9px 12px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rosterStudents.length === 0 ? (
+                  <tr><td colSpan={7} style={{ padding: 24, textAlign: 'center', color: MUTED, fontFamily: 'system-ui' }}>No students enrolled in this course.</td></tr>
+                ) : rosterStudents.map((s, i) => {
+                  const initials = (s.rollNumber || '?').slice(-2).toUpperCase()
+                  const color = avatarColors[i % avatarColors.length]
+                  const [sbg, scl] = statusColor[s.status] || ['#f1f5f9', MUTED]
+                  return (
+                    <tr key={s.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '9px 12px', color: MUTED, fontSize: 12 }}>{i + 1}</td>
+                      <td style={{ padding: '9px 12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ width: 30, height: 30, borderRadius: '50%', background: color + '22', color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>{initials}</div>
+                          <span style={{ color: ACCENT, fontWeight: 700 }}>{s.rollNumber}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '9px 12px', color: TEXT }}>{s.department?.name ?? '—'}</td>
+                      <td style={{ padding: '9px 12px', color: MUTED }}>{s.semester ?? '—'}</td>
+                      <td style={{ padding: '9px 12px', color: MUTED }}>{s.batch ?? '—'}</td>
+                      <td style={{ padding: '9px 12px', color: MUTED }}>{fmt(s.enrolledAt)}</td>
+                      <td style={{ padding: '9px 12px' }}>
+                        <span style={{ background: sbg, color: scl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{s.status ?? '—'}</span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ─── Mark Attendance ──────────────────────────────────────────────────────────
+function MarkAttendance({ courses, allStudents, loading }) {
+  const today = new Date().toISOString().split('T')[0]
+  const [selectedCourseId, setSelectedCourseId] = useState('')
+  const [date, setDate] = useState(today)
+  const [enrollments, setEnrollments] = useState([])
+  const [existingAttendance, setExistingAttendance] = useState({}) // {studentId: status}
+  const [attendance, setAttendance] = useState({}) // {studentId: 'PRESENT'|'ABSENT'|'LATE'|'EXCUSED'}
+  const [loadingData, setLoadingData] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [warnSent, setWarnSent] = useState({})
 
-  const courses = ['CS6001 — Data Warehousing', 'CS6002 — Compiler Design', 'CS6003 — Cloud Computing', 'CS6004 — Cryptography & Security']
+  useEffect(() => {
+    if (courses.length && !selectedCourseId) setSelectedCourseId(courses[0].id)
+  }, [courses])
 
-  const students = [
-    { rollNo: '21CS001', name: 'Arun S.', total: 45, present: 42, absent: 3 },
-    { rollNo: '21CS002', name: 'Bharathi K.', total: 45, present: 38, absent: 7 },
-    { rollNo: '21CS003', name: 'Divya R.', total: 45, present: 45, absent: 0 },
-    { rollNo: '21CS004', name: 'Karthik M.', total: 45, present: 30, absent: 15 },
-    { rollNo: '21CS005', name: 'Meenakshi V.', total: 45, present: 44, absent: 1 },
-    { rollNo: '21CS006', name: 'Naveen P.', total: 45, present: 28, absent: 17 },
-    { rollNo: '21CS007', name: 'Preethi A.', total: 45, present: 43, absent: 2 },
-    { rollNo: '21CS008', name: 'Ranjith S.', total: 45, present: 33, absent: 12 },
-    { rollNo: '21CS009', name: 'Sakthi V.', total: 45, present: 20, absent: 25 },
-    { rollNo: '21CS010', name: 'Tamil S.', total: 45, present: 40, absent: 5 },
-  ]
+  useEffect(() => {
+    if (!selectedCourseId || !date) return
+    setLoadingData(true)
+    Promise.all([
+      api.get(`/enrollments/course/${selectedCourseId}`).then(r => r.data?.data || []).catch(() => []),
+      api.get(`/attendance/course/${selectedCourseId}/date/${date}`).then(r => r.data?.data || []).catch(() => []),
+    ])
+      .then(([enroll, existing]) => {
+        setEnrollments(enroll)
+        const existMap = {}
+        const attMap = {}
+        existing.forEach(a => {
+          existMap[a.studentId] = a.status
+          attMap[a.studentId] = a.status
+        })
+        setExistingAttendance(existMap)
+        setAttendance(attMap)
+      })
+      .finally(() => setLoadingData(false))
+  }, [selectedCourseId, date])
 
-  const withPct = students.map(s => ({
-    ...s,
-    pct: Math.round((s.present / s.total) * 100),
-  }))
+  const students = enrollments
+    .map(e => allStudents[e.studentId])
+    .filter(Boolean)
 
-  const defaulters = withPct.filter(s => s.pct < 75)
+  const handleSave = async () => {
+    if (!selectedCourseId || students.length === 0) return
+    setSubmitting(true)
+    try {
+      const entries = students.map(s => ({
+        studentId: s.id,
+        status: attendance[s.id] || 'ABSENT',
+      }))
+      await api.post('/attendance/student', { courseId: selectedCourseId, date, entries })
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const setAll = (status) => {
+    const map = {}
+    students.forEach(s => { map[s.id] = status })
+    setAttendance(map)
+  }
+
+  const presentCount = students.filter(s => (attendance[s.id] || 'ABSENT') === 'PRESENT').length
+  const absentCount = students.length - presentCount
 
   const statusInfo = (pct) => {
     if (pct >= 90) return ['Excellent', '#dcfce7', '#15803d']
@@ -160,99 +198,118 @@ function AttendanceReport() {
     return ['Critical', '#fee2e2', '#dc2626']
   }
 
+  if (loading) return <Spinner />
+
   return (
     <div>
       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: 20 }}>
-        <div style={{ flex: '1 1 260px' }}>
-          <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Select Course</label>
-          <select
-            value={selectedCourse}
-            onChange={e => setSelectedCourse(e.target.value)}
-            style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui' }}
-          >
-            {courses.map(c => <option key={c}>{c}</option>)}
+        <div style={{ flex: '1 1 220px' }}>
+          <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Course</label>
+          <select value={selectedCourseId} onChange={e => setSelectedCourseId(e.target.value)} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui' }}>
+            {courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
           </select>
         </div>
-        <button style={{ padding: '8px 16px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600 }}>Download PDF</button>
-      </div>
-
-      {defaulters.length > 0 && (
-        <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: '12px 16px', marginBottom: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#c2410c', fontFamily: 'system-ui', marginBottom: 8 }}>
-            Defaulter Alert — {defaulters.length} student(s) below 75% attendance
-          </div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            {defaulters.map((s, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: '1px solid #fed7aa', borderRadius: 8, padding: '6px 12px' }}>
-                <span style={{ fontSize: 12, color: TEXT, fontFamily: 'system-ui', fontWeight: 600 }}>{s.name} ({s.pct}%)</span>
-                <button
-                  onClick={() => setWarnSent(prev => ({ ...prev, [s.rollNo]: true }))}
-                  disabled={!!warnSent[s.rollNo]}
-                  style={{ background: warnSent[s.rollNo] ? '#f1f5f9' : '#fee2e2', color: warnSent[s.rollNo] ? MUTED : '#dc2626', border: 'none', borderRadius: 6, padding: '3px 10px', fontSize: 11, fontFamily: 'system-ui', cursor: warnSent[s.rollNo] ? 'not-allowed' : 'pointer', fontWeight: 700 }}
-                >
-                  {warnSent[s.rollNo] ? 'Sent' : 'Warn'}
-                </button>
-              </div>
-            ))}
-          </div>
+        <div style={{ flex: '1 1 160px' }}>
+          <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Date</label>
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', boxSizing: 'border-box' }} />
         </div>
-      )}
+      </div>
 
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              {['Roll No', 'Student Name', 'Total Classes', 'Present', 'Absent', 'Percentage', 'Status', 'Warning'].map(h => (
-                <th key={h} style={{ padding: '9px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{h}</th>
+      {loadingData ? <Spinner /> : (
+        <>
+          {students.length > 0 && (
+            <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+              <div style={{ fontSize: 13, color: MUTED, fontFamily: 'system-ui', marginRight: 4 }}>Quick set:</div>
+              {['PRESENT', 'ABSENT', 'LATE', 'EXCUSED'].map(s => (
+                <button key={s} onClick={() => setAll(s)} style={{ background: '#f1f5f9', color: TEXT, border: 'none', borderRadius: 7, padding: '5px 12px', fontSize: 12, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600 }}>All {s}</button>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {withPct.map((s, i) => {
-              const [label, sbg, scl] = statusInfo(s.pct)
-              const isDefaulter = s.pct < 75
-              return (
-                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: isDefaulter ? '#fff8f8' : 'transparent' }}>
-                  <td style={{ padding: '9px 10px', color: ACCENT, fontWeight: 700 }}>{s.rollNo}</td>
-                  <td style={{ padding: '9px 10px', color: isDefaulter ? '#dc2626' : TEXT, fontWeight: 600 }}>{s.name}</td>
-                  <td style={{ padding: '9px 10px', color: MUTED, textAlign: 'center' }}>{s.total}</td>
-                  <td style={{ padding: '9px 10px', color: '#15803d', fontWeight: 600, textAlign: 'center' }}>{s.present}</td>
-                  <td style={{ padding: '9px 10px', color: s.absent > 10 ? '#dc2626' : MUTED, fontWeight: s.absent > 10 ? 700 : 400, textAlign: 'center' }}>{s.absent}</td>
-                  <td style={{ padding: '9px 10px', fontWeight: 800, color: isDefaulter ? '#dc2626' : TEXT }}>{s.pct}%</td>
-                  <td style={{ padding: '9px 10px' }}>
-                    <span style={{ background: sbg, color: scl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{label}</span>
-                  </td>
-                  <td style={{ padding: '9px 10px' }}>
-                    {isDefaulter && (
-                      <button
-                        onClick={() => setWarnSent(prev => ({ ...prev, [s.rollNo]: true }))}
-                        disabled={!!warnSent[s.rollNo]}
-                        style={{ background: warnSent[s.rollNo] ? '#f1f5f9' : '#fee2e2', color: warnSent[s.rollNo] ? MUTED : '#dc2626', border: 'none', borderRadius: 7, padding: '4px 10px', fontSize: 11, fontFamily: 'system-ui', cursor: warnSent[s.rollNo] ? 'not-allowed' : 'pointer', fontWeight: 700 }}
-                      >
-                        {warnSent[s.rollNo] ? 'Email Sent' : 'Send Warning'}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+              <button onClick={handleSave} disabled={submitting || students.length === 0} style={{ marginLeft: 'auto', background: submitting ? '#94a3b8' : ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 13, fontFamily: 'system-ui', cursor: submitting ? 'not-allowed' : 'pointer', fontWeight: 600 }}>
+                {submitting ? 'Saving...' : 'Save Attendance'}
+              </button>
+            </div>
+          )}
 
-      <div style={{ marginTop: 14, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        {[
-          ['Total Students', withPct.length, TEXT, '#f8fafc'],
-          ['Excellent (≥90%)', withPct.filter(s => s.pct >= 90).length, '#15803d', '#dcfce7'],
-          ['Regular (75–89%)', withPct.filter(s => s.pct >= 75 && s.pct < 90).length, '#1d4ed8', '#dbeafe'],
-          ['Defaulters (<75%)', withPct.filter(s => s.pct < 75).length, '#dc2626', '#fee2e2'],
-        ].map(([label, val, color, bg]) => (
-          <div key={label} style={{ flex: '1 1 110px', background: bg, borderRadius: 9, padding: '10px 14px', textAlign: 'center' }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color, fontFamily: 'system-ui' }}>{val}</div>
-            <div style={{ fontSize: 11, color: MUTED, fontFamily: 'system-ui' }}>{label}</div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  {['Roll No', 'Department', 'Sem', 'Status', 'Warning'].map(h => (
+                    <th key={h} style={{ padding: '9px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {students.length === 0 ? (
+                  <tr><td colSpan={5} style={{ padding: 24, textAlign: 'center', color: MUTED }}>No students enrolled in this course.</td></tr>
+                ) : students.map((s, i) => {
+                  const current = attendance[s.id] || 'ABSENT'
+                  const isAbsent = current === 'ABSENT'
+                  const existingStatus = existingAttendance[s.id]
+
+                  const statusColor = { PRESENT: '#15803d', ABSENT: '#dc2626', LATE: '#b45309', EXCUSED: '#1d4ed8' }
+                  const statusBg = { PRESENT: '#dcfce7', ABSENT: '#fee2e2', LATE: '#fef3c7', EXCUSED: '#dbeafe' }
+
+                  return (
+                    <tr key={s.id} style={{ borderBottom: '1px solid #f1f5f9', background: isAbsent ? '#fff8f8' : 'transparent' }}>
+                      <td style={{ padding: '9px 10px', color: ACCENT, fontWeight: 700 }}>{s.rollNumber}</td>
+                      <td style={{ padding: '9px 10px', color: TEXT }}>{s.department?.name ?? '—'}</td>
+                      <td style={{ padding: '9px 10px', color: MUTED }}>{s.semester ?? '—'}</td>
+                      <td style={{ padding: '9px 10px' }}>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          {['PRESENT', 'ABSENT', 'LATE', 'EXCUSED'].map(opt => (
+                            <button
+                              key={opt}
+                              onClick={() => setAttendance(prev => ({ ...prev, [s.id]: opt }))}
+                              style={{
+                                background: current === opt ? statusBg[opt] : '#f1f5f9',
+                                color: current === opt ? statusColor[opt] : MUTED,
+                                border: current === opt ? `1px solid ${statusColor[opt]}` : '1px solid transparent',
+                                borderRadius: 6, padding: '3px 8px', fontSize: 11,
+                                fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 700,
+                              }}
+                            >{opt === 'EXCUSED' ? 'EXC' : opt.slice(0, 3)}</button>
+                          ))}
+                          {existingStatus && (
+                            <span style={{ marginLeft: 6, fontSize: 11, color: MUTED, fontFamily: 'system-ui', alignSelf: 'center' }}>
+                              (saved: {existingStatus})
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ padding: '9px 10px' }}>
+                        {isAbsent && (
+                          <button
+                            onClick={() => setWarnSent(prev => ({ ...prev, [s.id]: true }))}
+                            disabled={!!warnSent[s.id]}
+                            style={{ background: warnSent[s.id] ? '#f1f5f9' : '#fee2e2', color: warnSent[s.id] ? MUTED : '#dc2626', border: 'none', borderRadius: 7, padding: '4px 10px', fontSize: 11, fontFamily: 'system-ui', cursor: warnSent[s.id] ? 'not-allowed' : 'pointer', fontWeight: 700 }}
+                          >
+                            {warnSent[s.id] ? 'Sent' : 'Warn'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
-        ))}
-      </div>
+
+          {students.length > 0 && (
+            <div style={{ marginTop: 14, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {[
+                ['Total', students.length, TEXT, '#f8fafc'],
+                ['Present', presentCount, '#15803d', '#dcfce7'],
+                ['Absent', absentCount, '#dc2626', '#fee2e2'],
+              ].map(([label, val, color, bg]) => (
+                <div key={label} style={{ flex: '1 1 100px', background: bg, borderRadius: 9, padding: '10px 14px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color, fontFamily: 'system-ui' }}>{val}</div>
+                  <div style={{ fontSize: 11, color: MUTED, fontFamily: 'system-ui' }}>{label}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }
@@ -260,7 +317,7 @@ function AttendanceReport() {
 // ─── Biometric - Search by Venue ──────────────────────────────────────────────
 function BiometricSearchByVenue() {
   const [venue, setVenue] = useState('')
-  const [date, setDate] = useState('2025-06-06')
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [timeFrom, setTimeFrom] = useState('08:00')
   const [timeTo, setTimeTo] = useState('18:00')
   const [searched, setSearched] = useState(false)
@@ -302,54 +359,33 @@ function BiometricSearchByVenue() {
 
   return (
     <div>
+      <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#92400e', fontFamily: 'system-ui' }}>
+        Venue-based biometric search API is pending. Data shown below is placeholder only.
+      </div>
       <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: 20, marginBottom: 24, background: '#fafbff' }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: TEXT, fontFamily: 'system-ui', marginBottom: 14 }}>Search Biometric Logs by Venue</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
           <div>
             <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Venue</label>
-            <select
-              value={venue}
-              onChange={e => setVenue(e.target.value)}
-              style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui' }}
-            >
+            <select value={venue} onChange={e => setVenue(e.target.value)} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui' }}>
               <option value="">— Select Venue —</option>
               {venues.map(v => <option key={v}>{v}</option>)}
             </select>
           </div>
           <div>
             <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Date</label>
-            <input
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-              style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', boxSizing: 'border-box' }}
-            />
+            <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', boxSizing: 'border-box' }} />
           </div>
           <div>
             <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Time From</label>
-            <input
-              type="time"
-              value={timeFrom}
-              onChange={e => setTimeFrom(e.target.value)}
-              style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', boxSizing: 'border-box' }}
-            />
+            <input type="time" value={timeFrom} onChange={e => setTimeFrom(e.target.value)} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', boxSizing: 'border-box' }} />
           </div>
           <div>
             <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Time To</label>
-            <input
-              type="time"
-              value={timeTo}
-              onChange={e => setTimeTo(e.target.value)}
-              style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', boxSizing: 'border-box' }}
-            />
+            <input type="time" value={timeTo} onChange={e => setTimeTo(e.target.value)} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', boxSizing: 'border-box' }} />
           </div>
         </div>
-        <button
-          onClick={() => setSearched(true)}
-          style={{ marginTop: 16, background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 24px', fontSize: 13, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600 }}
-        >
-          Search
-        </button>
+        <button onClick={() => setSearched(true)} style={{ marginTop: 16, background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 24px', fontSize: 13, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600 }}>Search</button>
       </div>
 
       {searched && (
@@ -362,9 +398,7 @@ function BiometricSearchByVenue() {
           </div>
 
           {results.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: MUTED, fontSize: 13, fontFamily: 'system-ui' }}>
-              No biometric records found for the selected criteria.
-            </div>
+            <div style={{ textAlign: 'center', padding: '40px 0', color: MUTED, fontSize: 13, fontFamily: 'system-ui' }}>No biometric records found for the selected criteria.</div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
@@ -400,33 +434,61 @@ function BiometricSearchByVenue() {
               </table>
             </div>
           )}
-
-          <div style={{ marginTop: 14, fontSize: 12, color: MUTED, fontFamily: 'system-ui', background: '#f8fafc', borderRadius: 8, padding: '8px 14px' }}>
-            Biometric logs are used for class conduction verification. Entry/exit times are captured at the venue terminal.
-          </div>
         </>
       )}
     </div>
   )
 }
 
-const CONTENT_MAP = [Roster, AttendanceReport, BiometricSearchByVenue]
-
+// ─── Parent ───────────────────────────────────────────────────────────────────
 export default function FacultyAttendance() {
+  const { user } = useAuth()
   const [active, setActive] = useState(0)
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  const [courses, setCourses] = useState([])
+  const [allStudents, setAllStudents] = useState({})
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth <= 768)
     window.addEventListener('resize', h)
     return () => window.removeEventListener('resize', h)
   }, [])
-  const ActiveComponent = CONTENT_MAP[active]
+
+  useEffect(() => {
+    if (!user?.userId) return
+    setLoading(true)
+    Promise.all([
+      api.get('/courses').then(r => (r.data?.data || []).filter(c => c.facultyId === user.userId)).catch(() => []),
+      api.get('/students').then(r => {
+        const map = {}
+        ;(r.data?.data || []).forEach(s => { map[s.id] = s })
+        return map
+      }).catch(() => ({})),
+    ])
+      .then(([myCourses, studentMap]) => {
+        setCourses(myCourses)
+        setAllStudents(studentMap)
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [user?.userId])
+
+  const renderActive = () => {
+    switch (active) {
+      case 0: return <Roster courses={courses} allStudents={allStudents} loading={loading} />
+      case 1: return <MarkAttendance courses={courses} allStudents={allStudents} loading={loading} />
+      case 2: return <BiometricSearchByVenue />
+      default: return null
+    }
+  }
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100%', padding: 1 }}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ margin: 0, fontSize: isMobile ? 18 : 22, fontWeight: 700, color: TEXT, fontFamily: 'system-ui' }}>Academics — Attendance</h1>
-        <p style={{ margin: '4px 0 0', fontSize: 13, color: MUTED, fontFamily: 'system-ui' }}>Roster, attendance reports and biometric venue verification</p>
+        <p style={{ margin: '4px 0 0', fontSize: 13, color: MUTED, fontFamily: 'system-ui' }}>Roster, attendance marking and biometric venue verification</p>
       </div>
       <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: 520 }}>
         <div style={isMobile ? {
@@ -437,39 +499,27 @@ export default function FacultyAttendance() {
         }}>
           {ITEMS.map((item, i) => (
             isMobile ? (
-              <div
-                key={i}
-                onClick={() => setActive(i)}
-                style={{
-                  padding: '6px 14px', cursor: 'pointer', fontSize: 12,
-                  fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569',
-                  background: active === i ? '#eef2ff' : '#f1f5f9',
-                  border: active === i ? '1.5px solid #6366f1' : '1.5px solid transparent',
-                  borderRadius: 20, fontWeight: active === i ? 600 : 400,
-                  whiteSpace: 'nowrap', flexShrink: 0,
-                }}
-              >
-                {item}
-              </div>
+              <div key={i} onClick={() => setActive(i)} style={{
+                padding: '6px 14px', cursor: 'pointer', fontSize: 12,
+                fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569',
+                background: active === i ? '#eef2ff' : '#f1f5f9',
+                border: active === i ? '1.5px solid #6366f1' : '1.5px solid transparent',
+                borderRadius: 20, fontWeight: active === i ? 600 : 400,
+                whiteSpace: 'nowrap', flexShrink: 0,
+              }}>{item}</div>
             ) : (
-              <div
-                key={i}
-                onClick={() => setActive(i)}
-                style={{
-                  padding: '9px 16px', cursor: 'pointer', fontSize: 13,
-                  fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569',
-                  background: active === i ? '#eef2ff' : 'transparent',
-                  borderLeft: active === i ? '3px solid #6366f1' : '3px solid transparent',
-                  fontWeight: active === i ? 600 : 400,
-                }}
-              >
-                {item}
-              </div>
+              <div key={i} onClick={() => setActive(i)} style={{
+                padding: '9px 16px', cursor: 'pointer', fontSize: 13,
+                fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569',
+                background: active === i ? '#eef2ff' : 'transparent',
+                borderLeft: active === i ? '3px solid #6366f1' : '3px solid transparent',
+                fontWeight: active === i ? 600 : 400,
+              }}>{item}</div>
             )
           ))}
         </div>
         <div style={{ flex: 1, padding: isMobile ? 14 : 28, overflowY: 'auto' }}>
-          <ActiveComponent />
+          {renderActive()}
         </div>
       </div>
     </div>
