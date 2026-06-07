@@ -395,7 +395,7 @@ function ProcteeMessage() {
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Recipient</label>
                 <select value={recipient} onChange={e => setRecipient(e.target.value)} style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 14, color: TEXT, background: '#fff', boxSizing: 'border-box' }}>
                   <option>All Proctees</option>
-                  {proctees.map(p => <option key={p.roll}>{p.name} ({p.roll})</option>)}
+                  {/* Proctee list pending — connect via students prop */}
                 </select>
               </div>
               <div>
@@ -478,15 +478,7 @@ function ProcteeMessage() {
 }
 
 // ─── Hostel Attendance ────────────────────────────────────────────────────────
-const hostelProctees = proctees.filter(p => p.type === 'Hostel')
-
-const hostelAttendanceData = hostelProctees.map(p => ({
-  ...p,
-  block: ['A', 'B', 'C'][Math.floor(Math.random() * 3)],
-  room: `${Math.floor(Math.random() * 3) + 1}0${Math.floor(Math.random() * 9) + 1}`,
-  present: Math.floor(p.attendance / 100 * 26),
-  absent: 26 - Math.floor(p.attendance / 100 * 26),
-}))
+const hostelAttendanceData = []
 
 function HostelAttendance() {
   const [view, setView] = useState('month')
