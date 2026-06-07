@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -6,6 +8,22 @@ const ACCENT = '#6366f1'
 const BG = '#f8fafc'
 
 const ITEMS = ['Open Hours', 'Work Load', 'Mark Configuration', 'Project', 'Co-Faculty WorkLoad']
+
+function Spinner() {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+      <div style={{ width: 28, height: 28, border: '3px solid #e2e8f0', borderTopColor: ACCENT, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+    </div>
+  )
+}
+
+function PendingNotice() {
+  return (
+    <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#92400e', fontFamily: 'system-ui' }}>
+      This section's backend endpoint is pending — data shown is placeholder.
+    </div>
+  )
+}
 
 // ─── Open Hours ──────────────────────────────────────────────────────────────
 function OpenHours() {
@@ -15,8 +33,6 @@ function OpenHours() {
   const [form, setForm] = useState({ day: 'Mon', start: '', end: '', location: 'Office', maxStudents: '' })
   const [saved, setSaved] = useState(false)
 
-  const toggle = (key) => setAvailable(prev => ({ ...prev, [key]: !prev[key] }))
-
   const appointments = [
     { student: 'Arun S. (21CS040)', course: 'CS6003', date: 'Jun 6, Mon', time: '9:00–10:00', topic: 'Doubt — Unit 3' },
     { student: 'Preethi V. (21CS078)', course: 'CS6001', date: 'Jun 7, Tue', time: '2:00–3:00', topic: 'Assignment help' },
@@ -25,6 +41,7 @@ function OpenHours() {
 
   return (
     <div>
+      <PendingNotice />
       <div style={{ fontSize: 14, fontWeight: 700, color: TEXT, fontFamily: 'system-ui', marginBottom: 10 }}>Weekly Availability Grid</div>
       <div style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', marginBottom: 12 }}>Click a cell to mark as available for student consultations.</div>
       <div style={{ overflowX: 'auto', marginBottom: 24 }}>
@@ -44,16 +61,9 @@ function OpenHours() {
                   const on = !!available[key]
                   return (
                     <td key={d} style={{ padding: '5px', borderBottom: '1px solid #f1f5f9', textAlign: 'center' }}>
-                      <div
-                        onClick={() => toggle(key)}
-                        style={{
-                          margin: '0 auto', width: 36, height: 26, borderRadius: 6, cursor: 'pointer',
-                          background: on ? '#eef2ff' : '#f8fafc',
-                          border: on ? '1.5px solid #6366f1' : '1.5px solid #e2e8f0',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 10, color: on ? ACCENT : MUTED, fontWeight: on ? 700 : 400
-                        }}
-                      >{on ? 'Open' : '—'}</div>
+                      <div onClick={() => setAvailable(prev => ({ ...prev, [key]: !prev[key] }))} style={{ margin: '0 auto', width: 36, height: 26, borderRadius: 6, cursor: 'pointer', background: on ? '#eef2ff' : '#f8fafc', border: on ? '1.5px solid #6366f1' : '1.5px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: on ? ACCENT : MUTED, fontWeight: on ? 700 : 400 }}>
+                        {on ? 'Open' : '—'}
+                      </div>
                     </td>
                   )
                 })}
@@ -91,7 +101,7 @@ function OpenHours() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {appointments.map((a, i) => (
           <div key={i} style={{ border: '1px solid #e2e8f0', borderRadius: 9, padding: '12px 16px', display: 'flex', gap: 16, alignItems: 'center' }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#eef2ff', color: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, fontFamily: 'system-ui', flexShrink: 0 }}>{a.student.slice(0, 2).toUpperCase()}</div>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#eef2ff', color: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>{a.student.slice(0, 2).toUpperCase()}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, fontFamily: 'system-ui' }}>{a.student}</div>
               <div style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui' }}>{a.course} · {a.topic}</div>
@@ -108,24 +118,24 @@ function OpenHours() {
 }
 
 // ─── Work Load ────────────────────────────────────────────────────────────────
-function WorkLoad() {
-  const courses = [
-    { code: 'CS6001', name: 'Data Warehousing', cls: 'III-CSE-A', credits: 4, hrsWeek: 4, type: 'Theory', enrolled: 62 },
-    { code: 'CS6002', name: 'Compiler Design', cls: 'III-CSE-B', credits: 4, hrsWeek: 4, type: 'Theory', enrolled: 60 },
-    { code: 'CS6081L', name: 'Data Warehousing Lab', cls: 'III-CSE-A', credits: 2, hrsWeek: 3, type: 'Lab', enrolled: 30 },
-    { code: 'CS6082L', name: 'Compiler Design Lab', cls: 'III-CSE-B', credits: 2, hrsWeek: 3, type: 'Lab', enrolled: 30 },
-    { code: 'CS6003T', name: 'Cloud Computing (Tutorial)', cls: 'III-CSE-A', credits: 0, hrsWeek: 1, type: 'Tutorial', enrolled: 62 },
-  ]
-  const theoryHrs = courses.filter(c => c.type !== 'Lab').reduce((a, c) => a + c.hrsWeek, 0)
-  const labHrs = courses.filter(c => c.type === 'Lab').reduce((a, c) => a + c.hrsWeek, 0)
-  const total = theoryHrs + labHrs
-  const typeColor = { Theory: ['#eef2ff', ACCENT], Lab: ['#d1fae5', '#059669'], Tutorial: ['#fef3c7', '#b45309'] }
-  const loadStatus = total >= 18 ? ['Overload', '#fee2e2', '#dc2626'] : total >= 16 ? ['Within Limit', '#dcfce7', '#15803d'] : ['Under Load', '#fef3c7', '#b45309']
+function WorkLoad({ courses, enrollments, loading }) {
+  if (loading) return <Spinner />
+
+  const typeColor = { ACTIVE: ['#eef2ff', ACCENT], INACTIVE: ['#f1f5f9', MUTED] }
+  const totalCredits = courses.reduce((a, c) => a + (c.credits || 0), 0)
+  const loadStatus = totalCredits >= 18
+    ? ['Overload', '#fee2e2', '#dc2626']
+    : totalCredits >= 12
+      ? ['Within Limit', '#dcfce7', '#15803d']
+      : ['Under Load', '#fef3c7', '#b45309']
 
   return (
     <div>
       <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
-        {[['Teaching Hrs/Week', theoryHrs, ACCENT, '#eef2ff'], ['Lab Hrs/Week', labHrs, '#059669', '#d1fae5'], ['Total Contact Hrs', total, loadStatus[2], loadStatus[1]]].map(([label, val, color, bg]) => (
+        {[
+          ['Total Courses', courses.length, ACCENT, '#eef2ff'],
+          ['Total Credits', totalCredits, loadStatus[2], loadStatus[1]],
+        ].map(([label, val, color, bg]) => (
           <div key={label} style={{ flex: '1 1 140px', background: bg, borderRadius: 10, padding: '14px 18px', textAlign: 'center' }}>
             <div style={{ fontSize: 26, fontWeight: 800, color, fontFamily: 'system-ui' }}>{val}</div>
             <div style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui' }}>{label}</div>
@@ -133,44 +143,49 @@ function WorkLoad() {
         ))}
         <div style={{ flex: '1 1 160px', background: loadStatus[1], borderRadius: 10, padding: '14px 18px', textAlign: 'center' }}>
           <div style={{ fontSize: 15, fontWeight: 800, color: loadStatus[2], fontFamily: 'system-ui' }}>{loadStatus[0]}</div>
-          <div style={{ fontSize: 11, color: MUTED, fontFamily: 'system-ui' }}>University norm: 16–18 hrs/week</div>
+          <div style={{ fontSize: 11, color: MUTED, fontFamily: 'system-ui' }}>Based on total credits</div>
         </div>
       </div>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              {['Course Code', 'Course Name', 'Class', 'Credits', 'Hrs/Week', 'Type', 'Students'].map(h => (
-                <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {courses.map((c, i) => {
-              const [tbg, tcl] = typeColor[c.type]
-              return (
-                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '9px 10px', color: ACCENT, fontWeight: 700 }}>{c.code}</td>
-                  <td style={{ padding: '9px 10px', color: TEXT }}>{c.name}</td>
-                  <td style={{ padding: '9px 10px', color: MUTED }}>{c.cls}</td>
-                  <td style={{ padding: '9px 10px', color: TEXT, textAlign: 'center' }}>{c.credits}</td>
-                  <td style={{ padding: '9px 10px', color: TEXT, fontWeight: 600, textAlign: 'center' }}>{c.hrsWeek}</td>
-                  <td style={{ padding: '9px 10px' }}><span style={{ background: tbg, color: tcl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{c.type}</span></td>
-                  <td style={{ padding: '9px 10px', color: MUTED, textAlign: 'center' }}>{c.enrolled}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+
+      {courses.length === 0 ? (
+        <div style={{ color: MUTED, fontSize: 13, fontFamily: 'system-ui', padding: 24, textAlign: 'center' }}>No courses assigned.</div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                {['Course Code', 'Course Name', 'Semester', 'Credits', 'Enrolled', 'Status'].map(h => (
+                  <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {courses.map((c) => {
+                const [tbg, tcl] = typeColor[c.status] || ['#f1f5f9', MUTED]
+                return (
+                  <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '9px 10px', color: ACCENT, fontWeight: 700 }}>{c.code}</td>
+                    <td style={{ padding: '9px 10px', color: TEXT }}>{c.name}</td>
+                    <td style={{ padding: '9px 10px', color: TEXT, textAlign: 'center' }}>{c.semester ?? '—'}</td>
+                    <td style={{ padding: '9px 10px', color: TEXT, fontWeight: 600, textAlign: 'center' }}>{c.credits ?? '—'}</td>
+                    <td style={{ padding: '9px 10px', color: MUTED, textAlign: 'center' }}>{enrollments[c.id] ?? '—'}</td>
+                    <td style={{ padding: '9px 10px' }}>
+                      <span style={{ background: tbg, color: tcl, fontSize: 11, borderRadius: 8, padding: '2px 8px', fontWeight: 700 }}>{c.status}</span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
 
 // ─── Mark Configuration ───────────────────────────────────────────────────────
-function MarkConfiguration() {
-  const [selectedCourse, setSelectedCourse] = useState('CS6001')
-  const courses = ['CS6001 — Data Warehousing', 'CS6002 — Compiler Design', 'CS6003 — Cloud Computing', 'CS6004 — Cryptography & Security']
+function MarkConfiguration({ courses, loading }) {
+  const [selectedCourseId, setSelectedCourseId] = useState('')
   const [components, setComponents] = useState([
     { name: 'CA1', max: 20, passing: 10, weightage: 10 },
     { name: 'CA2', max: 20, passing: 10, weightage: 10 },
@@ -180,17 +195,29 @@ function MarkConfiguration() {
   ])
   const [saved, setSaved] = useState(false)
 
+  useEffect(() => {
+    if (courses.length && !selectedCourseId) setSelectedCourseId(courses[0].id)
+  }, [courses])
+
   const update = (i, field, val) => setComponents(prev => prev.map((c, idx) => idx === i ? { ...c, [field]: Number(val) } : c))
+  const selectedCourse = courses.find(c => c.id === selectedCourseId)
+
+  if (loading) return <Spinner />
 
   return (
     <div>
+      <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#92400e', fontFamily: 'system-ui' }}>
+        Mark configuration storage endpoint pending — course list is live, configuration values are local only.
+      </div>
       <div style={{ marginBottom: 16 }}>
         <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Select Course</label>
-        <select value={selectedCourse} onChange={e => setSelectedCourse(e.target.value.split(' ')[0])} style={{ padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', width: 280 }}>
-          {courses.map(c => <option key={c}>{c}</option>)}
+        <select value={selectedCourseId} onChange={e => setSelectedCourseId(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', width: 320 }}>
+          {courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
         </select>
       </div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: MUTED, fontFamily: 'system-ui', marginBottom: 8 }}>Assessment Components — {selectedCourse}</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: MUTED, fontFamily: 'system-ui', marginBottom: 8 }}>
+        Assessment Components — {selectedCourse?.code ?? '—'}
+      </div>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', marginBottom: 16, minWidth: 600 }}>
           <thead>
@@ -220,7 +247,7 @@ function MarkConfiguration() {
       </div>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
         <button onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 2000) }} style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 13, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600 }}>Save Configuration</button>
-        {saved && <span style={{ fontSize: 13, color: '#15803d', fontFamily: 'system-ui', fontWeight: 600 }}>Configuration saved!</span>}
+        {saved && <span style={{ fontSize: 13, color: '#15803d', fontFamily: 'system-ui', fontWeight: 600 }}>Saved!</span>}
         <div style={{ marginLeft: 'auto', fontSize: 12, color: MUTED, fontFamily: 'system-ui' }}>
           Total weightage: <strong style={{ color: components.reduce((a, c) => a + c.weightage, 0) === 100 ? '#15803d' : '#dc2626' }}>{components.reduce((a, c) => a + c.weightage, 0)}%</strong>
         </div>
@@ -242,6 +269,7 @@ function Project() {
 
   return (
     <div>
+      <PendingNotice />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: TEXT, fontFamily: 'system-ui' }}>Internal Projects — Guide Responsibilities</div>
         <button onClick={() => setShowForm(f => !f)} style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 12, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600 }}>+ Schedule Review</button>
@@ -249,7 +277,7 @@ function Project() {
 
       {showForm && (
         <div style={{ border: '1px solid #c7d2fe', borderRadius: 10, padding: 18, background: '#fafbff', marginBottom: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, fontFamily: 'system-ui', marginBottom: 12 }}>Schedule Review / Upload Comments</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, fontFamily: 'system-ui', marginBottom: 12 }}>Schedule Review</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
             {[['Project', 'select', projects.map(p => p.title.slice(0, 30) + '...')], ['Review Type', 'select', ['Review 1', 'Review 2', 'Final Review']], ['Date', 'date', []], ['Venue', 'text', []]].map(([label, type, opts]) => (
               <div key={label}>
@@ -267,12 +295,6 @@ function Project() {
           <div style={{ marginTop: 12 }}>
             <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Review Comments</label>
             <textarea rows={3} placeholder="Enter review remarks..." style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 7, fontSize: 13, fontFamily: 'system-ui', boxSizing: 'border-box', resize: 'vertical' }} />
-          </div>
-          <div style={{ marginTop: 12 }}>
-            <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Upload Review Document</label>
-            <div style={{ border: '2px dashed #c7d2fe', borderRadius: 8, padding: '16px', textAlign: 'center', background: '#fff', cursor: 'pointer' }}>
-              <div style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui' }}>Drop PDF/DOCX here or <span style={{ color: ACCENT, fontWeight: 600 }}>browse</span></div>
-            </div>
           </div>
           <button onClick={() => setShowForm(false)} style={{ marginTop: 12, background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 13, fontFamily: 'system-ui', cursor: 'pointer', fontWeight: 600 }}>Save</button>
         </div>
@@ -309,18 +331,14 @@ function Project() {
 }
 
 // ─── Co-Faculty WorkLoad ──────────────────────────────────────────────────────
-function CoFacultyWorkLoad() {
+function CoFacultyWorkLoad({ allCourses, employeeMap, myUserId, loading }) {
   const [filterCourse, setFilterCourse] = useState('')
-  const data = [
-    { name: 'Dr. A. Meenakshi', course: 'CS6001 — Data Warehousing', section: 'III-CSE-B', hrsWeek: 4 },
-    { name: 'Mr. K. Vignesh', course: 'CS6002 — Compiler Design', section: 'III-CSE-A', hrsWeek: 4 },
-    { name: 'Ms. R. Divya', course: 'CS6003 — Cloud Computing', section: 'III-CSE-B', hrsWeek: 4 },
-    { name: 'Mr. T. Arun Kumar', course: 'CS6001 — Data Warehousing', section: 'III-CSE-C', hrsWeek: 4 },
-    { name: 'Dr. S. Priya', course: 'CS6004 — Cryptography & Security', section: 'III-CSE-A', hrsWeek: 3 },
-    { name: 'Dr. R. Sundaramurthy', course: 'CS6002 — Compiler Design', section: 'III-CSE-C', hrsWeek: 4 },
-  ]
-  const courses = [...new Set(data.map(d => d.course.split(' — ')[0]))]
-  const filtered = filterCourse ? data.filter(d => d.course.startsWith(filterCourse)) : data
+
+  if (loading) return <Spinner />
+
+  const coFacultyCourses = allCourses.filter(c => c.facultyId && c.facultyId !== myUserId)
+  const courseCodes = [...new Set(coFacultyCourses.map(c => c.code))]
+  const filtered = filterCourse ? coFacultyCourses.filter(c => c.code === filterCourse) : coFacultyCourses
 
   return (
     <div>
@@ -328,53 +346,107 @@ function CoFacultyWorkLoad() {
         <label style={{ fontSize: 13, color: MUTED, fontFamily: 'system-ui' }}>Filter by Course:</label>
         <select value={filterCourse} onChange={e => setFilterCourse(e.target.value)} style={{ padding: '7px 12px', border: '1px solid #e2e8f0', borderRadius: 7, fontSize: 13, fontFamily: 'system-ui' }}>
           <option value="">All Courses</option>
-          {courses.map(c => <option key={c} value={c}>{c}</option>)}
+          {courseCodes.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 600 }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              {['Faculty Name', 'Course', 'Section', 'Hrs/Week'].map(h => (
-                <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((d, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '9px 10px', color: TEXT, fontWeight: 600 }}>{d.name}</td>
-                <td style={{ padding: '9px 10px', color: ACCENT, fontWeight: 600 }}>{d.course}</td>
-                <td style={{ padding: '9px 10px', color: MUTED }}>{d.section}</td>
-                <td style={{ padding: '9px 10px', textAlign: 'center' }}>
-                  <span style={{ background: '#eef2ff', color: ACCENT, fontSize: 12, borderRadius: 8, padding: '2px 10px', fontWeight: 700 }}>{d.hrsWeek} hrs</span>
-                </td>
+      {filtered.length === 0 ? (
+        <div style={{ color: MUTED, fontSize: 13, fontFamily: 'system-ui', padding: 24, textAlign: 'center' }}>No co-faculty courses found.</div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'system-ui', minWidth: 500 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                {['Faculty Name', 'Course Code', 'Course Name', 'Semester', 'Credits'].map(h => (
+                  <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((c) => {
+                const emp = employeeMap[c.facultyId]
+                return (
+                  <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '9px 10px', color: TEXT, fontWeight: 600 }}>{emp?.name ?? `Faculty ${c.facultyId?.slice(0, 8)}…`}</td>
+                    <td style={{ padding: '9px 10px', color: ACCENT, fontWeight: 700 }}>{c.code}</td>
+                    <td style={{ padding: '9px 10px', color: TEXT }}>{c.name}</td>
+                    <td style={{ padding: '9px 10px', color: MUTED, textAlign: 'center' }}>{c.semester ?? '—'}</td>
+                    <td style={{ padding: '9px 10px', textAlign: 'center' }}>
+                      <span style={{ background: '#eef2ff', color: ACCENT, fontSize: 12, borderRadius: 8, padding: '2px 10px', fontWeight: 700 }}>{c.credits ?? '—'}</span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
       <div style={{ marginTop: 14, fontSize: 12, color: MUTED, fontFamily: 'system-ui', background: '#f8fafc', borderRadius: 8, padding: '8px 14px' }}>
-        Showing {filtered.length} of {data.length} co-faculty records. Use the filter above to narrow by course for coordination planning.
+        Showing {filtered.length} co-faculty course assignments.
       </div>
     </div>
   )
 }
 
-const CONTENT_MAP = [OpenHours, WorkLoad, MarkConfiguration, Project, CoFacultyWorkLoad]
-
+// ─── Parent ───────────────────────────────────────────────────────────────────
 export default function FacultyAcademicsGeneral() {
+  const { user } = useAuth()
   const [active, setActive] = useState(0)
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  const [myCourses, setMyCourses] = useState([])
+  const [allCourses, setAllCourses] = useState([])
+  const [enrollments, setEnrollments] = useState({})
+  const [employeeMap, setEmployeeMap] = useState({})
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth <= 768)
     window.addEventListener('resize', h)
     return () => window.removeEventListener('resize', h)
   }, [])
-  const ActiveComponent = CONTENT_MAP[active]
+
+  useEffect(() => {
+    if (!user?.userId) return
+    setLoading(true)
+    Promise.all([
+      api.get('/courses').then(r => r.data?.data || []).catch(() => []),
+      api.get('/employees').then(r => {
+        const map = {}
+        ;(r.data?.data || []).forEach(e => { map[e.userId] = e })
+        return map
+      }).catch(() => ({})),
+    ])
+      .then(async ([courses, empMap]) => {
+        setAllCourses(courses)
+        setEmployeeMap(empMap)
+        const mine = courses.filter(c => c.facultyId === user.userId)
+        setMyCourses(mine)
+        const counts = await Promise.all(
+          mine.map(c =>
+            api.get(`/enrollments/course/${c.id}`)
+              .then(r => [c.id, (r.data?.data || []).length])
+              .catch(() => [c.id, '—'])
+          )
+        )
+        setEnrollments(Object.fromEntries(counts))
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [user?.userId])
+
+  const renderActive = () => {
+    switch (active) {
+      case 0: return <OpenHours />
+      case 1: return <WorkLoad courses={myCourses} enrollments={enrollments} loading={loading} />
+      case 2: return <MarkConfiguration courses={myCourses} loading={loading} />
+      case 3: return <Project />
+      case 4: return <CoFacultyWorkLoad allCourses={allCourses} employeeMap={employeeMap} myUserId={user?.userId} loading={loading} />
+      default: return null
+    }
+  }
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100%', padding: 1 }}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ margin: 0, fontSize: isMobile ? 18 : 22, fontWeight: 700, color: TEXT, fontFamily: 'system-ui' }}>Academics — General</h1>
         <p style={{ margin: '4px 0 0', fontSize: 13, color: MUTED, fontFamily: 'system-ui' }}>Workload, open hours, marks configuration and project management</p>
@@ -388,27 +460,14 @@ export default function FacultyAcademicsGeneral() {
         }}>
           {ITEMS.map((item, i) => (
             isMobile ? (
-              <div key={i} onClick={() => setActive(i)} style={{
-                padding: '6px 14px', cursor: 'pointer', fontSize: 12,
-                fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569',
-                background: active === i ? '#eef2ff' : '#f1f5f9',
-                border: active === i ? '1.5px solid #6366f1' : '1.5px solid transparent',
-                borderRadius: 20, fontWeight: active === i ? 600 : 400,
-                whiteSpace: 'nowrap', flexShrink: 0,
-              }}>{item}</div>
+              <div key={i} onClick={() => setActive(i)} style={{ padding: '6px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569', background: active === i ? '#eef2ff' : '#f1f5f9', border: active === i ? '1.5px solid #6366f1' : '1.5px solid transparent', borderRadius: 20, fontWeight: active === i ? 600 : 400, whiteSpace: 'nowrap', flexShrink: 0 }}>{item}</div>
             ) : (
-              <div key={i} onClick={() => setActive(i)} style={{
-                padding: '9px 16px', cursor: 'pointer', fontSize: 13,
-                fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569',
-                background: active === i ? '#eef2ff' : 'transparent',
-                borderLeft: active === i ? '3px solid #6366f1' : '3px solid transparent',
-                fontWeight: active === i ? 600 : 400
-              }}>{item}</div>
+              <div key={i} onClick={() => setActive(i)} style={{ padding: '9px 16px', cursor: 'pointer', fontSize: 13, fontFamily: 'system-ui', color: active === i ? ACCENT : '#475569', background: active === i ? '#eef2ff' : 'transparent', borderLeft: active === i ? '3px solid #6366f1' : '3px solid transparent', fontWeight: active === i ? 600 : 400 }}>{item}</div>
             )
           ))}
         </div>
         <div style={{ flex: 1, padding: isMobile ? 14 : 28, overflowY: 'auto' }}>
-          <ActiveComponent />
+          {renderActive()}
         </div>
       </div>
     </div>
