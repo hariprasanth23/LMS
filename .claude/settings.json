@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/hariprasanthsaravanan/UnknownProject/Project 2/frontend/src/pages/**)"
+    ]
+  }
+}

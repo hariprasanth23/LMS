@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -23,12 +25,14 @@ const thStyle = {
 
 const tdStyle = { padding: '12px 14px', fontSize: 14, color: TEXT, borderBottom: '1px solid #f1f5f9' }
 
-// ─── Sample Data ───────────────────────────────────────────────────────────────
-const courseOptions = [
-  'CS5101 — Machine Learning',
-  'CS5102 — Compiler Design',
-  'CS5103 — Distributed Systems',
-]
+function useFacultyCourses(userId) {
+  const [courses, setCourses] = useState([])
+  useEffect(() => {
+    if (!userId) return
+    api.get('/courses').then(r => setCourses((r.data?.data || []).filter(c => c.facultyId === userId))).catch(console.error)
+  }, [userId])
+  return courses
+}
 
 const generateReportData = (course, examType) => [
   { rollNo: '22BCE0001', name: 'Arun Kumar', marks: 42, max: 50, grade: 'A+', result: 'Pass' },
@@ -72,9 +76,9 @@ function MarkDistributionChart({ data }) {
 }
 
 // ─── Mark Report Section ───────────────────────────────────────────────────────
-function MarkReportSection() {
+function MarkReportSection({ courses }) {
   const [filters, setFilters] = useState({
-    course: courseOptions[0],
+    courseId: '',
     examType: 'CA1',
     academicYear: '2024-25',
     semester: 'Semester 6',
@@ -82,8 +86,10 @@ function MarkReportSection() {
   const [reportGenerated, setReportGenerated] = useState(false)
   const [reportData, setReportData] = useState([])
 
+  useEffect(() => { if (courses.length && !filters.courseId) setFilters(p => ({ ...p, courseId: courses[0].id })) }, [courses])
+
   const handleGenerate = () => {
-    setReportData(generateReportData(filters.course, filters.examType))
+    setReportData(generateReportData(filters.courseId, filters.examType))
     setReportGenerated(true)
   }
 
@@ -103,8 +109,8 @@ function MarkReportSection() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 20 }}>
           <div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Course *</label>
-            <select style={inputStyle} value={filters.course} onChange={e => setFilters(p => ({ ...p, course: e.target.value }))}>
-              {courseOptions.map(c => <option key={c}>{c}</option>)}
+            <select style={inputStyle} value={filters.courseId} onChange={e => setFilters(p => ({ ...p, courseId: e.target.value }))}>
+              {courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
             </select>
           </div>
           <div>
@@ -153,7 +159,7 @@ function MarkReportSection() {
           <div style={{ ...card, overflow: 'hidden', marginBottom: 20 }}>
             <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontWeight: 600, fontSize: 15, color: TEXT }}>
-                {filters.course} — {filters.examType} — {filters.semester} · {filters.academicYear}
+                {courses.find(c => c.id === filters.courseId)?.code ?? '—'} — {filters.examType} — {filters.semester} · {filters.academicYear}
               </span>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button style={{ background: '#f8fafc', color: TEXT, border: '1px solid #e2e8f0', borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
@@ -198,6 +204,8 @@ function MarkReportSection() {
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function FacultyExamGeneral() {
+  const { user } = useAuth()
+  const courses = useFacultyCourses(user?.userId)
   const [activeNav, setActiveNav] = useState('Mark Report')
 
   return (
@@ -222,7 +230,7 @@ export default function FacultyExamGeneral() {
           ))}
         </div>
         <div style={{ flex: 1, padding: 28, minWidth: 0 }}>
-          {activeNav === 'Mark Report' && <MarkReportSection />}
+          {activeNav === 'Mark Report' && <MarkReportSection courses={courses} />}
         </div>
       </div>
     </div>

@@ -280,44 +280,27 @@ function DaysLeft({ days }) {
 function AdminDashboard({ isMobile }) {
   const [stats, setStats] = useState({ students: 0, faculty: 0, courses: 0, pendingLeaves: 0 })
   const [leaves, setLeaves] = useState([])
+  const [announcements, setAnnouncements] = useState([])
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [studRes, empRes, leaveRes] = await Promise.allSettled([
-          api.get('/students'),
-          api.get('/employees'),
-          api.get('/leaves')
-        ])
-        const students = studRes.status === 'fulfilled' ? (studRes.value.data.data?.length || 0) : 0
-        const employees = empRes.status === 'fulfilled' ? (empRes.value.data.data || []) : []
-        const faculty = employees.filter(e => e.employeeType === 'FACULTY').length
-        const allLeaves = leaveRes.status === 'fulfilled' ? (leaveRes.value.data.data || []) : []
-        const pending = allLeaves.filter(l => l.status === 'PENDING').length
-        setStats({ students, faculty, courses: 0, pendingLeaves: pending })
-        setLeaves(allLeaves.slice(0, 5))
-      } catch {}
-    }
-    fetchData()
+    Promise.allSettled([
+      api.get('/students'),
+      api.get('/employees'),
+      api.get('/leaves'),
+      api.get('/courses'),
+      api.get('/announcements')
+    ]).then(([studRes, empRes, leaveRes, courseRes, annRes]) => {
+      const students = studRes.status === 'fulfilled' ? (studRes.value.data.data?.length || 0) : 0
+      const employees = empRes.status === 'fulfilled' ? (empRes.value.data.data || []) : []
+      const faculty = employees.filter(e => e.employeeType === 'FACULTY').length
+      const allLeaves = leaveRes.status === 'fulfilled' ? (leaveRes.value.data.data || []) : []
+      const courses = courseRes.status === 'fulfilled' ? (courseRes.value.data.data?.length || 0) : 0
+      const pending = allLeaves.filter(l => l.status === 'PENDING').length
+      setStats({ students, faculty, courses, pendingLeaves: pending })
+      setLeaves(allLeaves.slice(0, 5))
+      setAnnouncements(annRes.status === 'fulfilled' ? (annRes.value.data.data || []).slice(0, 4) : [])
+    })
   }, [])
-
-  const monthlyAttendance = [
-    { label: 'Jan', value: 88 },
-    { label: 'Feb', value: 91 },
-    { label: 'Mar', value: 85 },
-    { label: 'Apr', value: 93 },
-    { label: 'May', value: 89 },
-    { label: 'Jun', value: 95, highlight: true }
-  ]
-
-  const recentActivity = [
-    { color: '#10b981', text: 'New student Priya Sharma registered in CSE Sem 1', time: 15 },
-    { color: '#6366f1', text: 'Leave request approved for Dr. Ramesh Kumar (Sick Leave)', time: 42 },
-    { color: '#f59e0b', text: 'Payroll processed for June 2025 — 87 employees', time: 130 },
-    { color: '#ef4444', text: 'Attendance below 75% alert: 3 students flagged', time: 210 },
-    { color: '#8b5cf6', text: 'New course CS4021 — Machine Learning added', time: 380 },
-    { color: '#06b6d4', text: 'Semester exam schedule published for Aug 2025', time: 720 }
-  ]
 
   const quickActions = [
     { icon: <MdPersonAdd />, label: 'Add Student', color: '#6366f1', bg: '#eef2ff' },
@@ -330,96 +313,53 @@ function AdminDashboard({ isMobile }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Stat Cards */}
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        <StatCard icon={<MdPeople />} label="Total Students" value={stats.students || 1284} color="#6366f1" bg="#eef2ff" trend="+5 this month" trendColor="#10b981" isMobile={isMobile} />
-        <StatCard icon={<MdSchool />} label="Faculty Members" value={stats.faculty || 87} color="#10b981" bg="#f0fdf4" trend="+2 this month" trendColor="#10b981" isMobile={isMobile} />
-        <StatCard icon={<MdBook />} label="Active Courses" value={stats.courses || 64} color="#f59e0b" bg="#fffbeb" trend="+3 this sem" trendColor="#10b981" isMobile={isMobile} />
-        <StatCard icon={<MdBeachAccess />} label="Pending Leaves" value={stats.pendingLeaves || 12} color="#ef4444" bg="#fef2f2" trend="Needs review" trendColor="#ef4444" isMobile={isMobile} />
+        <StatCard icon={<MdPeople />} label="Total Students" value={stats.students} color="#6366f1" bg="#eef2ff" isMobile={isMobile} />
+        <StatCard icon={<MdSchool />} label="Faculty Members" value={stats.faculty} color="#10b981" bg="#f0fdf4" isMobile={isMobile} />
+        <StatCard icon={<MdBook />} label="Active Courses" value={stats.courses} color="#f59e0b" bg="#fffbeb" isMobile={isMobile} />
+        <StatCard icon={<MdBeachAccess />} label="Pending Leaves" value={stats.pendingLeaves} color="#ef4444" bg="#fef2f2" trend="Needs review" trendColor="#ef4444" isMobile={isMobile} />
       </div>
 
-      {/* Quick Actions */}
       <SectionCard title="Quick Actions" subtitle="Frequently used admin operations">
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)', gap: 12 }}>
-          {quickActions.map((a, i) => (
-            <QuickActionCard key={i} icon={a.icon} label={a.label} color={a.color} bg={a.bg} />
-          ))}
+          {quickActions.map((a, i) => <QuickActionCard key={i} {...a} />)}
         </div>
       </SectionCard>
 
-      {/* Chart + Activity row */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.4fr 1fr', gap: 20 }}>
-        <SectionCard title="Monthly Attendance Overview" subtitle="Jan – Jun 2025 (Overall %)">
-          <BarChart data={monthlyAttendance} />
+        <SectionCard title="Recent Leave Requests" action="Manage All">
+          {leaves.length === 0
+            ? <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: 13, color: MUTED, margin: 0, textAlign: 'center', padding: '16px 0' }}>No leave requests found</p>
+            : <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13, minWidth: 400 }}>
+                  <thead><tr style={{ background: '#f8fafc' }}>
+                    {['Type', 'From', 'To', 'Status'].map(h => <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: MUTED, fontWeight: 600 }}>{h}</th>)}
+                  </tr></thead>
+                  <tbody>{leaves.map(l => (
+                    <tr key={l.id} style={{ borderTop: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '10px 12px', color: TEXT }}>{l.leaveType}</td>
+                      <td style={{ padding: '10px 12px', color: MUTED }}>{l.fromDate}</td>
+                      <td style={{ padding: '10px 12px', color: MUTED }}>{l.toDate}</td>
+                      <td style={{ padding: '10px 12px' }}><Badge status={l.status} /></td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>}
         </SectionCard>
 
-        <SectionCard title="Recent Activity" action="View All">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {recentActivity.map((item, i) => (
-              <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.color, marginTop: 4, flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: 'system-ui, sans-serif', fontSize: 13, color: TEXT, lineHeight: 1.4 }}>{item.text}</div>
-                  <div style={{ fontFamily: 'system-ui, sans-serif', fontSize: 11, color: MUTED, marginTop: 2 }}>{timeAgo(item.time)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <SectionCard title="Announcements" action="View All">
+          {announcements.length === 0
+            ? <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: 13, color: MUTED, margin: 0, textAlign: 'center', padding: '16px 0' }}>No announcements yet</p>
+            : <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {announcements.map((a, i) => (
+                  <div key={i} style={{ borderLeft: `3px solid ${ACCENT}`, paddingLeft: 12 }}>
+                    <div style={{ fontFamily: 'system-ui, sans-serif', fontSize: 13, color: TEXT, fontWeight: 600, lineHeight: 1.4 }}>{a.title}</div>
+                    <div style={{ fontFamily: 'system-ui, sans-serif', fontSize: 11, color: MUTED, marginTop: 3 }}>{a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-IN') : ''}</div>
+                  </div>
+                ))}
+              </div>}
         </SectionCard>
       </div>
-
-      {/* Recent Leave Requests */}
-      <SectionCard title="Recent Leave Requests" action="Manage All">
-        <div style={{ overflowX: 'auto' }}>
-          {leaves.length === 0 ? (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13, minWidth: 400 }}>
-              <thead>
-                <tr style={{ background: '#f8fafc' }}>
-                  {['Employee ID', 'Type', 'From', 'To', 'Status'].map(h => (
-                    <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: MUTED, fontWeight: 600 }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { id: 'FAC001', type: 'Sick Leave', from: '2025-06-10', to: '2025-06-12', status: 'PENDING' },
-                  { id: 'FAC014', type: 'Casual Leave', from: '2025-06-15', to: '2025-06-15', status: 'APPROVED' },
-                  { id: 'STF003', type: 'Earned Leave', from: '2025-07-01', to: '2025-07-05', status: 'PENDING' }
-                ].map((l, i) => (
-                  <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '10px 12px', color: TEXT, fontWeight: 600 }}>{l.id}</td>
-                    <td style={{ padding: '10px 12px', color: TEXT }}>{l.type}</td>
-                    <td style={{ padding: '10px 12px', color: MUTED }}>{l.from}</td>
-                    <td style={{ padding: '10px 12px', color: MUTED }}>{l.to}</td>
-                    <td style={{ padding: '10px 12px' }}><Badge status={l.status} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, sans-serif', fontSize: 13, minWidth: 400 }}>
-              <thead>
-                <tr style={{ background: '#f8fafc' }}>
-                  {['Employee ID', 'Type', 'From', 'To', 'Status'].map(h => (
-                    <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: MUTED, fontWeight: 600 }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {leaves.map(l => (
-                  <tr key={l.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '10px 12px', color: TEXT }}>{l.employeeId?.slice(0, 8)}...</td>
-                    <td style={{ padding: '10px 12px', color: TEXT }}>{l.leaveType}</td>
-                    <td style={{ padding: '10px 12px', color: MUTED }}>{l.fromDate}</td>
-                    <td style={{ padding: '10px 12px', color: MUTED }}>{l.toDate}</td>
-                    <td style={{ padding: '10px 12px' }}><Badge status={l.status} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </SectionCard>
     </div>
   )
 }

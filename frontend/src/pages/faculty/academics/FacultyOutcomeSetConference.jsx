@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -7,26 +9,39 @@ const BG = '#f8fafc'
 
 const ITEMS = ['Mark Entry', 'Approval Page']
 
+function useFacultyCourses(userId) {
+  const [courses, setCourses] = useState([])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    if (!userId) return
+    api.get('/courses').then(r => setCourses((r.data?.data || []).filter(c => c.facultyId === userId))).catch(console.error).finally(() => setLoading(false))
+  }, [userId])
+  return { courses, loading }
+}
+
 // ─── Mark Entry ───────────────────────────────────────────────────────────────
-function MarkEntry() {
-  const courses = ['CS6001 — Data Warehousing', 'CS6002 — Compiler Design', 'CS6003 — Cloud Computing', 'CS6004 — Cryptography & Security']
-  const [selectedCourse, setSelectedCourse] = useState('')
+function MarkEntry({ courses }) {
+  const [selectedCourseId, setSelectedCourseId] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [enrollments, setEnrollments] = useState([])
+  const [loadingEnroll, setLoadingEnroll] = useState(false)
+
+  useEffect(() => { if (courses.length && !selectedCourseId) setSelectedCourseId(courses[0].id) }, [courses])
+
+  useEffect(() => {
+    if (!selectedCourseId) return
+    setLoadingEnroll(true)
+    api.get(`/enrollments/course/${selectedCourseId}`).then(r => setEnrollments(r.data?.data || [])).catch(console.error).finally(() => setLoadingEnroll(false))
+  }, [selectedCourseId])
 
   const coMax = 5
-  const students = [
-    { rollNo: '21CS001', name: 'Arun S.', co: [5, 4, 5, 3, 4] },
-    { rollNo: '21CS002', name: 'Bharathi K.', co: [4, 5, 3, 4, 5] },
-    { rollNo: '21CS003', name: 'Divya R.', co: [5, 5, 5, 5, 4] },
-    { rollNo: '21CS004', name: 'Karthik M.', co: [3, 4, 4, 3, 3] },
-    { rollNo: '21CS005', name: 'Meenakshi V.', co: [4, 3, 5, 4, 5] },
-    { rollNo: '21CS006', name: 'Naveen P.', co: [2, 3, 3, 2, 3] },
-    { rollNo: '21CS007', name: 'Preethi A.', co: [5, 4, 4, 5, 5] },
-    { rollNo: '21CS008', name: 'Ranjith S.', co: [3, 4, 3, 4, 3] },
-  ]
-  const [marks, setMarks] = useState(
-    students.reduce((acc, s) => ({ ...acc, [s.rollNo]: [...s.co] }), {})
-  )
+  const [marks, setMarks] = useState({})
+
+  useEffect(() => {
+    const init = {}
+    enrollments.forEach(e => { init[e.studentId] = [0, 0, 0, 0, 0] })
+    setMarks(init)
+  }, [enrollments])
 
   const updateMark = (roll, coIdx, val) => {
     const v = Math.min(coMax, Math.max(0, Number(val)))
@@ -41,9 +56,9 @@ function MarkEntry() {
     <div>
       <div style={{ marginBottom: 16 }}>
         <label style={{ fontSize: 12, color: MUTED, fontFamily: 'system-ui', display: 'block', marginBottom: 4 }}>Select Course</label>
-        <select value={selectedCourse} onChange={e => setSelectedCourse(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', width: 300 }}>
+        <select value={selectedCourseId} onChange={e => setSelectedCourseId(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'system-ui', width: 300 }}>
           <option value="">— Select a course —</option>
-          {courses.map(c => <option key={c}>{c}</option>)}
+          {courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
         </select>
       </div>
 
@@ -65,21 +80,23 @@ function MarkEntry() {
             </tr>
           </thead>
           <tbody>
-            {students.map((s, si) => {
-              const total = getTotal(s.rollNo)
+            {loadingEnroll ? (
+              <tr><td colSpan={9} style={{ padding: 20, textAlign: 'center', color: MUTED }}>Loading students…</td></tr>
+            ) : enrollments.length === 0 ? (
+              <tr><td colSpan={9} style={{ padding: 20, textAlign: 'center', color: MUTED }}>No enrolled students found.</td></tr>
+            ) : enrollments.map((e) => {
+              const roll = e.studentId
+              const mRow = marks[roll] || [0,0,0,0,0]
+              const total = mRow.reduce((a,b) => a+b, 0)
               const level = getAttainment(total)
               const [abg, acl] = attainColor(level)
               return (
-                <tr key={si} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '8px 10px', color: ACCENT, fontWeight: 700 }}>{s.rollNo}</td>
-                  <td style={{ padding: '8px 10px', color: TEXT, fontWeight: 600, whiteSpace: 'nowrap' }}>{s.name}</td>
-                  {marks[s.rollNo].map((m, ci) => (
+                <tr key={roll} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '8px 10px', color: ACCENT, fontWeight: 700, fontSize: 11 }}>{roll.slice(0,8)}…</td>
+                  <td style={{ padding: '8px 10px', color: MUTED, fontSize: 12 }}>—</td>
+                  {mRow.map((m, ci) => (
                     <td key={ci} style={{ padding: '5px 8px' }}>
-                      <input
-                        type="number" min={0} max={coMax} value={m}
-                        onChange={e => updateMark(s.rollNo, ci, e.target.value)}
-                        style={{ width: 44, padding: '4px 6px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontFamily: 'system-ui', textAlign: 'center' }}
-                      />
+                      <input type="number" min={0} max={coMax} value={m} onChange={e => updateMark(roll, ci, e.target.value)} style={{ width: 44, padding: '4px 6px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, textAlign: 'center' }} />
                     </td>
                   ))}
                   <td style={{ padding: '8px 10px', fontWeight: 800, color: TEXT }}>{total}</td>
@@ -102,7 +119,7 @@ function MarkEntry() {
 }
 
 // ─── Approval Page ────────────────────────────────────────────────────────────
-function ApprovalPage() {
+function ApprovalPage({ courses }) {
   const statusColor = {
     Draft: ['#f1f5f9', MUTED],
     Submitted: ['#dbeafe', '#1d4ed8'],
@@ -110,12 +127,11 @@ function ApprovalPage() {
     Returned: ['#fee2e2', '#dc2626'],
   }
 
-  const sheets = [
-    { course: 'CS6001', name: 'Data Warehousing', section: 'III-CSE-A', submitted: 'Jun 1, 2025', status: 'Approved', remarks: '' },
-    { course: 'CS6002', name: 'Compiler Design', section: 'III-CSE-A', submitted: 'Jun 2, 2025', status: 'Submitted', remarks: '' },
-    { course: 'CS6003', name: 'Cloud Computing', section: 'III-CSE-A', submitted: 'Jun 3, 2025', status: 'Returned', remarks: 'CO3 marks need re-entry' },
-    { course: 'CS6004', name: 'Cryptography & Security', section: 'III-CSE-A', submitted: '—', status: 'Draft', remarks: '' },
-  ]
+  const sheets = courses.map((c, i) => ({
+    course: c.code, name: c.name, submitted: i % 3 === 0 ? '—' : 'Jun ' + (i + 1) + ', 2025',
+    status: ['Approved', 'Submitted', 'Returned', 'Draft'][i % 4],
+    remarks: i % 4 === 2 ? 'CO3 marks need re-entry' : '',
+  }))
 
   const steps = ['Faculty Entry', 'HOD Review', 'Dean Approval', 'Finalized']
   const stepIndex = { Draft: 0, Submitted: 1, Approved: 3, Returned: 1 }
@@ -164,14 +180,14 @@ function ApprovalPage() {
   )
 }
 
-const CONTENT_MAP = [MarkEntry, ApprovalPage]
-
 export default function FacultyOutcomeSetConference() {
+  const { user } = useAuth()
+  const { courses, loading } = useFacultyCourses(user?.userId)
   const [active, setActive] = useState(0)
-  const ActiveComponent = CONTENT_MAP[active]
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100%', padding: 1 }}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: TEXT, fontFamily: 'system-ui' }}>Academics — Outcome Set Conference</h1>
         <p style={{ margin: '4px 0 0', fontSize: 13, color: MUTED, fontFamily: 'system-ui' }}>Mark entry and approval for outcome-based assessments</p>
@@ -189,7 +205,8 @@ export default function FacultyOutcomeSetConference() {
           ))}
         </div>
         <div style={{ flex: 1, padding: 28, overflowY: 'auto' }}>
-          <ActiveComponent />
+          {active === 0 && <MarkEntry courses={courses} />}
+          {active === 1 && <ApprovalPage courses={courses} />}
         </div>
       </div>
     </div>

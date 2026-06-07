@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -142,42 +144,26 @@ function FeedbackFormSection() {
 // ─── Course Feedback ────────────────────────────────────────────────────────────
 const criteria = ['Content Delivery', 'Clarity', 'Engagement', 'Technology Use', 'Availability']
 
-const courseData = {
-  'CS6001 — Machine Learning': {
-    ratings: { 'Content Delivery': 4.2, 'Clarity': 3.8, 'Engagement': 4.5, 'Technology Use': 4.0, 'Availability': 4.7 },
-    comments: [
-      'Great explanation of neural networks with real examples.',
-      'Could improve lab session structure.',
-      'Very accessible and always available for doubts.',
-      'Technology integration is excellent.',
-      'Assignment difficulty was appropriate.',
-    ],
-  },
-  'CS6002 — Computer Networks': {
-    ratings: { 'Content Delivery': 3.9, 'Clarity': 4.1, 'Engagement': 3.6, 'Technology Use': 3.5, 'Availability': 4.2 },
-    comments: [
-      'Good theoretical foundation.',
-      'More practical labs would help.',
-      'Clear explanations of protocols.',
-      'Could use more visual aids.',
-    ],
-  },
-}
+function CourseFeedbackSection({ courses }) {
+  const [selectedCourse, setSelectedCourse] = useState('')
+  useEffect(() => { if (courses.length && !selectedCourse) setSelectedCourse(courses[0].id) }, [courses])
 
-const courses = Object.keys(courseData)
-
-function CourseFeedbackSection() {
-  const [selectedCourse, setSelectedCourse] = useState(courses[0])
+  const placeholderRatings = { 'Content Delivery': 4.2, 'Clarity': 3.8, 'Engagement': 4.5, 'Technology Use': 4.0, 'Availability': 4.7 }
+  const placeholderComments = ['Great explanation with real examples.', 'Very accessible and available for doubts.', 'Technology integration is excellent.']
+  const data = { ratings: placeholderRatings, comments: placeholderComments }
   const [semester, setSemester] = useState('Semester 6 · 2024-25')
   const data = courseData[selectedCourse]
 
   return (
     <div>
+      <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#92400e' }}>
+        SET feedback ratings — backend endpoint pending. Course list is live.
+      </div>
       <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 220 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Course</label>
           <select style={inputStyle} value={selectedCourse} onChange={e => setSelectedCourse(e.target.value)}>
-            {courses.map(c => <option key={c}>{c}</option>)}
+            {courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
           </select>
         </div>
         <div style={{ flex: 1, minWidth: 180 }}>
@@ -405,7 +391,14 @@ function FeedbackReportSection() {
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function FacultyFeedbackGeneral() {
+  const { user } = useAuth()
   const [activeNav, setActiveNav] = useState('Feedback Form')
+  const [courses, setCourses] = useState([])
+
+  useEffect(() => {
+    if (!user?.userId) return
+    api.get('/courses').then(r => setCourses((r.data?.data || []).filter(c => c.facultyId === user.userId))).catch(console.error)
+  }, [user?.userId])
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: 32 }}>
@@ -430,7 +423,7 @@ export default function FacultyFeedbackGeneral() {
         </div>
         <div style={{ flex: 1, padding: 28, minWidth: 0 }}>
           {activeNav === 'Feedback Form' && <FeedbackFormSection />}
-          {activeNav === 'Course Feedback' && <CourseFeedbackSection />}
+          {activeNav === 'Course Feedback' && <CourseFeedbackSection courses={courses} />}
           {activeNav === 'Student Feedback' && <StudentFeedbackSection />}
           {activeNav === 'Feedback Report' && <FeedbackReportSection />}
         </div>

@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -23,7 +25,7 @@ const thStyle = {
 
 const tdStyle = { padding: '10px 14px', fontSize: 13, color: TEXT, borderBottom: '1px solid #f1f5f9', verticalAlign: 'top' }
 
-const courses = ['CS6001 — Machine Learning', 'CS6002 — Computer Networks', 'CS5003 — Operating Systems']
+const FALLBACK_COURSES = []
 
 const bloomsLevels = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create']
 const poList = ['PO1', 'PO2', 'PO3', 'PO4', 'PO5', 'PO6', 'PO7', 'PO8', 'PO9', 'PO10', 'PO11', 'PO12']
@@ -57,8 +59,9 @@ const lessonPlanData = [
 ]
 
 // ─── Outcome Statement ─────────────────────────────────────────────────────────
-function OutcomeStatementSection() {
-  const [course, setCourse] = useState(courses[0])
+function OutcomeStatementSection({ courses }) {
+  const [course, setCourse] = useState('')
+  useEffect(() => { if (courses.length && !course) setCourse(courses[0].id) }, [courses])
   const [cos, setCOs] = useState(defaultCOs)
   const [editIndex, setEditIndex] = useState(null)
   const [showMatrix, setShowMatrix] = useState(false)
@@ -104,7 +107,7 @@ function OutcomeStatementSection() {
         <div style={{ flex: 1, minWidth: 240 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Course</label>
           <select style={inputStyle} value={course} onChange={e => setCourse(e.target.value)}>
-            {courses.map(c => <option key={c}>{c}</option>)}
+            {courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
           </select>
         </div>
         <button onClick={() => setShowMatrix(!showMatrix)}
@@ -258,8 +261,9 @@ function OutcomeStatementSection() {
 }
 
 // ─── Course Plan ───────────────────────────────────────────────────────────────
-function CoursePlanSection() {
-  const [course, setCourse] = useState(courses[0])
+function CoursePlanSection({ courses }) {
+  const [course, setCourse] = useState('')
+  useEffect(() => { if (courses.length && !course) setCourse(courses[0].id) }, [courses])
   const [plan, setPlan] = useState(lessonPlanData)
 
   const totalPlanned = plan.reduce((s, r) => s + r.planned, 0)
@@ -276,7 +280,7 @@ function CoursePlanSection() {
         <div style={{ flex: 1, minWidth: 240 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Course</label>
           <select style={inputStyle} value={course} onChange={e => setCourse(e.target.value)}>
-            {courses.map(c => <option key={c}>{c}</option>)}
+            {courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
           </select>
         </div>
         <button style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
@@ -343,7 +347,14 @@ function CoursePlanSection() {
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function FacultyOutcomeCoursePlan() {
+  const { user } = useAuth()
   const [activeNav, setActiveNav] = useState('Outcome Statement')
+  const [courses, setCourses] = useState([])
+
+  useEffect(() => {
+    if (!user?.userId) return
+    api.get('/courses').then(r => setCourses((r.data?.data || []).filter(c => c.facultyId === user.userId))).catch(console.error)
+  }, [user?.userId])
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: 32 }}>
@@ -367,8 +378,8 @@ export default function FacultyOutcomeCoursePlan() {
           ))}
         </div>
         <div style={{ flex: 1, padding: 28, minWidth: 0 }}>
-          {activeNav === 'Outcome Statement' && <OutcomeStatementSection />}
-          {activeNav === 'Course Plan' && <CoursePlanSection />}
+          {activeNav === 'Outcome Statement' && <OutcomeStatementSection courses={courses} />}
+          {activeNav === 'Course Plan' && <CoursePlanSection courses={courses} />}
         </div>
       </div>
     </div>
