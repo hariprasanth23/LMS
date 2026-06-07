@@ -6,7 +6,7 @@ const ACCENT = '#6366f1'
 const BG = '#f8fafc'
 
 const ITEMS = [
-  'My Curriculum', 'HOD and Dean Info', 'Faculty Info', 'Biometric Info', 'Class Messages',
+  'My Curriculum', 'HOD and Dean Info', 'Faculty Info', 'Biometric Info', 'Biometric Search', 'Class Messages',
   'Regulation', 'Minor / Honour', 'Time Table', 'Class Attendance', 'Course Page Consolidated',
   'Digital Assignment Upload', 'QCM View', 'Outcome SET Conference', 'Co-Extra Curricular',
   'Academics Calendar', 'Course Registration Allocation', 'Project Course', 'Project Mark View',
@@ -1111,8 +1111,298 @@ function ApaarIDUpload() {
   )
 }
 
+// ─── Biometric Search ────────────────────────────────────────────────────────
+function BiometricSearch() {
+  const ff = 'system-ui, -apple-system, sans-serif'
+  const today = new Date()
+  const [viewYear, setViewYear]   = useState(today.getFullYear())
+  const [viewMonth, setViewMonth] = useState(today.getMonth())       // 0-indexed
+  const [selected, setSelected]   = useState(null)                   // Date object
+
+  // Demo biometric log — keyed as YYYY-MM-DD
+  const bioLog = {
+    // June 2025
+    [`${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-02`]: [
+      { time: '08:47 AM', location: 'CSE Block — Main Entrance', type: 'Attendance', status: 'Present' },
+      { time: '01:10 PM', location: 'Library — Entry Gate',      type: 'Library Access', status: 'Accessed' },
+    ],
+    [`${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-03`]: [
+      { time: '08:52 AM', location: 'CSE Block — Main Entrance', type: 'Attendance', status: 'Present' },
+      { time: '02:30 PM', location: 'CSE Block Lab — Lab 2',     type: 'Lab Access',  status: 'Accessed' },
+    ],
+    [`${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-04`]: [
+      { time: '09:05 AM', location: 'CSE Block — Main Entrance', type: 'Attendance', status: 'Late' },
+    ],
+    [`${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-05`]: [],  // no biometric
+    [`${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-06`]: [
+      { time: '08:44 AM', location: 'CSE Block — Main Entrance', type: 'Attendance', status: 'Present' },
+      { time: '10:15 AM', location: 'Exam Hall — Block C',       type: 'Exam Entry',  status: 'Verified' },
+      { time: '12:30 PM', location: 'Cafeteria Gate',            type: 'Canteen Access', status: 'Accessed' },
+    ],
+    [`${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-09`]: [
+      { time: '08:50 AM', location: 'CSE Block — Main Entrance', type: 'Attendance', status: 'Present' },
+    ],
+    [`${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-10`]: [
+      { time: '08:41 AM', location: 'CSE Block — Main Entrance', type: 'Attendance', status: 'Present' },
+      { time: '03:00 PM', location: 'Library — Entry Gate',      type: 'Library Access', status: 'Accessed' },
+    ],
+    [`${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-11`]: [
+      { time: '09:15 AM', location: 'CSE Block — Main Entrance', type: 'Attendance', status: 'Late' },
+    ],
+    [`${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-12`]: [
+      { time: '08:38 AM', location: 'CSE Block — Main Entrance', type: 'Attendance', status: 'Present' },
+      { time: '11:00 AM', location: 'Seminar Hall — Main Block', type: 'Event Entry',  status: 'Verified' },
+    ],
+    [`${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-13`]: [
+      { time: '08:55 AM', location: 'CSE Block — Main Entrance', type: 'Attendance', status: 'Present' },
+    ],
+  }
+
+  const daysInMonth   = new Date(viewYear, viewMonth + 1, 0).getDate()
+  const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay()  // 0=Sun
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']
+  const dayLabels  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+
+  const toKey = (d) => `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+
+  const prevMonth = () => {
+    if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11) }
+    else setViewMonth(m => m - 1)
+    setSelected(null)
+  }
+  const nextMonth = () => {
+    if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0) }
+    else setViewMonth(m => m + 1)
+    setSelected(null)
+  }
+
+  const isToday  = (d) => d === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear()
+  const isFuture = (d) => new Date(viewYear, viewMonth, d) > today
+  const selectedKey = selected
+    ? `${selected.year}-${String(selected.month + 1).padStart(2, '0')}-${String(selected.day).padStart(2, '0')}`
+    : null
+  const records = selectedKey ? (bioLog[selectedKey] ?? null) : null
+
+  const statusColor = (s) => ({
+    'Present': '#16a34a', 'Late': '#d97706', 'Absent': '#dc2626',
+    'Accessed': '#6366f1', 'Verified': '#0891b2',
+  }[s] || '#64748b')
+
+  const statusBg = (s) => ({
+    'Present': '#f0fdf4', 'Late': '#fffbeb', 'Absent': '#fef2f2',
+    'Accessed': '#eef2ff', 'Verified': '#e0f2fe',
+  }[s] || '#f8fafc')
+
+  const typeIcon = (t) => ({
+    'Attendance': '👆', 'Library Access': '📚', 'Lab Access': '🔬',
+    'Exam Entry': '📝', 'Canteen Access': '🍽️', 'Event Entry': '🎟️',
+  }[t] || '🔒')
+
+  return (
+    <div style={{ fontFamily: ff }}>
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: TEXT, fontFamily: ff, marginBottom: 4 }}>Biometric Activity Search</div>
+        <div style={{ fontSize: 13, color: MUTED, fontFamily: ff }}>Select a date to view your biometric records for that day.</div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+
+        {/* ── Calendar ── */}
+        <div style={{
+          background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16,
+          padding: 20, minWidth: 300, flex: '0 0 auto',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+        }}>
+          {/* Month header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <button onClick={prevMonth} style={{ background: '#f1f5f9', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 16, color: TEXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
+            <div style={{ fontSize: 15, fontWeight: 700, color: TEXT, fontFamily: ff }}>
+              {monthNames[viewMonth]} {viewYear}
+            </div>
+            <button onClick={nextMonth} style={{ background: '#f1f5f9', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 16, color: TEXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
+          </div>
+
+          {/* Day labels */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 6 }}>
+            {dayLabels.map(d => (
+              <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: MUTED, fontFamily: ff, padding: '4px 0' }}>{d}</div>
+            ))}
+          </div>
+
+          {/* Calendar grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+            {/* Empty cells before first day */}
+            {Array.from({ length: firstDayOfWeek }).map((_, i) => <div key={`e${i}`} />)}
+
+            {/* Day cells */}
+            {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => {
+              const key = toKey(d)
+              const hasData = bioLog[key] !== undefined
+              const hasRecords = hasData && bioLog[key].length > 0
+              const isSelected = selected?.day === d && selected?.month === viewMonth && selected?.year === viewYear
+              const future = isFuture(d)
+              const todayCell = isToday(d)
+
+              return (
+                <button
+                  key={d}
+                  disabled={future}
+                  onClick={() => setSelected({ day: d, month: viewMonth, year: viewYear })}
+                  style={{
+                    width: '100%', aspectRatio: '1', border: 'none', borderRadius: 8,
+                    cursor: future ? 'default' : 'pointer',
+                    background: isSelected
+                      ? ACCENT
+                      : todayCell
+                        ? '#eef2ff'
+                        : hasRecords
+                          ? '#f0fdf4'
+                          : 'transparent',
+                    color: isSelected ? '#fff' : future ? '#cbd5e1' : TEXT,
+                    fontSize: 13, fontFamily: ff, fontWeight: todayCell || isSelected ? 700 : 400,
+                    position: 'relative', transition: 'background 0.12s',
+                    outline: todayCell && !isSelected ? `2px solid ${ACCENT}` : 'none',
+                    outlineOffset: -2,
+                  }}
+                >
+                  {d}
+                  {/* Dot indicator */}
+                  {hasRecords && !isSelected && (
+                    <span style={{
+                      position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)',
+                      width: 4, height: 4, borderRadius: '50%',
+                      background: '#16a34a', display: 'block',
+                    }} />
+                  )}
+                  {hasData && !hasRecords && !isSelected && (
+                    <span style={{
+                      position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)',
+                      width: 4, height: 4, borderRadius: '50%',
+                      background: '#dc2626', display: 'block',
+                    }} />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Legend */}
+          <div style={{ display: 'flex', gap: 14, marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
+            {[
+              { color: '#16a34a', label: 'Has records' },
+              { color: '#dc2626', label: 'No activity' },
+              { color: ACCENT,    label: 'Selected' },
+            ].map(({ color, label }) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, display: 'inline-block' }} />
+                <span style={{ fontSize: 11, color: MUTED, fontFamily: ff }}>{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Records panel ── */}
+        <div style={{ flex: 1, minWidth: 260 }}>
+          {!selected ? (
+            <div style={{
+              border: '1.5px dashed #e2e8f0', borderRadius: 16, padding: '48px 24px',
+              textAlign: 'center', background: '#fafbff',
+            }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>📅</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: TEXT, fontFamily: ff, marginBottom: 6 }}>Select a date</div>
+              <div style={{ fontSize: 13, color: MUTED, fontFamily: ff }}>Click any date on the calendar to view your biometric activity for that day.</div>
+            </div>
+          ) : (
+            <div>
+              {/* Selected date header */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: TEXT, fontFamily: ff }}>
+                  {new Date(selected.year, selected.month, selected.day).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </div>
+                <div style={{ fontSize: 12, color: MUTED, fontFamily: ff, marginTop: 2 }}>
+                  {records === null
+                    ? 'No data available for this date'
+                    : records.length === 0
+                      ? 'No biometric activity recorded'
+                      : `${records.length} biometric event${records.length > 1 ? 's' : ''} recorded`}
+                </div>
+              </div>
+
+              {records === null || records.length === 0 ? (
+                <div style={{
+                  border: '1.5px solid #fecaca', borderRadius: 12, padding: '20px 20px',
+                  background: '#fef2f2', display: 'flex', alignItems: 'center', gap: 14,
+                }}>
+                  <span style={{ fontSize: 28 }}>🚫</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#991b1b', fontFamily: ff, marginBottom: 4 }}>No Biometric Activity</div>
+                    <div style={{ fontSize: 12, color: '#b91c1c', fontFamily: ff }}>
+                      {records === null
+                        ? 'This date is not in the biometric log system.'
+                        : 'Biometric was not used anywhere in the college on this day.'}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {records.map((r, i) => (
+                    <div key={i} style={{
+                      border: '1.5px solid #e2e8f0', borderRadius: 12, padding: '14px 16px',
+                      background: '#fff', display: 'flex', gap: 14, alignItems: 'flex-start',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                    }}>
+                      {/* Icon */}
+                      <div style={{
+                        width: 40, height: 40, borderRadius: 10, background: statusBg(r.status),
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 18, flexShrink: 0,
+                      }}>
+                        {typeIcon(r.type)}
+                      </div>
+
+                      {/* Info */}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, fontFamily: ff }}>{r.type}</div>
+                          <span style={{
+                            fontSize: 11, fontWeight: 700, color: statusColor(r.status),
+                            background: statusBg(r.status), border: `1px solid ${statusColor(r.status)}25`,
+                            borderRadius: 20, padding: '2px 10px', fontFamily: ff,
+                          }}>{r.status}</span>
+                        </div>
+                        <div style={{ fontSize: 12, color: MUTED, fontFamily: ff, marginBottom: 3 }}>
+                          📍 {r.location}
+                        </div>
+                        <div style={{ fontSize: 12, color: MUTED, fontFamily: ff }}>
+                          🕐 {r.time}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Summary strip */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, #eef2ff, #f0fdf4)',
+                    border: '1px solid #c7d2fe', borderRadius: 10,
+                    padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, marginTop: 4,
+                  }}>
+                    <span style={{ fontSize: 16 }}>✅</span>
+                    <span style={{ fontSize: 12, color: '#1e40af', fontWeight: 600, fontFamily: ff }}>
+                      Biometric verified at {records.length} location{records.length > 1 ? 's' : ''} on this day
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const CONTENT_MAP = [
-  MyCurriculum, HODDeanInfo, FacultyInfo, BiometricInfo, ClassMessages,
+  MyCurriculum, HODDeanInfo, FacultyInfo, BiometricInfo, BiometricSearch, ClassMessages,
   Regulation, MinorHonour, TimeTable, ClassAttendance, CoursePageConsolidated,
   DigitalAssignmentUpload, QCMView, OutcomeSETConference, CoExtraCurricular,
   AcademicsCalendar, CourseRegistrationAllocation, ProjectCourse, ProjectMarkView, ApaarIDUpload
