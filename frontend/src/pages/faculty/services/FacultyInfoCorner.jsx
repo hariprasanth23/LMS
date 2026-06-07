@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -110,74 +112,73 @@ function HealthCenterFeedbackSection() {
   )
 }
 
-// ─── General Notices ───────────────────────────────────────────────────────────
-const notices = [
-  { id: 1, title: 'Faculty Senate Meeting — June 2025', date: '2025-06-10', category: 'Administrative', content: 'All faculty members are requested to attend the Faculty Senate meeting scheduled on June 10, 2025 at 2:00 PM in the Senate Hall.', pinned: true, read: false },
-  { id: 2, title: 'Research Grant Application Deadline', date: '2025-06-15', category: 'Research', content: 'Last date to submit research grant applications for the DST-SERB scheme is June 15, 2025. Submit via the Research portal.', pinned: true, read: false },
-  { id: 3, title: 'Summer Vacation Schedule', date: '2025-06-01', category: 'Academic', content: 'The summer vacation will be from June 20 to July 10, 2025. Faculty are expected to complete grading before June 18.', pinned: false, read: false },
-  { id: 4, title: 'New ERP Module Launch', date: '2025-05-28', category: 'Technical', content: 'The new Research Management module has been launched in the ERP. Faculty can now manage publications, projects, and patents from a single portal.', pinned: false, read: true },
-  { id: 5, title: 'Sports Day Volunteers Needed', date: '2025-05-25', category: 'Events', content: 'Faculty volunteers are needed for the Annual Sports Day on July 15, 2025. Register your interest via the Events portal by June 30.', pinned: false, read: false },
-]
-
-const categoryColors = {
-  Administrative: { bg: '#eef2ff', color: ACCENT },
-  Research: { bg: '#f0fdf4', color: '#16a34a' },
-  Academic: { bg: '#fffbeb', color: '#d97706' },
-  Technical: { bg: '#f0f9ff', color: '#0284c7' },
-  Events: { bg: '#fdf4ff', color: '#9333ea' },
+function fmt(dt) {
+  if (!dt) return '—'
+  return new Date(dt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+// ─── General Notices ───────────────────────────────────────────────────────────
 function GeneralSection() {
-  const [readStatus, setReadStatus] = useState(Object.fromEntries(notices.map(n => [n.id, n.read])))
-  const [pinnedStatus, setPinnedStatus] = useState(Object.fromEntries(notices.map(n => [n.id, n.pinned])))
+  const [announcements, setAnnouncements] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [readStatus, setReadStatus] = useState({})
+  const [pinnedStatus, setPinnedStatus] = useState({})
   const [expanded, setExpanded] = useState({})
 
-  const sorted = [...notices].sort((a, b) => (pinnedStatus[b.id] ? 1 : 0) - (pinnedStatus[a.id] ? 1 : 0))
+  useEffect(() => {
+    api.get('/announcements').then(r => {
+      const list = (r.data?.data || []).filter(a => !a.courseId)
+      setAnnouncements(list)
+      setReadStatus(Object.fromEntries(list.map(a => [a.id, false])))
+      setPinnedStatus(Object.fromEntries(list.map(a => [a.id, false])))
+    }).catch(console.error).finally(() => setLoading(false))
+  }, [])
+
+  const sorted = [...announcements].sort((a, b) => (pinnedStatus[b.id] ? 1 : 0) - (pinnedStatus[a.id] ? 1 : 0))
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: TEXT }}>Important Notices & Announcements</h3>
-        <span style={{ fontSize: 13, color: MUTED }}>{Object.values(readStatus).filter(Boolean).length} of {notices.length} read</span>
+        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: TEXT }}>General Announcements</h3>
+        <span style={{ fontSize: 13, color: MUTED }}>{Object.values(readStatus).filter(Boolean).length} of {announcements.length} read</span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {sorted.map(n => {
-          const catStyle = categoryColors[n.category] || { bg: '#f8fafc', color: MUTED }
-          return (
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 32, color: MUTED }}>Loading announcements…</div>
+      ) : sorted.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 32, color: MUTED }}>No general announcements at this time.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {sorted.map(n => (
             <div key={n.id} style={{ ...card, border: pinnedStatus[n.id] ? `1px solid ${ACCENT}` : '1px solid #e2e8f0', opacity: readStatus[n.id] ? 0.75 : 1 }}>
               <div style={{ padding: '14px 18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                       {pinnedStatus[n.id] && <span style={{ fontSize: 12, background: '#eef2ff', color: ACCENT, borderRadius: 6, padding: '1px 8px', fontWeight: 700 }}>Pinned</span>}
-                      <span style={{ fontSize: 12, background: catStyle.bg, color: catStyle.color, borderRadius: 6, padding: '1px 8px', fontWeight: 600 }}>{n.category}</span>
-                      <span style={{ fontSize: 12, color: MUTED }}>{n.date}</span>
+                      <span style={{ fontSize: 12, color: MUTED }}>{fmt(n.createdAt)}</span>
                     </div>
                     <div style={{ fontSize: 15, fontWeight: 600, color: TEXT, marginBottom: 4 }}>{n.title}</div>
                     {expanded[n.id] && <div style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 8 }}>{n.content}</div>}
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                    <button onClick={() => setExpanded(p => ({ ...p, [n.id]: !p[n.id] }))}
-                      style={{ background: '#f1f5f9', color: TEXT, border: 'none', borderRadius: 7, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    <button onClick={() => setExpanded(p => ({ ...p, [n.id]: !p[n.id] }))} style={{ background: '#f1f5f9', color: TEXT, border: 'none', borderRadius: 7, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                       {expanded[n.id] ? 'Collapse' : 'View'}
                     </button>
                     {!readStatus[n.id] && (
-                      <button onClick={() => setReadStatus(p => ({ ...p, [n.id]: true }))}
-                        style={{ background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: 7, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      <button onClick={() => setReadStatus(p => ({ ...p, [n.id]: true }))} style={{ background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: 7, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                         Mark Read
                       </button>
                     )}
-                    <button onClick={() => setPinnedStatus(p => ({ ...p, [n.id]: !p[n.id] }))}
-                      style={{ background: pinnedStatus[n.id] ? '#eef2ff' : '#f8fafc', color: pinnedStatus[n.id] ? ACCENT : MUTED, border: '1px solid #e2e8f0', borderRadius: 7, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    <button onClick={() => setPinnedStatus(p => ({ ...p, [n.id]: !p[n.id] }))} style={{ background: pinnedStatus[n.id] ? '#eef2ff' : '#f8fafc', color: pinnedStatus[n.id] ? ACCENT : MUTED, border: '1px solid #e2e8f0', borderRadius: 7, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                       {pinnedStatus[n.id] ? 'Unpin' : 'Pin'}
                     </button>
                   </div>
                 </div>
               </div>
             </div>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

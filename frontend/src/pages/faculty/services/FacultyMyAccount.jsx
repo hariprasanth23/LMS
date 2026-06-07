@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -206,8 +208,12 @@ function ChangePasswordSection() {
 // ─── Update Login ID ───────────────────────────────────────────────────────────
 function UpdateLoginIDSection() {
   const [tab, setTab] = useState('email')
-  const [emailForm, setEmailForm] = useState({ current: 'faculty@vit.ac.in', newVal: '', otp: '', confirmed: false })
-  const [mobileForm, setMobileForm] = useState({ current: '+91 98765 43210', newVal: '', otp: '', confirmed: false })
+  const [me, setMe] = useState(null)
+  useEffect(() => {
+    api.get('/employees/me').then(r => setMe(r.data?.data)).catch(console.error)
+  }, [])
+  const [emailForm, setEmailForm] = useState({ newVal: '', otp: '', confirmed: false })
+  const [mobileForm, setMobileForm] = useState({ newVal: '', otp: '', confirmed: false })
   const [otpSent, setOtpSent] = useState({ email: false, mobile: false })
   const [success, setSuccess] = useState('')
 
@@ -224,11 +230,12 @@ function UpdateLoginIDSection() {
     const form = type === 'email' ? emailForm : mobileForm
     const setForm = type === 'email' ? setEmailForm : setMobileForm
     const sent = otpSent[type]
+    const currentVal = type === 'email' ? (me?.email ?? '—') : (me?.phone ?? '—')
     return (
       <div>
         <div style={{ marginBottom: 18 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Current {type === 'email' ? 'Email' : 'Mobile'}</label>
-          <input style={{ ...inputStyle, background: '#f8fafc', color: MUTED }} value={form.current} readOnly />
+          <input style={{ ...inputStyle, background: '#f8fafc', color: MUTED }} value={currentVal} readOnly />
         </div>
         <div style={{ marginBottom: 18 }}>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>New {type === 'email' ? 'Email Address' : 'Mobile Number'} *</label>

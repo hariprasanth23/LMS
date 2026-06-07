@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -112,58 +114,44 @@ function EmployeeWalletSection() {
   )
 }
 
+const MONTHS = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
 // ─── Payment Receipts ──────────────────────────────────────────────────────────
-const receipts = [
-  { id: 'RCP2025001', date: '2025-05-31', description: 'Salary — May 2025', amount: 85000, mode: 'Bank Transfer' },
-  { id: 'RCP2025002', date: '2025-05-15', description: 'Travel Allowance', amount: 3200, mode: 'NEFT' },
-  { id: 'RCP2025003', date: '2025-05-01', description: 'HRA Reimbursement', amount: 12000, mode: 'Bank Transfer' },
-  { id: 'RCP2025004', date: '2025-04-30', description: 'Salary — April 2025', amount: 85000, mode: 'Bank Transfer' },
-  { id: 'RCP2025005', date: '2025-04-20', description: 'Medical Reimbursement', amount: 4500, mode: 'NEFT' },
-]
-
 function PaymentReceiptsSection() {
-  const [fromDate, setFromDate] = useState('2025-04-01')
-  const [toDate, setToDate] = useState('2025-06-30')
+  const [payrolls, setPayrolls] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const filtered = receipts.filter(r => r.date >= fromDate && r.date <= toDate)
+  useEffect(() => {
+    api.get('/payroll/my').then(r => setPayrolls(r.data?.data || [])).catch(console.error).finally(() => setLoading(false))
+  }, [])
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 16, marginBottom: 20, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 160 }}>
-          <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>From Date</label>
-          <input type="date" style={inputStyle} value={fromDate} onChange={e => setFromDate(e.target.value)} />
-        </div>
-        <div style={{ flex: 1, minWidth: 160 }}>
-          <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>To Date</label>
-          <input type="date" style={inputStyle} value={toDate} onChange={e => setToDate(e.target.value)} />
-        </div>
-      </div>
       <div style={{ ...card, overflow: 'hidden' }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', fontWeight: 700, fontSize: 15, color: TEXT }}>Payroll History</div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
           <thead>
-            <tr>{['Receipt No', 'Date', 'Description', 'Amount', 'Mode', 'Download'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
+            <tr>{['Period', 'Base Salary', 'Allowances', 'Deductions', 'Net Salary', 'Status'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
           </thead>
           <tbody>
-            {filtered.map((r, i) => (
+            {loading ? (
+              <tr><td colSpan={6} style={{ padding: 20, textAlign: 'center', color: MUTED }}>Loading…</td></tr>
+            ) : payrolls.length === 0 ? (
+              <tr><td colSpan={6} style={{ padding: 20, textAlign: 'center', color: MUTED }}>No payroll records found.</td></tr>
+            ) : payrolls.map((r, i) => (
               <tr key={i}>
-                <td style={{ ...tdStyle, fontWeight: 600, color: ACCENT }}>{r.id}</td>
-                <td style={tdStyle}>{r.date}</td>
-                <td style={tdStyle}>{r.description}</td>
-                <td style={{ ...tdStyle, fontWeight: 700, color: '#10b981' }}>₹{r.amount.toLocaleString('en-IN')}</td>
-                <td style={tdStyle}>{r.mode}</td>
+                <td style={{ ...tdStyle, fontWeight: 600 }}>{MONTHS[r.month]} {r.year}</td>
+                <td style={tdStyle}>₹{Number(r.baseSalary || 0).toLocaleString('en-IN')}</td>
+                <td style={tdStyle}>₹{Number(r.allowances || 0).toLocaleString('en-IN')}</td>
+                <td style={{ ...tdStyle, color: '#dc2626' }}>-₹{Number(r.deductions || 0).toLocaleString('en-IN')}</td>
+                <td style={{ ...tdStyle, fontWeight: 700, color: '#10b981' }}>₹{Number(r.netSalary || 0).toLocaleString('en-IN')}</td>
                 <td style={tdStyle}>
-                  <button style={{ background: '#eef2ff', color: ACCENT, border: '1px solid #c7d2fe', borderRadius: 7, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                    Download
-                  </button>
+                  <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: r.status === 'PROCESSED' ? '#dcfce7' : '#fef3c7', color: r.status === 'PROCESSED' ? '#16a34a' : '#d97706' }}>{r.status}</span>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && (
-          <div style={{ padding: 32, textAlign: 'center', color: MUTED, fontSize: 14 }}>No receipts found for selected date range.</div>
-        )}
       </div>
     </div>
   )

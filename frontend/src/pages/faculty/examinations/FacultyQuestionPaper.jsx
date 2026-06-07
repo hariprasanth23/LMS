@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -23,11 +25,7 @@ const thStyle = {
 
 const tdStyle = { padding: '12px 14px', fontSize: 14, color: TEXT, borderBottom: '1px solid #f1f5f9' }
 
-const courseOptions = [
-  'CS5101 — Machine Learning',
-  'CS5102 — Compiler Design',
-  'CS5103 — Distributed Systems',
-]
+const FALLBACK_COURSES = []
 
 const bloomsLevels = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create']
 
@@ -38,9 +36,9 @@ const uploadHistory = [
 ]
 
 // ─── QP + Key Upload Form (reusable) ──────────────────────────────────────────
-function QPUploadForm({ showArrearField = false, historyData = uploadHistory }) {
+function QPUploadForm({ showArrearField = false, historyData = uploadHistory, courses = FALLBACK_COURSES }) {
   const [form, setForm] = useState({
-    course: courseOptions[0], examType: 'CA1', year: '2024-25', sem: 'Semester 6',
+    courseId: '', examType: 'CA1', year: '2024-25', sem: 'Semester 6',
     arrearMonth: 'November 2025', syllabusCoverage: 80, difficulty: 'Medium', blooms: 'Apply',
     qpFile: null, keyFile: null,
   })
@@ -71,8 +69,9 @@ function QPUploadForm({ showArrearField = false, historyData = uploadHistory }) 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Course *</label>
-              <select style={inputStyle} value={form.course} onChange={e => setForm(p => ({ ...p, course: e.target.value }))}>
-                {courseOptions.map(c => <option key={c}>{c}</option>)}
+              <select style={inputStyle} value={form.courseId} onChange={e => setForm(p => ({ ...p, courseId: e.target.value }))}>
+                <option value="">— Select course —</option>
+                {courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
               </select>
             </div>
             <div>
@@ -367,13 +366,21 @@ function QPReviewSection() {
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function FacultyQuestionPaper() {
+  const { user } = useAuth()
   const [activeNav, setActiveNav] = useState('Question and Key Upload')
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  const [courses, setCourses] = useState([])
+
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth <= 768)
     window.addEventListener('resize', h)
     return () => window.removeEventListener('resize', h)
   }, [])
+
+  useEffect(() => {
+    if (!user?.userId) return
+    api.get('/courses').then(r => setCourses((r.data?.data || []).filter(c => c.facultyId === user.userId))).catch(console.error)
+  }, [user?.userId])
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: isMobile ? 16 : 32 }}>
@@ -413,8 +420,8 @@ export default function FacultyQuestionPaper() {
           ))}
         </div>
         <div style={{ flex: 1, padding: isMobile ? 14 : 28, minWidth: 0 }}>
-          {activeNav === 'Question and Key Upload' && <QPUploadForm showArrearField={false} />}
-          {activeNav === 'Arrear QP and Key Upload' && <QPUploadForm showArrearField={true} />}
+          {activeNav === 'Question and Key Upload' && <QPUploadForm showArrearField={false} courses={courses} />}
+          {activeNav === 'Arrear QP and Key Upload' && <QPUploadForm showArrearField={true} courses={courses} />}
           {activeNav === 'Old QPs' && <OldQPsSection />}
           {activeNav === 'QP Review' && <QPReviewSection />}
         </div>

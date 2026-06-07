@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -14,38 +16,27 @@ const thStyle = {
 }
 const tdStyle = { padding: '11px 14px', fontSize: 14, color: TEXT, borderBottom: '1px solid #f1f5f9' }
 
-// ─── Time Based ────────────────────────────────────────────────────────────────
-const timeLog = [
-  { date: '2025-06-02', day: 'Mon', timeIn: '08:52', timeOut: '17:05', duration: '8h 13m', status: 'Present' },
-  { date: '2025-06-03', day: 'Tue', timeIn: '09:10', timeOut: '17:00', duration: '7h 50m', status: 'Late' },
-  { date: '2025-06-04', day: 'Wed', timeIn: '08:45', timeOut: '17:20', duration: '8h 35m', status: 'Present' },
-  { date: '2025-06-05', day: 'Thu', timeIn: '—', timeOut: '—', duration: '—', status: 'Absent' },
-  { date: '2025-05-30', day: 'Fri', timeIn: '08:58', timeOut: '17:10', duration: '8h 12m', status: 'Present' },
-  { date: '2025-05-29', day: 'Thu', timeIn: '08:50', timeOut: '17:00', duration: '8h 10m', status: 'Present' },
-  { date: '2025-05-28', day: 'Wed', timeIn: '09:20', timeOut: '17:15', duration: '7h 55m', status: 'Late' },
-  { date: '2025-05-27', day: 'Tue', timeIn: '08:55', timeOut: '17:05', duration: '8h 10m', status: 'Present' },
-]
-
-const calendarData = {
-  1: 'P', 2: 'P', 3: 'L', 4: 'A', 5: 'P', 6: 'P', 7: 'P',
-  8: 'P', 9: 'L', 10: 'P', 11: 'P', 12: 'P', 13: 'P', 14: 'H',
-  15: 'P', 16: 'P', 17: 'P', 18: 'A', 19: 'P', 20: 'P', 21: 'P',
-  22: 'P', 23: 'P', 24: 'P', 25: 'P', 26: 'H', 27: 'P', 28: 'P',
-  29: 'P', 30: 'P',
-}
-
-const calDayColors = { P: { bg: '#dcfce7', color: '#16a34a' }, A: { bg: '#fee2e2', color: '#dc2626' }, L: { bg: '#fef3c7', color: '#d97706' }, H: { bg: '#e0e7ff', color: '#6366f1' } }
+const calDayColors = { PRESENT: { bg: '#dcfce7', color: '#16a34a' }, ABSENT: { bg: '#fee2e2', color: '#dc2626' }, LATE: { bg: '#fef3c7', color: '#d97706' }, H: { bg: '#e0e7ff', color: '#6366f1' } }
 
 function statusBadge(status) {
-  const map = { Present: { bg: '#dcfce7', color: '#16a34a' }, Late: { bg: '#fef3c7', color: '#d97706' }, Absent: { bg: '#fee2e2', color: '#dc2626' } }
+  const map = { PRESENT: { bg: '#dcfce7', color: '#16a34a' }, LATE: { bg: '#fef3c7', color: '#d97706' }, ABSENT: { bg: '#fee2e2', color: '#dc2626' } }
   const sc = map[status] || { bg: '#f1f5f9', color: MUTED }
   return <span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: sc.bg, color: sc.color }}>{status}</span>
 }
 
-function TimeBasedSection() {
-  const present = Object.values(calendarData).filter(v => v === 'P').length
-  const absent = Object.values(calendarData).filter(v => v === 'A').length
-  const late = Object.values(calendarData).filter(v => v === 'L').length
+function calcDuration(checkIn, checkOut) {
+  if (!checkIn || !checkOut) return '—'
+  const [ih, im] = checkIn.split(':').map(Number)
+  const [oh, om] = checkOut.split(':').map(Number)
+  const mins = (oh * 60 + om) - (ih * 60 + im)
+  if (mins <= 0) return '—'
+  return `${Math.floor(mins / 60)}h ${mins % 60}m`
+}
+
+function TimeBasedSection({ attendance, loading }) {
+  const present = attendance.filter(r => r.status === 'PRESENT').length
+  const absent = attendance.filter(r => r.status === 'ABSENT').length
+  const late = attendance.filter(r => r.status === 'LATE').length
 
   return (
     <div>
@@ -81,8 +72,9 @@ function TimeBasedSection() {
           ))}
           {Array.from({ length: 0 }).map((_, i) => <div key={`e${i}`} />)}
           {Array.from({ length: 30 }, (_, i) => i + 1).map(day => {
-            const status = calendarData[day]
-            const style = status ? calDayColors[status] : { bg: '#f8fafc', color: MUTED }
+            const rec = attendance.find(r => new Date(r.date).getDate() === day)
+            const status = rec?.status
+            const style = status ? (calDayColors[status] || { bg: '#f8fafc', color: MUTED }) : { bg: '#f8fafc', color: MUTED }
             return (
               <div key={day} style={{ textAlign: 'center', padding: '7px 2px', borderRadius: 6, background: style.bg, color: style.color, fontSize: 13, fontWeight: status ? 700 : 400 }}>
                 {day}
@@ -104,16 +96,24 @@ function TimeBasedSection() {
             <tr>{['Date', 'Day', 'Time In', 'Time Out', 'Duration', 'Status'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
           </thead>
           <tbody>
-            {timeLog.map((r, i) => (
-              <tr key={i}>
-                <td style={tdStyle}>{r.date}</td>
-                <td style={tdStyle}>{r.day}</td>
-                <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 600 }}>{r.timeIn}</td>
-                <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 600 }}>{r.timeOut}</td>
-                <td style={tdStyle}>{r.duration}</td>
-                <td style={tdStyle}>{statusBadge(r.status)}</td>
-              </tr>
-            ))}
+            {loading ? (
+              <tr><td colSpan={6} style={{ padding: 20, textAlign: 'center', color: MUTED }}>Loading attendance…</td></tr>
+            ) : attendance.length === 0 ? (
+              <tr><td colSpan={6} style={{ padding: 20, textAlign: 'center', color: MUTED }}>No attendance records found.</td></tr>
+            ) : attendance.map((r, i) => {
+              const checkIn = r.checkIn ? String(r.checkIn).slice(0, 5) : '—'
+              const checkOut = r.checkOut ? String(r.checkOut).slice(0, 5) : '—'
+              return (
+                <tr key={i}>
+                  <td style={tdStyle}>{r.date}</td>
+                  <td style={tdStyle}>{new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' })}</td>
+                  <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 600 }}>{checkIn}</td>
+                  <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 600 }}>{checkOut}</td>
+                  <td style={tdStyle}>{calcDuration(r.checkIn, r.checkOut)}</td>
+                  <td style={tdStyle}>{statusBadge(r.status)}</td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
@@ -189,7 +189,20 @@ function ClassNumberBasedSection() {
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function FacultyBiometricInfo() {
+  const { user } = useAuth()
   const [activeNav, setActiveNav] = useState('Time Based')
+  const [attendance, setAttendance] = useState([])
+  const [loadingAtt, setLoadingAtt] = useState(true)
+
+  useEffect(() => {
+    if (!user?.userId) return
+    api.get('/employees/me').then(r => {
+      const empId = r.data?.data?.id
+      if (!empId) { setLoadingAtt(false); return }
+      return api.get(`/attendance/employee/${empId}`)
+        .then(r2 => setAttendance(r2.data?.data || []))
+    }).catch(console.error).finally(() => setLoadingAtt(false))
+  }, [user?.userId])
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: 32 }}>
@@ -213,7 +226,7 @@ export default function FacultyBiometricInfo() {
           ))}
         </div>
         <div style={{ flex: 1, padding: 28, minWidth: 0 }}>
-          {activeNav === 'Time Based' && <TimeBasedSection />}
+          {activeNav === 'Time Based' && <TimeBasedSection attendance={attendance} loading={loadingAtt} />}
           {activeNav === 'Class Number Based' && <ClassNumberBasedSection />}
         </div>
       </div>
