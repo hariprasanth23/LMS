@@ -31,7 +31,7 @@ public class Student {
     @Column(name = "roll_number", length = 20, unique = true, nullable = false)
     private String rollNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
