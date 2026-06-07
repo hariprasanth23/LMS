@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -31,62 +33,55 @@ function FormField({ label, children }) {
   )
 }
 
-// ─── Club/Chapter Enrollment View ─────────────────────────────────────────────
-const enrolledStudents = [
-  { student: 'Arun Kumar', rollNo: 'CS21001', club: 'Robotics Club', enrollDate: '2024-06-01', status: 'Active' },
-  { student: 'Priya Devi', rollNo: 'CS21002', club: 'Coding Club', enrollDate: '2024-06-05', status: 'Active' },
-  { student: 'Ramesh S', rollNo: 'IT21005', club: 'Robotics Club', enrollDate: '2024-06-08', status: 'Active' },
-  { student: 'Meena R', rollNo: 'CS21010', club: 'Photography Club', enrollDate: '2024-05-20', status: 'Inactive' },
-  { student: 'Karthik P', rollNo: 'EC21003', club: 'Coding Club', enrollDate: '2024-06-10', status: 'Active' },
-  { student: 'Lakshmi V', rollNo: 'CS21015', club: 'Photography Club', enrollDate: '2024-05-28', status: 'Active' },
-]
-
 const clubs = ['All', 'Robotics Club', 'Coding Club', 'Photography Club']
 
-function ClubEnrollmentView() {
+function ClubEnrollmentView({ students, loading }) {
   const [clubFilter, setClubFilter] = useState('All')
+  const [search, setSearch] = useState('')
 
-  const filtered = enrolledStudents.filter(s => clubFilter === 'All' || s.club === clubFilter)
+  const filtered = students.filter(s =>
+    s.rollNumber?.toLowerCase().includes(search.toLowerCase()) ||
+    s.department?.name?.toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
     <div>
       <h2 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700, color: TEXT }}>Club/Chapter Enrollment View</h2>
+      <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#92400e' }}>
+        Club assignment API pending — showing all enrolled students from backend.
+      </div>
       <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', marginBottom: 20 }}>
-        <div style={{ width: 260 }}>
-          <FormField label="Filter by Club / Chapter">
-            <select value={clubFilter} onChange={e => setClubFilter(e.target.value)} style={inputStyle}>
-              {clubs.map(c => <option key={c}>{c}</option>)}
-            </select>
-          </FormField>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Search</label>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Roll No or Department…" style={inputStyle} />
         </div>
-        <div style={{ fontSize: 13, color: MUTED, paddingBottom: 10 }}>{filtered.length} student(s) found</div>
+        <div style={{ fontSize: 13, color: MUTED, paddingBottom: 10 }}>{filtered.length} student(s)</div>
       </div>
       <div style={{ ...card, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
           <thead>
             <tr style={{ background: '#f8fafc' }}>
-              {['Student Name', 'Roll No', 'Club / Chapter', 'Enrollment Date', 'Status'].map(h => (
+              {['Roll No', 'Department', 'Semester', 'Batch', 'Status'].map(h => (
                 <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 13, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {filtered.map((s, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>{s.student}</td>
-                <td style={{ padding: '12px 14px', color: ACCENT, fontWeight: 600 }}>{s.rollNo}</td>
-                <td style={{ padding: '12px 14px', color: TEXT }}>{s.club}</td>
-                <td style={{ padding: '12px 14px', color: MUTED }}>{s.enrollDate}</td>
+            {loading ? (
+              <tr><td colSpan={5} style={{ padding: 24, textAlign: 'center', color: MUTED }}>Loading students…</td></tr>
+            ) : filtered.length === 0 ? (
+              <tr><td colSpan={5} style={{ padding: 32, textAlign: 'center', color: MUTED }}>No students found.</td></tr>
+            ) : filtered.map((s, i) => (
+              <tr key={s.id} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                <td style={{ padding: '12px 14px', color: ACCENT, fontWeight: 600 }}>{s.rollNumber}</td>
+                <td style={{ padding: '12px 14px', color: TEXT }}>{s.department?.name ?? '—'}</td>
+                <td style={{ padding: '12px 14px', color: MUTED, textAlign: 'center' }}>{s.semester ?? '—'}</td>
+                <td style={{ padding: '12px 14px', color: MUTED }}>{s.batch ?? '—'}</td>
                 <td style={{ padding: '12px 14px' }}>
-                  <span style={{ background: s.status === 'Active' ? '#dcfce7' : '#f1f5f9', color: s.status === 'Active' ? '#16a34a' : MUTED, borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{s.status}</span>
+                  <span style={{ background: s.status === 'ACTIVE' ? '#dcfce7' : '#f1f5f9', color: s.status === 'ACTIVE' ? '#16a34a' : MUTED, borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{s.status}</span>
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: MUTED, fontSize: 14 }}>No students found for the selected club.</td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
@@ -776,8 +771,14 @@ const contentMap = {
 }
 
 export default function FacultySWEvents() {
+  const { user } = useAuth()
   const [activeNav, setActiveNav] = useState('Club/Chapter Enrollment View')
-  const ActiveComponent = contentMap[activeNav] || (() => <div style={{ color: MUTED }}>Coming soon.</div>)
+  const [students, setStudents] = useState([])
+  const [loadingStudents, setLoadingStudents] = useState(true)
+
+  useEffect(() => {
+    api.get('/students').then(r => setStudents(r.data?.data || [])).catch(console.error).finally(() => setLoadingStudents(false))
+  }, [])
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: 32 }}>
@@ -812,7 +813,10 @@ export default function FacultySWEvents() {
           ))}
         </div>
         <div style={{ flex: 1, padding: 28, minWidth: 0, overflowY: 'auto' }}>
-          <ActiveComponent />
+          {activeNav === 'Club/Chapter Enrollment View'
+            ? <ClubEnrollmentView students={students} loading={loadingStudents} />
+            : (() => { const C = contentMap[activeNav]; return C ? <C /> : <div style={{ color: MUTED }}>Coming soon.</div> })()
+          }
         </div>
       </div>
     </div>

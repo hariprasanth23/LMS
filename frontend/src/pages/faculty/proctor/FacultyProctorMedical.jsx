@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -49,6 +51,11 @@ function Recommendation() {
   const [student, setStudent] = useState(null)
   const [foundRoll, setFoundRoll] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [allStudents, setAllStudents] = useState([])
+
+  useEffect(() => {
+    api.get('/students').then(r => setAllStudents(r.data?.data || [])).catch(console.error)
+  }, [])
 
   const [form, setForm] = useState({
     issue: 'General',
@@ -60,16 +67,16 @@ function Recommendation() {
   })
 
   const handleSearch = () => {
-    const key = searchRoll.trim().toUpperCase()
-    const data = procteeData[key]
-    if (data) {
-      setStudent(data)
+    const key = searchRoll.trim()
+    const found = allStudents.find(s => s.rollNumber?.toLowerCase() === key.toLowerCase())
+    if (found) {
+      setStudent({ name: found.rollNumber, dept: found.department?.name ?? '—', sem: found.semester ?? '—', dob: '—', blood: '—', hostel: found.batch ?? '—' })
       setFoundRoll(key)
       setSubmitted(false)
     } else {
       setStudent(null)
       setFoundRoll('')
-      alert('Proctee not found. Try: CB22CS001, CB22CS002, CB22CS003, CB22ME004, CB22EC010, CB22EE007, CB22IT008')
+      alert('No student found with that roll number.')
     }
   }
 

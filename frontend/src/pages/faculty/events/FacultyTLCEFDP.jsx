@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -626,51 +628,61 @@ function QuizCreation() {
 }
 
 // ─── FDP Quiz ──────────────────────────────────────────────────────────────────
-const quizList = [
-  { id: 1, title: 'ML Fundamentals Quiz', event: 'Deep Learning FDP', questions: 5, duration: 15 },
-  { id: 2, title: 'Research Methods Quiz', event: 'Research Writing FDP', questions: 8, duration: 20 },
-]
-
-const sampleQuestions = [
-  { q: 'What does CNN stand for in deep learning?', options: ['Convolutional Neural Network', 'Clustered Node Network', 'Computational Neural Node', 'Connected Neural Net'], correct: 0 },
-  { q: 'Which activation function is most commonly used in hidden layers?', options: ['Sigmoid', 'Tanh', 'ReLU', 'Softmax'], correct: 2 },
-  { q: 'What is the purpose of dropout in neural networks?', options: ['Speed up training', 'Reduce overfitting', 'Increase model size', 'Normalize inputs'], correct: 1 },
-]
+const OPT_KEYS = ['optionA', 'optionB', 'optionC', 'optionD']
+const OPT_LABELS = ['A', 'B', 'C', 'D']
 
 function FDPQuiz() {
+  const [quizList, setQuizList] = useState([])
   const [activeQuiz, setActiveQuiz] = useState(null)
+  const [questions, setQuestions] = useState([])
+  const [loadingQ, setLoadingQ] = useState(false)
   const [currentQ, setCurrentQ] = useState(0)
   const [answers, setAnswers] = useState({})
   const [submitted, setSubmitted] = useState(false)
 
-  const handleAnswer = (qi, optIdx) => setAnswers(p => ({ ...p, [qi]: optIdx }))
+  useEffect(() => {
+    api.get('/quizzes').then(r => setQuizList(r.data?.data || [])).catch(console.error)
+  }, [])
 
+  const startQuiz = (quiz) => {
+    setActiveQuiz(quiz)
+    setCurrentQ(0)
+    setAnswers({})
+    setSubmitted(false)
+    setLoadingQ(true)
+    api.get(`/quizzes/${quiz.id}/questions`).then(r => setQuestions(r.data?.data || [])).catch(console.error).finally(() => setLoadingQ(false))
+  }
+
+  const handleAnswer = (qi, optLabel) => setAnswers(p => ({ ...p, [qi]: optLabel }))
   const handleSubmit = () => setSubmitted(true)
 
-  const score = submitted ? Object.entries(answers).filter(([qi, ans]) => sampleQuestions[qi]?.correct === ans).length : 0
+  const score = submitted ? questions.filter((q, i) => answers[i] === q.correctOption).length : 0
 
   if (activeQuiz && !submitted) {
-    const q = sampleQuestions[currentQ]
+    if (loadingQ) return <div style={{ textAlign: 'center', padding: 40, color: MUTED }}>Loading questions…</div>
+    if (questions.length === 0) return <div style={{ textAlign: 'center', padding: 40, color: MUTED }}>No questions available for this quiz. <button onClick={() => setActiveQuiz(null)} style={{ color: ACCENT, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Back</button></div>
+    const q = questions[currentQ]
+    const opts = OPT_KEYS.map((k, i) => ({ label: OPT_LABELS[i], text: q[k] })).filter(o => o.text)
     return (
       <div>
         <h2 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700, color: TEXT }}>FDP Quiz: {activeQuiz.title}</h2>
         <div style={{ ...card, padding: 28 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-            <span style={{ color: MUTED, fontSize: 13 }}>Question {currentQ + 1} of {sampleQuestions.length}</span>
-            <span style={{ background: '#eef2ff', color: ACCENT, borderRadius: 6, padding: '3px 12px', fontSize: 13, fontWeight: 600 }}>{activeQuiz.duration} min</span>
+            <span style={{ color: MUTED, fontSize: 13 }}>Question {currentQ + 1} of {questions.length}</span>
+            <span style={{ background: '#eef2ff', color: ACCENT, borderRadius: 6, padding: '3px 12px', fontSize: 13, fontWeight: 600 }}>{activeQuiz.durationMinutes ?? '—'} min</span>
           </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: TEXT, marginBottom: 20 }}>{q.q}</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: TEXT, marginBottom: 20 }}>{q.question}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-            {q.options.map((opt, oi) => (
-              <label key={oi} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 8, border: `1px solid ${answers[currentQ] === oi ? ACCENT : '#e2e8f0'}`, background: answers[currentQ] === oi ? '#eef2ff' : '#fff', cursor: 'pointer' }}>
-                <input type="radio" checked={answers[currentQ] === oi} onChange={() => handleAnswer(currentQ, oi)} style={{ accentColor: ACCENT }} />
-                <span style={{ fontSize: 14, color: TEXT }}>{opt}</span>
+            {opts.map(o => (
+              <label key={o.label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 8, border: `1px solid ${answers[currentQ] === o.label ? ACCENT : '#e2e8f0'}`, background: answers[currentQ] === o.label ? '#eef2ff' : '#fff', cursor: 'pointer' }}>
+                <input type="radio" checked={answers[currentQ] === o.label} onChange={() => handleAnswer(currentQ, o.label)} style={{ accentColor: ACCENT }} />
+                <span style={{ fontSize: 14, color: TEXT }}>{o.label}. {o.text}</span>
               </label>
             ))}
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
             {currentQ > 0 && <button onClick={() => setCurrentQ(p => p - 1)} style={{ background: '#f1f5f9', color: TEXT, border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Previous</button>}
-            {currentQ < sampleQuestions.length - 1
+            {currentQ < questions.length - 1
               ? <button onClick={() => setCurrentQ(p => p + 1)} style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 24px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Next</button>
               : <button onClick={handleSubmit} style={{ background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 24px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Submit Quiz</button>
             }
@@ -685,8 +697,8 @@ function FDPQuiz() {
       <div>
         <h2 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700, color: TEXT }}>Quiz Results</h2>
         <div style={{ ...card, padding: 32, textAlign: 'center' }}>
-          <div style={{ fontSize: 56, fontWeight: 700, color: score >= 2 ? '#16a34a' : '#ef4444' }}>{score}/{sampleQuestions.length}</div>
-          <div style={{ fontSize: 16, color: TEXT, fontWeight: 600, marginTop: 8 }}>{score >= 2 ? 'Congratulations! You passed.' : 'Better luck next time.'}</div>
+          <div style={{ fontSize: 56, fontWeight: 700, color: score >= Math.floor(questions.length / 2) ? '#16a34a' : '#ef4444' }}>{score}/{questions.length}</div>
+          <div style={{ fontSize: 16, color: TEXT, fontWeight: 600, marginTop: 8 }}>{score >= Math.floor(questions.length / 2) ? 'Congratulations! You passed.' : 'Better luck next time.'}</div>
           <div style={{ fontSize: 14, color: MUTED, marginTop: 4 }}>{activeQuiz.title}</div>
           <button onClick={() => { setActiveQuiz(null); setSubmitted(false); setCurrentQ(0); setAnswers({}) }} style={{ marginTop: 24, background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 24px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Back to Quizzes</button>
         </div>
@@ -697,16 +709,20 @@ function FDPQuiz() {
   return (
     <div>
       <h2 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700, color: TEXT }}>FDP Quiz</h2>
+      {quizList.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 32, color: MUTED }}>No quizzes available.</div>
+      ) : (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
         {quizList.map(quiz => (
           <div key={quiz.id} style={{ ...card, padding: 22 }}>
             <div style={{ fontWeight: 700, color: TEXT, fontSize: 15, marginBottom: 8 }}>{quiz.title}</div>
-            <div style={{ fontSize: 13, color: MUTED, marginBottom: 4 }}>Event: {quiz.event}</div>
-            <div style={{ fontSize: 13, color: MUTED, marginBottom: 4 }}>Questions: {quiz.questions} | Duration: {quiz.duration} min</div>
-            <button onClick={() => { setActiveQuiz(quiz); setCurrentQ(0); setAnswers({}) }} style={{ marginTop: 12, background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Start Quiz</button>
+            <div style={{ fontSize: 13, color: MUTED, marginBottom: 4 }}>Duration: {quiz.durationMinutes ?? '—'} min</div>
+            <div style={{ fontSize: 13, color: MUTED, marginBottom: 4 }}>Status: {quiz.status}</div>
+            <button onClick={() => startQuiz(quiz)} style={{ marginTop: 12, background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Start Quiz</button>
           </div>
         ))}
       </div>
+      )}
     </div>
   )
 }

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
+import api from '../../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -18,30 +20,14 @@ const navItems = [
   'Hostel Vacating Proctor Approvals',
 ]
 
-// ─── Proctee Dashboard ────────────────────────────────────────────────────────
-const proctees = [
-  { roll: 'CB22CS001', name: 'Arun Kumar', dept: 'CSE', sem: 6, attendance: 82, gpa: 8.4, type: 'Hostel' },
-  { roll: 'CB22CS002', name: 'Priya Nair', dept: 'CSE', sem: 6, attendance: 91, gpa: 9.1, type: 'Day' },
-  { roll: 'CB22CS003', name: 'Rahul Verma', dept: 'CSE', sem: 6, attendance: 68, gpa: 7.2, type: 'Hostel' },
-  { roll: 'CB22ME004', name: 'Sneha Rajan', dept: 'MECH', sem: 4, attendance: 79, gpa: 8.0, type: 'Hostel' },
-  { roll: 'CB22ME005', name: 'Karthik Raj', dept: 'MECH', sem: 4, attendance: 55, gpa: 6.8, type: 'Day' },
-  { roll: 'CB22EE006', name: 'Divya Mohan', dept: 'EEE', sem: 2, attendance: 88, gpa: 8.7, type: 'Day' },
-  { roll: 'CB22EE007', name: 'Arjun Singh', dept: 'EEE', sem: 2, attendance: 95, gpa: 9.5, type: 'Hostel' },
-  { roll: 'CB22IT008', name: 'Lakshmi Devi', dept: 'IT', sem: 6, attendance: 74, gpa: 7.8, type: 'Hostel' },
-  { roll: 'CB22IT009', name: 'Suresh Kumar', dept: 'IT', sem: 6, attendance: 83, gpa: 8.2, type: 'Day' },
-  { roll: 'CB22EC010', name: 'Meera Pillai', dept: 'ECE', sem: 4, attendance: 71, gpa: 7.5, type: 'Hostel' },
-  { roll: 'CB22EC011', name: 'Vikram Nair', dept: 'ECE', sem: 4, attendance: 90, gpa: 9.0, type: 'Day' },
-  { roll: 'CB22CS012', name: 'Ananya Bose', dept: 'CSE', sem: 2, attendance: 86, gpa: 8.6, type: 'Day' },
-]
-
-function ProcteeDashboard() {
+function ProcteeDashboard({ students, loading }) {
   const [expandedRow, setExpandedRow] = useState(null)
 
   const summary = [
-    { label: 'Total Proctees', value: 12, color: ACCENT, bg: '#eef2ff' },
-    { label: 'Present Today', value: 10, color: '#16a34a', bg: '#dcfce7' },
-    { label: 'Pending Leave Requests', value: 3, color: '#d97706', bg: '#fef3c7' },
-    { label: 'Low Attendance (<75%)', value: 2, color: '#ef4444', bg: '#fee2e2' },
+    { label: 'Total Proctees', value: students.length, color: ACCENT, bg: '#eef2ff' },
+    { label: 'Active Students', value: students.filter(s => s.status === 'ACTIVE').length, color: '#16a34a', bg: '#dcfce7' },
+    { label: 'Inactive/Other', value: students.filter(s => s.status !== 'ACTIVE').length, color: '#d97706', bg: '#fef3c7' },
+    { label: 'Backend notice', value: '—', color: '#ef4444', bg: '#fee2e2' },
   ]
 
   return (
@@ -66,23 +52,21 @@ function ProcteeDashboard() {
             </tr>
           </thead>
           <tbody>
-            {proctees.map((p, i) => (
-              <React.Fragment key={p.roll}>
-                <tr
-                  style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer', background: expandedRow === i ? '#fafafa' : (i % 2 === 0 ? '#fff' : '#fafafa') }}
-                  onClick={() => setExpandedRow(expandedRow === i ? null : i)}
-                >
-                  <td style={{ padding: '12px 14px', color: ACCENT, fontWeight: 600 }}>{p.roll}</td>
-                  <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>{p.name}</td>
-                  <td style={{ padding: '12px 14px', color: MUTED }}>{p.dept}</td>
-                  <td style={{ padding: '12px 14px', color: TEXT }}>{p.sem}</td>
+            {loading ? (
+              <tr><td colSpan={8} style={{ padding: 24, textAlign: 'center', color: MUTED }}>Loading proctees…</td></tr>
+            ) : students.length === 0 ? (
+              <tr><td colSpan={8} style={{ padding: 24, textAlign: 'center', color: MUTED }}>No students found.</td></tr>
+            ) : students.map((p, i) => (
+              <React.Fragment key={p.id}>
+                <tr style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer', background: expandedRow === i ? '#fafafa' : (i % 2 === 0 ? '#fff' : '#fafafa') }} onClick={() => setExpandedRow(expandedRow === i ? null : i)}>
+                  <td style={{ padding: '12px 14px', color: ACCENT, fontWeight: 600 }}>{p.rollNumber}</td>
+                  <td style={{ padding: '12px 14px', color: TEXT, fontWeight: 600 }}>—</td>
+                  <td style={{ padding: '12px 14px', color: MUTED }}>{p.department?.name ?? '—'}</td>
+                  <td style={{ padding: '12px 14px', color: TEXT }}>{p.semester ?? '—'}</td>
+                  <td style={{ padding: '12px 14px', color: MUTED }}>—</td>
+                  <td style={{ padding: '12px 14px', color: MUTED }}>—</td>
                   <td style={{ padding: '12px 14px' }}>
-                    <span style={{ fontWeight: 700, color: p.attendance < 75 ? '#ef4444' : '#16a34a' }}>{p.attendance}%</span>
-                    {p.attendance < 75 && <span style={{ marginLeft: 6, fontSize: 11, background: '#fee2e2', color: '#ef4444', borderRadius: 4, padding: '1px 6px' }}>Low</span>}
-                  </td>
-                  <td style={{ padding: '12px 14px', color: TEXT }}>{p.gpa}</td>
-                  <td style={{ padding: '12px 14px' }}>
-                    <span style={{ background: p.type === 'Hostel' ? '#eef2ff' : '#f0fdf4', color: p.type === 'Hostel' ? ACCENT : '#16a34a', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600 }}>{p.type}</span>
+                    <span style={{ background: '#f0fdf4', color: '#16a34a', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600 }}>{p.batch ?? 'Day'}</span>
                   </td>
                   <td style={{ padding: '12px 14px', color: MUTED, fontSize: 18 }}>{expandedRow === i ? '▲' : '▼'}</td>
                 </tr>
@@ -91,16 +75,14 @@ function ProcteeDashboard() {
                     <td colSpan={8} style={{ padding: '16px 24px' }}>
                       <div style={{ display: 'flex', gap: 32 }}>
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 8 }}>Mini Profile — {p.name}</div>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 24px', fontSize: 13 }}>
-                            {[['Roll No', p.roll], ['Department', p.dept], ['Semester', p.sem], ['Attendance', `${p.attendance}%`], ['GPA', p.gpa], ['Hostel/Day', p.type]].map(([k, v]) => (
+                            {[['Roll No', p.rollNumber], ['Department', p.department?.name ?? '—'], ['Semester', p.semester ?? '—'], ['Batch', p.batch ?? '—'], ['Status', p.status]].map(([k, v]) => (
                               <div key={k}><span style={{ color: MUTED }}>{k}: </span><span style={{ color: TEXT, fontWeight: 600 }}>{v}</span></div>
                             ))}
                           </div>
                         </div>
-                        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 22 }}>
+                        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 8 }}>
                           <button style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 7, padding: '7px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>View Full Profile</button>
-                          <button style={{ background: '#f1f5f9', color: TEXT, border: 'none', borderRadius: 7, padding: '7px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Send Message</button>
                         </div>
                       </div>
                     </td>
@@ -731,13 +713,22 @@ const contentMap = {
 }
 
 export default function FacultyProctorGeneral() {
+  const { user } = useAuth()
   const [activeNav, setActiveNav] = useState('Proctee Dashboard')
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  const [students, setStudents] = useState([])
+  const [loadingStudents, setLoadingStudents] = useState(true)
+
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth <= 768)
     window.addEventListener('resize', h)
     return () => window.removeEventListener('resize', h)
   }, [])
+
+  useEffect(() => {
+    api.get('/students').then(r => setStudents(r.data?.data || [])).catch(console.error).finally(() => setLoadingStudents(false))
+  }, [])
+
   const ActiveComponent = contentMap[activeNav] || (() => <div style={{ color: MUTED }}>Coming soon.</div>)
 
   return (
@@ -799,7 +790,10 @@ export default function FacultyProctorGeneral() {
 
         {/* Content */}
         <div style={{ flex: 1, padding: isMobile ? 14 : 28, minWidth: 0, overflowY: 'auto' }}>
-          <ActiveComponent />
+          {activeNav === 'Proctee Dashboard'
+            ? <ProcteeDashboard students={students} loading={loadingStudents} />
+            : <ActiveComponent />
+          }
         </div>
       </div>
     </div>
