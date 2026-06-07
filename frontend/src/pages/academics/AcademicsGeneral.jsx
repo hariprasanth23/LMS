@@ -559,51 +559,281 @@ function MinorHonour() {
 }
 
 function TimeTable() {
-  const slots = ['8:00 – 9:00', '9:00 – 10:00', '10:00 – 11:00', '11:00 – 12:00', 'LUNCH', '1:00 – 2:00', '2:00 – 3:00', '3:00 – 4:00']
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const subjectColors = { 'CS6001': ['#eef2ff', '#6366f1'], 'CS6002': ['#e0f2fe', '#0891b2'], 'CS6003': ['#d1fae5', '#059669'], 'CS6004': ['#ede9fe', '#7c3aed'], 'CS6005': ['#fef3c7', '#b45309'], 'CS6006': ['#fce7f3', '#be185d'], 'Lab': ['#f0fdf4', '#16a34a'] }
-  const grid = [
-    ['CS6001', 'CS6002', 'CS6003', 'CS6004', 'CS6005', ''],
-    ['CS6002', 'CS6001', 'CS6004', 'CS6003', 'CS6006', ''],
-    ['CS6003', 'CS6004', 'CS6001', 'CS6006', 'CS6002', ''],
-    ['CS6004', 'CS6003', 'CS6005', 'CS6001', 'CS6002', 'CS6006'],
-    ['LUNCH', 'LUNCH', 'LUNCH', 'LUNCH', 'LUNCH', 'LUNCH'],
-    ['CS6005', 'Lab', 'CS6006', 'CS6002', 'CS6001', ''],
-    ['CS6006', 'Lab', 'CS6002', 'CS6005', 'CS6004', ''],
-    ['', '', 'Lab', 'Lab', '', '']
+  const ff = 'system-ui, -apple-system, sans-serif'
+  const todayIdx = new Date().getDay()                    // 0=Sun, 1=Mon … 6=Sat
+  const todayColIdx = todayIdx === 0 ? -1 : todayIdx - 1 // map to 0=Mon…5=Sat, -1=Sun
+  const nowHour = new Date().getHours()
+
+  const [view, setView]       = useState('week')          // 'week' | 'day'
+  const [activeDay, setActiveDay] = useState(Math.max(0, todayColIdx))
+
+  const DAYS = [
+    { short: 'Mon', full: 'Monday'    },
+    { short: 'Tue', full: 'Tuesday'   },
+    { short: 'Wed', full: 'Wednesday' },
+    { short: 'Thu', full: 'Thursday'  },
+    { short: 'Fri', full: 'Friday'    },
+    { short: 'Sat', full: 'Saturday'  },
   ]
-  return (
-    <div style={{ overflowX: 'auto' }}>
-      <div style={{ marginBottom: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {[['CS6001', 'Data Warehousing'], ['CS6002', 'Compiler Design'], ['CS6003', 'Cloud Computing'], ['CS6004', 'Cryptography'], ['CS6005', 'Elective I'], ['CS6006', 'Elective II'], ['Lab', 'Lab Session']].map(([code, name]) => (
-          <span key={code} style={{ background: subjectColors[code][0], color: subjectColors[code][1], fontSize: 11, borderRadius: 6, padding: '2px 8px', fontFamily: 'system-ui', fontWeight: 600 }}>{code}: {name}</span>
-        ))}
+
+  const SUBJECTS = {
+    CS6001: { name: 'Data Warehousing',      short: 'DW',  color: '#6366f1', bg: '#eef2ff', faculty: 'Dr. Ramesh Kumar',   room: 'CSE-301' },
+    CS6002: { name: 'Compiler Design',        short: 'CD',  color: '#0891b2', bg: '#e0f2fe', faculty: 'Ms. R. Divya',       room: 'CSE-205' },
+    CS6003: { name: 'Cloud Computing',        short: 'CC',  color: '#059669', bg: '#d1fae5', faculty: 'Dr. S. Priya',       room: 'CSE-302' },
+    CS6004: { name: 'Cryptography & Sec.',    short: 'CS',  color: '#7c3aed', bg: '#ede9fe', faculty: 'Mr. T. Arun Kumar',  room: 'CSE-201' },
+    CS6005: { name: 'Elective I — Big Data',  short: 'BD',  color: '#b45309', bg: '#fef3c7', faculty: 'Dr. A. Meenakshi',   room: 'CSE-103' },
+    CS6006: { name: 'Elective II — DevOps',   short: 'DO',  color: '#be185d', bg: '#fce7f3', faculty: 'Mr. K. Vignesh',    room: 'CSE-104' },
+    LAB:    { name: 'Lab Session',            short: 'LAB', color: '#16a34a', bg: '#f0fdf4', faculty: 'Dr. S. Priya',       room: 'CSE Lab-2' },
+  }
+
+  // grid[slotIdx][dayIdx] = subject key or null
+  const SLOTS = [
+    { time: '8:00',  label: '8:00 – 9:00',   period: 1 },
+    { time: '9:00',  label: '9:00 – 10:00',  period: 2 },
+    { time: '10:00', label: '10:00 – 11:00', period: 3 },
+    { time: '11:00', label: '11:00 – 12:00', period: 4 },
+    { time: '12:00', label: '12:00 – 1:00',  period: null, isLunch: true },
+    { time: '13:00', label: '1:00 – 2:00',   period: 5 },
+    { time: '14:00', label: '2:00 – 3:00',   period: 6 },
+    { time: '15:00', label: '3:00 – 4:00',   period: 7 },
+  ]
+
+  const GRID = [
+    // Mon         Tue         Wed         Thu         Fri         Sat
+    ['CS6001',  'CS6002',  'CS6003',  'CS6004',  'CS6005',  null    ],
+    ['CS6002',  'CS6001',  'CS6004',  'CS6003',  'CS6006',  null    ],
+    ['CS6003',  'CS6004',  'CS6001',  'CS6006',  'CS6002',  null    ],
+    ['CS6004',  'CS6003',  'CS6005',  'CS6001',  'CS6002',  'CS6006'],
+    [null,      null,      null,      null,      null,      null    ], // lunch
+    ['CS6005',  'LAB',     'CS6006',  'CS6002',  'CS6001',  null    ],
+    ['CS6006',  'LAB',     'CS6002',  'CS6005',  'CS6004',  null    ],
+    [null,      null,      'LAB',     'LAB',     null,      null    ],
+  ]
+
+  const isCurrentSlot = (slotIdx) => {
+    if (todayColIdx < 0 || todayColIdx > 5) return false
+    const h = parseInt(SLOTS[slotIdx].time)
+    return nowHour === h && !SLOTS[slotIdx].isLunch
+  }
+
+  const SubjectCard = ({ code, compact = false }) => {
+    if (!code) return <div style={{ height: compact ? 40 : 70, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: '#e2e8f0', fontSize: 18 }}>—</span></div>
+    const s = SUBJECTS[code]
+    return (
+      <div style={{
+        background: s.bg, border: `1.5px solid ${s.color}25`,
+        borderLeft: `3px solid ${s.color}`,
+        borderRadius: 8, padding: compact ? '6px 8px' : '8px 10px',
+        height: compact ? 40 : 70,
+        display: 'flex', flexDirection: compact ? 'row' : 'column',
+        alignItems: compact ? 'center' : 'flex-start',
+        gap: compact ? 8 : 2, boxSizing: 'border-box',
+        overflow: 'hidden',
+      }}>
+        <span style={{ fontSize: compact ? 10 : 11, fontWeight: 800, color: s.color, fontFamily: ff, whiteSpace: 'nowrap' }}>{s.short}</span>
+        {!compact && <>
+          <span style={{ fontSize: 10, color: '#475569', fontFamily: ff, lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{s.name}</span>
+          <span style={{ fontSize: 9, color: '#94a3b8', fontFamily: ff, marginTop: 'auto' }}>📍 {s.room}</span>
+        </>}
+        {compact && <span style={{ fontSize: 10, color: '#475569', fontFamily: ff, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{s.name}</span>}
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'system-ui' }}>
-        <thead>
-          <tr>
-            <th style={{ padding: '8px 10px', background: '#f8fafc', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0', textAlign: 'left', width: 100 }}>Time</th>
-            {days.map(d => <th key={d} style={{ padding: '8px 10px', background: '#f8fafc', color: MUTED, fontWeight: 600, borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>{d}</th>)}
-          </tr>
-        </thead>
-        <tbody>
-          {slots.map((slot, si) => (
-            <tr key={si} style={{ background: slot === 'LUNCH' ? '#fafafa' : '#fff' }}>
-              <td style={{ padding: '8px 10px', color: MUTED, fontWeight: 500, borderBottom: '1px solid #f1f5f9' }}>{slot}</td>
-              {slot === 'LUNCH'
-                ? <td colSpan={6} style={{ padding: '8px 10px', textAlign: 'center', color: MUTED, fontStyle: 'italic', borderBottom: '1px solid #f1f5f9' }}>Lunch Break (12:00 – 1:00)</td>
-                : grid[si].map((cell, di) => {
-                    const [bg, color] = subjectColors[cell] || ['transparent', MUTED]
-                    return (
-                      <td key={di} style={{ padding: '6px 8px', borderBottom: '1px solid #f1f5f9', textAlign: 'center' }}>
-                        {cell ? <span style={{ background: bg, color, fontSize: 11, borderRadius: 6, padding: '3px 7px', fontWeight: 600, display: 'inline-block' }}>{cell}</span> : <span style={{ color: '#cbd5e1', fontSize: 11 }}>—</span>}
-                      </td>
-                    )
-                  })}
-            </tr>
+    )
+  }
+
+  return (
+    <div style={{ fontFamily: ff }}>
+
+      {/* ── Header toolbar ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: TEXT, fontFamily: ff }}>Sem 6 — Time Table</div>
+          <div style={{ fontSize: 12, color: MUTED, fontFamily: ff }}>CSE Dept · Batch 2022–26 · Reg. 2021</div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => { setView('week') }} style={{ padding: '6px 14px', borderRadius: 8, border: `1.5px solid ${view === 'week' ? ACCENT : '#e2e8f0'}`, background: view === 'week' ? '#eef2ff' : '#fff', color: view === 'week' ? ACCENT : MUTED, fontSize: 12, fontWeight: 600, fontFamily: ff, cursor: 'pointer' }}>Week View</button>
+          <button onClick={() => { setView('day') }} style={{ padding: '6px 14px', borderRadius: 8, border: `1.5px solid ${view === 'day' ? ACCENT : '#e2e8f0'}`, background: view === 'day' ? '#eef2ff' : '#fff', color: view === 'day' ? ACCENT : MUTED, fontSize: 12, fontWeight: 600, fontFamily: ff, cursor: 'pointer' }}>Day View</button>
+          {todayColIdx >= 0 && todayColIdx <= 5 && (
+            <button onClick={() => { setView('day'); setActiveDay(todayColIdx) }} style={{ padding: '6px 14px', borderRadius: 8, border: '1.5px solid #6366f1', background: '#6366f1', color: '#fff', fontSize: 12, fontWeight: 600, fontFamily: ff, cursor: 'pointer' }}>Today</button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Day tabs (always visible) ── */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
+        {DAYS.map((d, i) => {
+          const isToday = i === todayColIdx
+          const isActive = i === activeDay
+          const hasClass = GRID.some(row => row[i] !== null)
+          return (
+            <button
+              key={d.short}
+              onClick={() => { setActiveDay(i); setView('day') }}
+              style={{
+                flexShrink: 0, padding: '8px 14px', borderRadius: 10, border: 'none',
+                background: isActive && view === 'day'
+                  ? ACCENT
+                  : isToday ? '#eef2ff' : '#f1f5f9',
+                color: isActive && view === 'day' ? '#fff' : isToday ? ACCENT : MUTED,
+                fontSize: 12, fontWeight: 600, fontFamily: ff, cursor: 'pointer',
+                outline: isToday && !(isActive && view === 'day') ? `2px solid ${ACCENT}` : 'none',
+                outlineOffset: 1,
+                opacity: !hasClass && i === 5 ? 0.5 : 1,
+              }}
+            >
+              <div>{d.short}</div>
+              {isToday && <div style={{ fontSize: 9, marginTop: 1 }}>Today</div>}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* ── WEEK VIEW ── */}
+      {view === 'week' && (
+        <div style={{ overflowX: 'auto' }}>
+          <div style={{ minWidth: 640 }}>
+            {/* Day header row */}
+            <div style={{ display: 'grid', gridTemplateColumns: '72px repeat(6, 1fr)', gap: 4, marginBottom: 4 }}>
+              <div />
+              {DAYS.map((d, i) => (
+                <div key={d.short} style={{
+                  textAlign: 'center', padding: '8px 4px',
+                  borderRadius: 8,
+                  background: i === todayColIdx ? '#eef2ff' : '#f8fafc',
+                  border: i === todayColIdx ? `1.5px solid ${ACCENT}40` : '1.5px solid transparent',
+                }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: i === todayColIdx ? ACCENT : TEXT, fontFamily: ff }}>{d.short}</div>
+                  {i === todayColIdx && <div style={{ fontSize: 9, color: ACCENT, fontFamily: ff }}>Today</div>}
+                </div>
+              ))}
+            </div>
+
+            {/* Slot rows */}
+            {SLOTS.map((slot, si) => (
+              <div key={si} style={{
+                display: 'grid',
+                gridTemplateColumns: '72px repeat(6, 1fr)',
+                gap: 4, marginBottom: 4,
+                background: isCurrentSlot(si) ? '#fafbff' : 'transparent',
+                borderRadius: 8,
+                outline: isCurrentSlot(si) ? `1.5px solid ${ACCENT}30` : 'none',
+              }}>
+                {/* Time label */}
+                <div style={{
+                  display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                  paddingRight: 8, paddingTop: 2,
+                }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: isCurrentSlot(si) ? ACCENT : MUTED, fontFamily: ff, textAlign: 'right' }}>
+                    {slot.isLunch ? '12:00' : slot.time}
+                  </div>
+                  {slot.period && <div style={{ fontSize: 9, color: '#cbd5e1', fontFamily: ff, textAlign: 'right' }}>P{slot.period}</div>}
+                </div>
+
+                {slot.isLunch ? (
+                  <div style={{
+                    gridColumn: '2 / -1', background: '#fffbeb',
+                    border: '1px dashed #fcd34d', borderRadius: 8,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', height: 32,
+                  }}>
+                    <span style={{ fontSize: 11, color: '#92400e', fontWeight: 600, fontFamily: ff }}>🍽️ Lunch Break — 12:00 to 1:00 PM</span>
+                  </div>
+                ) : (
+                  DAYS.map((_, di) => (
+                    <div key={di} style={{
+                      background: di === todayColIdx ? '#fafbff' : 'transparent',
+                      borderRadius: 8,
+                      outline: di === todayColIdx && !slot.isLunch ? `1px solid ${ACCENT}15` : 'none',
+                    }}>
+                      <SubjectCard code={GRID[si][di]} compact />
+                    </div>
+                  ))
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── DAY VIEW ── */}
+      {view === 'day' && (
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: TEXT, fontFamily: ff, marginBottom: 14 }}>
+            {DAYS[activeDay].full}
+            {activeDay === todayColIdx && <span style={{ marginLeft: 8, background: '#eef2ff', color: ACCENT, fontSize: 11, borderRadius: 20, padding: '2px 10px', fontWeight: 600 }}>Today</span>}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {SLOTS.map((slot, si) => {
+              const code = GRID[si][activeDay]
+              const isCurrent = isCurrentSlot(si) && activeDay === todayColIdx
+
+              if (slot.isLunch) return (
+                <div key={si} style={{ background: '#fffbeb', border: '1px dashed #fcd34d', borderRadius: 10, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 18 }}>🍽️</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#92400e', fontFamily: ff }}>Lunch Break</div>
+                    <div style={{ fontSize: 11, color: '#b45309', fontFamily: ff }}>12:00 PM – 1:00 PM</div>
+                  </div>
+                </div>
+              )
+
+              return (
+                <div key={si} style={{
+                  border: `1.5px solid ${isCurrent ? ACCENT : code ? (SUBJECTS[code]?.color + '30') : '#f1f5f9'}`,
+                  borderRadius: 12, padding: '12px 16px',
+                  background: isCurrent ? '#fafbff' : '#fff',
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  boxShadow: isCurrent ? `0 0 0 3px ${ACCENT}15` : 'none',
+                  transition: 'all 0.15s',
+                }}>
+                  {/* Time + Period */}
+                  <div style={{ textAlign: 'center', width: 58, flexShrink: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: isCurrent ? ACCENT : MUTED, fontFamily: ff }}>{slot.time}</div>
+                    {slot.period && <div style={{ fontSize: 10, color: '#cbd5e1', fontFamily: ff }}>Period {slot.period}</div>}
+                    {isCurrent && <div style={{ fontSize: 9, color: ACCENT, fontWeight: 700, fontFamily: ff, marginTop: 2 }}>NOW</div>}
+                  </div>
+
+                  {/* Divider */}
+                  <div style={{ width: 3, height: 56, borderRadius: 4, background: code ? SUBJECTS[code]?.color : '#e2e8f0', flexShrink: 0 }} />
+
+                  {/* Subject info */}
+                  {code ? (
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <span style={{ background: SUBJECTS[code].bg, color: SUBJECTS[code].color, fontSize: 11, fontWeight: 800, borderRadius: 6, padding: '2px 8px', fontFamily: ff }}>{code}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: TEXT, fontFamily: ff }}>{SUBJECTS[code].name}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 12, color: MUTED, fontFamily: ff }}>👩‍🏫 {SUBJECTS[code].faculty}</span>
+                        <span style={{ fontSize: 12, color: MUTED, fontFamily: ff }}>📍 {SUBJECTS[code].room}</span>
+                        <span style={{ fontSize: 12, color: MUTED, fontFamily: ff }}>⏱ {slot.label}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, color: '#cbd5e1', fontFamily: ff }}>No class scheduled</div>
+                      <div style={{ fontSize: 11, color: '#e2e8f0', fontFamily: ff }}>{slot.label}</div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Legend ── */}
+      <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #f1f5f9' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, fontFamily: ff }}>Course Legend</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {Object.entries(SUBJECTS).map(([code, s]) => (
+            <div key={code} style={{ display: 'flex', alignItems: 'center', gap: 6, background: s.bg, border: `1px solid ${s.color}25`, borderRadius: 8, padding: '4px 10px' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.color, display: 'inline-block', flexShrink: 0 }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: s.color, fontFamily: ff }}>{code}</span>
+              <span style={{ fontSize: 11, color: '#475569', fontFamily: ff }}>{s.name}</span>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      </div>
     </div>
   )
 }
