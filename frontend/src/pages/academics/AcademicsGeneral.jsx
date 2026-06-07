@@ -987,9 +987,8 @@ function BiometricSearch() {
 
             {/* Day cells */}
             {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => {
-              const key = toKey(d)
-              const hasData = bioLog[key] !== undefined
-              const hasRecords = hasData && bioLog[key].length > 0
+              const hasData    = false  // no backend biometric API yet
+              const hasRecords = false
               const isSelected = selected?.day === d && selected?.month === viewMonth && selected?.year === viewYear
               const future = isFuture(d)
               const todayCell = isToday(d)

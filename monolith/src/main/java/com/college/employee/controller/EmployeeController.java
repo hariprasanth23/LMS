@@ -22,7 +22,7 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STAFF', 'STUDENT', 'PARENT', 'ALUMNI')")
     public ResponseEntity<ApiResponse<List<EmployeeResponse>>> listAll() {
         return ResponseEntity.ok(ApiResponse.ok(employeeService.findAll()));
     }
