@@ -152,7 +152,6 @@ function CourseFeedbackSection({ courses }) {
   const placeholderComments = ['Great explanation with real examples.', 'Very accessible and available for doubts.', 'Technology integration is excellent.']
   const data = { ratings: placeholderRatings, comments: placeholderComments }
   const [semester, setSemester] = useState('Semester 6 · 2024-25')
-  const data = courseData[selectedCourse]
 
   return (
     <div>
