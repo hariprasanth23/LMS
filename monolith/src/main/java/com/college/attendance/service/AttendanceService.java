@@ -9,6 +9,8 @@ import com.college.attendance.model.StudentAttendance;
 import com.college.attendance.repository.EmployeeAttendanceRepository;
 import com.college.attendance.repository.StudentAttendanceRepository;
 import com.college.auth.model.User;
+import com.college.lms.model.Course;
+import com.college.lms.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +28,7 @@ public class AttendanceService {
 
     private final StudentAttendanceRepository studentAttendanceRepository;
     private final EmployeeAttendanceRepository employeeAttendanceRepository;
+    private final CourseRepository courseRepository;
 
     @Transactional
     public List<StudentAttendance> markStudentAttendance(MarkStudentAttendanceRequest request, User faculty) {
@@ -62,18 +67,25 @@ public class AttendanceService {
 
     public List<AttendanceSummary> getStudentAttendanceSummary(UUID studentId) {
         List<UUID> courseIds = studentAttendanceRepository.findDistinctCourseIdsByStudentId(studentId);
-        List<AttendanceSummary> summaries = new ArrayList<>();
 
+        // Fetch course names in one query
+        Map<UUID, Course> courseMap = courseRepository.findAllById(courseIds)
+                .stream().collect(Collectors.toMap(Course::getId, c -> c));
+
+        List<AttendanceSummary> summaries = new ArrayList<>();
         for (UUID courseId : courseIds) {
-            long total = studentAttendanceRepository.countByStudentIdAndCourseId(studentId, courseId);
+            long total   = studentAttendanceRepository.countByStudentIdAndCourseId(studentId, courseId);
             long present = studentAttendanceRepository.countByStudentIdAndCourseIdAndStatus(studentId, courseId, "PRESENT");
-            long absent = studentAttendanceRepository.countByStudentIdAndCourseIdAndStatus(studentId, courseId, "ABSENT");
-            long late = studentAttendanceRepository.countByStudentIdAndCourseIdAndStatus(studentId, courseId, "LATE");
+            long absent  = studentAttendanceRepository.countByStudentIdAndCourseIdAndStatus(studentId, courseId, "ABSENT");
+            long late    = studentAttendanceRepository.countByStudentIdAndCourseIdAndStatus(studentId, courseId, "LATE");
             long excused = studentAttendanceRepository.countByStudentIdAndCourseIdAndStatus(studentId, courseId, "EXCUSED");
             double percentage = total > 0 ? Math.round(((present + late) * 100.0 / total) * 100.0) / 100.0 : 0.0;
 
+            Course course = courseMap.get(courseId);
             summaries.add(AttendanceSummary.builder()
                     .courseId(courseId)
+                    .courseCode(course != null ? course.getCode() : null)
+                    .courseName(course != null ? course.getName() : null)
                     .totalClasses(total)
                     .presentCount(present)
                     .absentCount(absent)

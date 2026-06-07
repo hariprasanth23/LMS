@@ -14,6 +14,8 @@ import java.util.UUID;
 public class AttendanceSummary {
 
     private UUID courseId;
+    private String courseCode;
+    private String courseName;
     private long totalClasses;
     private long presentCount;
     private long absentCount;

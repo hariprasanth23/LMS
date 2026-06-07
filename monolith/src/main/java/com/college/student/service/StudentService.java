@@ -20,20 +20,24 @@ public class StudentService {
     private final StudentRepository studentRepository;
     private final DepartmentRepository departmentRepository;
 
+    @Transactional(readOnly = true)
     public List<Student> findAll() {
         return studentRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Student findById(UUID id) {
         return studentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Student not found with id: " + id));
     }
 
+    @Transactional(readOnly = true)
     public Student findByUserId(UUID userId) {
         return studentRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Student profile not found for user: " + userId));
     }
 
+    @Transactional(readOnly = true)
     public Student findOwnProfile(User currentUser) {
         return findByUserId(currentUser.getId());
     }
