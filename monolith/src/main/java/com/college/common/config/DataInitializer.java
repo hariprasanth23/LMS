@@ -8,9 +8,11 @@ import com.college.employee.model.Employee;
 import com.college.employee.repository.EmployeeRepository;
 import com.college.examination.model.ExamSchedule;
 import com.college.examination.model.InternalMark;
+import com.college.examination.model.ScheduledOnlineExam;
 import com.college.examination.model.SemesterGrade;
 import com.college.examination.repository.ExamScheduleRepository;
 import com.college.examination.repository.InternalMarkRepository;
+import com.college.examination.repository.ScheduledOnlineExamRepository;
 import com.college.examination.repository.SemesterGradeRepository;
 import com.college.finance.model.FeeRecord;
 import com.college.finance.model.PaymentReceipt;
@@ -65,6 +67,7 @@ public class DataInitializer implements ApplicationRunner {
     private final ExamScheduleRepository examScheduleRepository;
     private final InternalMarkRepository internalMarkRepository;
     private final SemesterGradeRepository semesterGradeRepository;
+    private final ScheduledOnlineExamRepository scheduledOnlineExamRepository;
     private final FeeRecordRepository feeRecordRepository;
     private final PaymentReceiptRepository paymentReceiptRepository;
     private final WalletTransactionRepository walletTransactionRepository;
@@ -98,6 +101,13 @@ public class DataInitializer implements ApplicationRunner {
             seedExaminationData();
         } else {
             log.info("[DataInitializer] Examination data already seeded — skipping");
+        }
+
+        // ── Seed Online Exam data ────────────────────────────────────────────────────
+        if (scheduledOnlineExamRepository.count() == 0) {
+            seedOnlineExamData();
+        } else {
+            log.info("[DataInitializer] Online exam data already seeded — skipping");
         }
 
         // ── Seed Finance data ────────────────────────────────────────────────────────
@@ -339,6 +349,23 @@ public class DataInitializer implements ApplicationRunner {
                 .postedBy(facultyId).build());
 
         log.info("[DataInitializer] ✓ LMS data seeded — courses: 6, announcements: 4, attendance records: 120");
+    }
+
+    private void seedOnlineExamData() {
+        log.info("[DataInitializer] Seeding online exam data...");
+        studentRepository.findByRollNumber("CSE2022001").ifPresent(arjun ->
+            scheduledOnlineExamRepository.save(ScheduledOnlineExam.builder()
+                    .studentId(arjun.getId())
+                    .subjectCode("CS6001")
+                    .subjectName("Data Warehousing & Mining")
+                    .examDate(LocalDate.now().plusDays(15))
+                    .timeSlot("10:00 AM – 12:00 PM")
+                    .durationMinutes(120)
+                    .maxMarks(100)
+                    .status("Scheduled")
+                    .build())
+        );
+        log.info("[DataInitializer] ✓ Online exam data seeded");
     }
 
     private void seedExaminationData() {

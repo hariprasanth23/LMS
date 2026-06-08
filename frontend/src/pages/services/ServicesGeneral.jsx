@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
+import api from '../../services/api'
+import toast from 'react-hot-toast'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -102,6 +104,25 @@ export default function ServicesGeneral() {
   const [certForm, setCertForm] = useState({ type: '', desc: '', file: null })
   const [esanadForm, setEsanadForm] = useState({ type: '', purpose: '', digilocker: '' })
   const [migrationForm, setMigrationForm] = useState({ current: '', desired: '', reason: '', doc: null })
+
+  // ── Shared API submit helper ────────────────────────────────────────────────
+  const [myRequests, setMyRequests] = useState([])
+  const [submitting, setSubmitting] = useState(false)
+
+  const submitRequest = useCallback(async (requestType, details) => {
+    setSubmitting(true)
+    try {
+      const res = await api.post('/services/requests', { requestType, details })
+      setMyRequests(prev => [res.data.data, ...prev])
+      toast.success('Request submitted successfully!')
+      return true
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Submission failed')
+      return false
+    } finally {
+      setSubmitting(false)
+    }
+  }, [])
 
   const navStyle = (item) => ({
     padding: '10px 18px',
@@ -272,7 +293,9 @@ export default function ServicesGeneral() {
             </select>
           </div>
         </div>
-        <button style={btn('primary')}>Submit Registration</button>
+        <button style={btn('primary')} disabled={submitting} onClick={() => submitRequest('TRANSPORT', JSON.stringify(transportForm))}>
+          {submitting ? 'Submitting…' : 'Submit Registration'}
+        </button>
       </div>
     </div>
   )
@@ -344,7 +367,9 @@ export default function ServicesGeneral() {
             </div>
           )}
         </div>
-        <button style={btn('primary')}>Submit Request</button>
+        <button style={btn('primary')} disabled={submitting} onClick={() => submitRequest('TRANSCRIPT', JSON.stringify(transcriptForm))}>
+          {submitting ? 'Submitting…' : 'Submit Request'}
+        </button>
       </div>
 
       <div style={{ ...card, overflow: 'hidden' }}>
@@ -449,7 +474,9 @@ export default function ServicesGeneral() {
             <input type="file" style={{ ...inputStyle, padding: '7px 12px' }} />
           </div>
         </div>
-        <button style={btn('primary')}>Add Achievement</button>
+        <button style={btn('primary')} disabled={submitting} onClick={() => submitRequest('ACHIEVEMENT', JSON.stringify(achievementForm))}>
+          {submitting ? 'Submitting…' : 'Add Achievement'}
+        </button>
       </div>
 
       <div style={{ ...card, padding: '12px 20px', marginBottom: 16, background: '#eef2ff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -527,7 +554,9 @@ export default function ServicesGeneral() {
         <div style={{ padding: '12px 16px', background: '#fff7ed', borderRadius: 8, marginBottom: 16, fontSize: 13, color: '#92400e' }}>
           Note: HOD approval is required. Your request will be forwarded to your current HOD for approval.
         </div>
-        <button style={btn('primary')}>Submit Migration Request</button>
+        <button style={btn('primary')} disabled={submitting} onClick={() => submitRequest('MIGRATION', JSON.stringify(migrationForm))}>
+          {submitting ? 'Submitting…' : 'Submit Migration Request'}
+        </button>
       </div>
 
       <div style={{ ...card, padding: 20, background: '#f8fafc' }}>
@@ -569,7 +598,9 @@ export default function ServicesGeneral() {
             <input style={inputStyle} placeholder="Reason for late access" value={lateForm.purpose} onChange={e => setLateForm({ ...lateForm, purpose: e.target.value })} />
           </div>
         </div>
-        <button style={btn('primary')}>Submit Request</button>
+        <button style={btn('primary')} disabled={submitting} onClick={() => submitRequest('LATE_HOUR', JSON.stringify(lateForm))}>
+          {submitting ? 'Submitting…' : 'Submit Request'}
+        </button>
       </div>
 
       <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 12 }}>My Requests</div>
@@ -640,7 +671,9 @@ export default function ServicesGeneral() {
             <textarea style={{ ...inputStyle, height: 100, resize: 'vertical' }} placeholder="Brief description of your project..." value={finalYearForm.abstract} onChange={e => setFinalYearForm({ ...finalYearForm, abstract: e.target.value })} />
           </div>
         </div>
-        <button style={btn('primary')}>Register Project</button>
+        <button style={btn('primary')} disabled={submitting} onClick={() => submitRequest('FINAL_YEAR', JSON.stringify(finalYearForm))}>
+          {submitting ? 'Submitting…' : 'Register Project'}
+        </button>
       </div>
     </div>
   )
@@ -667,7 +700,9 @@ export default function ServicesGeneral() {
             <div style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>Accepted: PDF, JPG, PNG (max 10MB)</div>
           </div>
         </div>
-        <button style={btn('primary')}>Upload Certificate</button>
+        <button style={btn('primary')} disabled={submitting} onClick={() => submitRequest('CERTIFICATE', JSON.stringify(certForm))}>
+          {submitting ? 'Submitting…' : 'Upload Certificate'}
+        </button>
       </div>
 
       <div style={{ ...card, overflow: 'hidden' }}>
@@ -724,7 +759,9 @@ export default function ServicesGeneral() {
             <input style={inputStyle} placeholder="Enter your DigiLocker registered mobile number" value={esanadForm.digilocker} onChange={e => setEsanadForm({ ...esanadForm, digilocker: e.target.value })} />
           </div>
         </div>
-        <button style={btn('primary')}>Submit eSanad Request</button>
+        <button style={btn('primary')} disabled={submitting} onClick={() => submitRequest('ESANAD', JSON.stringify(esanadForm))}>
+          {submitting ? 'Submitting…' : 'Submit eSanad Request'}
+        </button>
       </div>
 
       <div style={{ ...card, overflow: 'hidden' }}>

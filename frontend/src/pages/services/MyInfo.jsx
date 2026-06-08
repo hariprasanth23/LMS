@@ -1,538 +1,324 @@
 import React, { useState, useEffect } from 'react'
+import api from '../../services/api'
+import toast from 'react-hot-toast'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
 const ACCENT = '#6366f1'
 const BG = '#f8fafc'
 
-const NAV_ITEMS = [
-  'Profile',
-  'Credentials',
-  'Dayboarder Info',
-  'Acknowledgement View',
-  'Student Bank Info',
-  'My Scholarships',
-]
+const NAV_ITEMS = ['Profile', 'Credentials', 'Dayboarder Info', 'Acknowledgement View', 'Student Bank Info', 'My Scholarships']
 
-const studentData = {
-  name: 'Arjun Kumar',
-  rollNo: 'CS2021001',
-  dob: '2003-04-15',
-  gender: 'Male',
-  bloodGroup: 'B+',
-  mobile: '+91 9876543210',
-  email: 'arjun.kumar@student.edu.in',
-  nationality: 'Indian',
-  religion: 'Hindu',
-  category: 'OBC',
-  department: 'Computer Science & Engineering',
-  programme: 'B.Tech',
-  batch: '2021-2025',
-  semester: 'VI',
-  section: 'A',
-  hostelStatus: 'Hosteller',
-  regulation: 'R2021',
-  advisor: 'Dr. A. Ramesh',
+function Loading() { return <div style={{ padding: 40, textAlign: 'center', color: MUTED }}>Loading…</div> }
+
+function InfoRow({ label, value, accent }) {
+  return (
+    <div style={{ background: BG, borderRadius: 8, padding: '12px 14px' }}>
+      <div style={{ fontSize: 11, color: MUTED, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3 }}>{label}</div>
+      <div style={{ fontSize: 14, color: accent ? ACCENT : TEXT, fontWeight: accent ? 700 : 400 }}>{value || '—'}</div>
+    </div>
+  )
 }
 
-const emergencyContacts = [
-  { name: 'Ramesh Kumar (Father)', phone: '+91 9876500001', relation: 'Father' },
-  { name: 'Meena Kumar (Mother)', phone: '+91 9876500002', relation: 'Mother' },
-]
+// ── Profile ───────────────────────────────────────────────────────────────────
+function Profile({ infoData }) {
+  if (!infoData) return <Loading />
+  const { user, student } = infoData
+  const dept = student?.department
 
-const acknowledgements = [
-  { doc: 'Anti-Ragging Undertaking', date: '2021-09-01', year: '2021-22', status: 'Signed' },
-  { doc: 'Code of Conduct', date: '2021-09-01', year: '2021-22', status: 'Signed' },
-  { doc: 'Hostel Rules & Regulations', date: '2021-09-05', year: '2021-22', status: 'Signed' },
-  { doc: 'Examination Rules', date: '2021-11-01', year: '2021-22', status: 'Signed' },
-  { doc: 'Anti-Ragging Undertaking', date: '2022-08-01', year: '2022-23', status: 'Signed' },
-  { doc: 'Code of Conduct', date: '2022-08-01', year: '2022-23', status: 'Signed' },
-  { doc: 'Hostel Rules & Regulations', date: '2022-08-03', year: '2022-23', status: 'Signed' },
-]
+  return (
+    <div>
+      <div style={{ background: `linear-gradient(135deg, #6366f1, #8b5cf6)`, borderRadius: 14, padding: '24px 28px', color: '#fff', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+        <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 800, flexShrink: 0 }}>
+          {(user?.name || '').split(' ').map(w => w[0]).join('').slice(0, 2)}
+        </div>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 800 }}>{user?.name || '—'}</div>
+          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>{student?.rollNumber || '—'} · {dept?.name || '—'}</div>
+        </div>
+      </div>
 
-const scholarshipsData = [
-  { name: 'State Government Merit Scholarship', applied: '2022-09-01', status: 'Credited', amount: 10000, credited: '2022-12-15', ref: 'SCH2022001' },
-  { name: 'Central Sector Scholarship', applied: '2023-08-15', status: 'Credited', amount: 12000, credited: '2023-11-20', ref: 'SCH2023001' },
-  { name: 'OBC Scholarship', applied: '2024-06-10', status: 'Under Review', amount: 5000, credited: '-', ref: 'SCH2024001' },
-]
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontWeight: 700, fontSize: 14, color: TEXT, marginBottom: 12 }}>Personal Information</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+          <InfoRow label="Full Name"   value={user?.name} />
+          <InfoRow label="Email"       value={user?.email} />
+          <InfoRow label="Mobile"      value={user?.phone} />
+          <InfoRow label="Role"        value={user?.role} />
+          <InfoRow label="Account Status" value={user?.active ? 'Active' : 'Inactive'} />
+        </div>
+      </div>
+
+      <div>
+        <div style={{ fontWeight: 700, fontSize: 14, color: TEXT, marginBottom: 12 }}>Academic Information</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+          <InfoRow label="Roll Number"  value={student?.rollNumber} accent />
+          <InfoRow label="Department"   value={dept?.name} />
+          <InfoRow label="Semester"     value={student?.semester ? `Semester ${student.semester}` : '—'} />
+          <InfoRow label="Batch"        value={student?.batch} />
+          <InfoRow label="Status"       value={student?.status} />
+          <InfoRow label="Guardian"     value={student?.guardianName} />
+          <InfoRow label="Guardian Ph." value={student?.guardianPhone} />
+          <InfoRow label="Address"      value={student?.address} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Credentials (static — institutional IDs) ──────────────────────────────────
+function Credentials({ infoData }) {
+  const rollNo = infoData?.student?.rollNumber || '—'
+  const email  = infoData?.user?.email || '—'
+  const rows = [
+    { label: 'Roll Number',         value: rollNo,              icon: '🎓' },
+    { label: 'Institute Email',      value: email,               icon: '📧' },
+    { label: 'Library Card No.',    value: `LIB-${rollNo}`,     icon: '📚' },
+    { label: 'Hostel ID',           value: 'Day Scholar',       icon: '🏠' },
+    { label: 'Bus Pass No.',        value: 'N/A',               icon: '🚌' },
+  ]
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {rows.map((r, i) => (
+        <div key={i} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <span style={{ fontSize: 24 }}>{r.icon}</span>
+          <div>
+            <div style={{ fontSize: 12, color: MUTED, fontWeight: 600, marginBottom: 2 }}>{r.label}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{r.value}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Dayboarder Info ───────────────────────────────────────────────────────────
+function DayboarderInfo() {
+  return (
+    <div>
+      <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '14px 18px', marginBottom: 20, fontSize: 14, color: '#15803d', fontWeight: 500 }}>
+        ✅ You are registered as a <strong>Day Scholar</strong>.
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+        {[['Home City', 'Chennai'], ['Distance from College', '12 km'], ['Transport Mode', 'Bus'], ['Bus Route', 'Route 4 — Anna Nagar'], ['Bus Pass Validity', 'Jun 2025'], ['Emergency Contact', '+91 9876543210']].map(([label, value]) => (
+          <InfoRow key={label} label={label} value={value} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Acknowledgements (static) ─────────────────────────────────────────────────
+function AcknowledgementView() {
+  const acks = [
+    { doc: 'Anti-Ragging Undertaking', date: '2022-09-01', year: '2022-23', status: 'Signed' },
+    { doc: 'Code of Conduct',          date: '2022-09-01', year: '2022-23', status: 'Signed' },
+    { doc: 'Hostel Rules & Regulations', date: '2022-09-05', year: '2022-23', status: 'Signed' },
+    { doc: 'Examination Rules',        date: '2022-11-01', year: '2022-23', status: 'Signed' },
+    { doc: 'Anti-Ragging Undertaking', date: '2023-08-01', year: '2023-24', status: 'Signed' },
+    { doc: 'Code of Conduct',          date: '2023-08-01', year: '2023-24', status: 'Signed' },
+  ]
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <thead>
+          <tr style={{ background: BG }}>
+            {['Document', 'Date Signed', 'Academic Year', 'Status'].map(h => (
+              <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 12, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {acks.map((a, i) => (
+            <tr key={i} style={{ borderBottom: '1px solid #f8fafc' }}>
+              <td style={{ padding: '12px 14px', fontWeight: 600, color: TEXT }}>{a.doc}</td>
+              <td style={{ padding: '12px 14px', color: MUTED }}>{a.date}</td>
+              <td style={{ padding: '12px 14px', color: MUTED }}>{a.year}</td>
+              <td style={{ padding: '12px 14px' }}>
+                <span style={{ background: '#dcfce7', color: '#16a34a', borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>{a.status}</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ── Student Bank Info ─────────────────────────────────────────────────────────
+function StudentBankInfo() {
+  const [bankInfo, setBankInfo] = useState(null)
+  const [form, setForm] = useState({ accountHolderName: '', bankName: '', accountNumber: '', ifscCode: '', branch: '' })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [editing, setEditing] = useState(false)
+
+  useEffect(() => {
+    api.get('/students/me/bank-info')
+      .then(r => {
+        const d = r.data.data
+        setBankInfo(d)
+        if (d) setForm({ accountHolderName: d.accountHolderName || '', bankName: d.bankName || '', accountNumber: d.accountNumber || '', ifscCode: d.ifscCode || '', branch: d.branch || '' })
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const res = await api.put('/students/me/bank-info', form)
+      setBankInfo(res.data.data)
+      setEditing(false)
+      toast.success('Bank info saved!')
+    } catch { toast.error('Failed to save') }
+    finally { setSaving(false) }
+  }
+
+  if (loading) return <Loading />
+
+  const inputStyle = { width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }
+  const fields = [
+    { label: 'Account Holder Name', key: 'accountHolderName' },
+    { label: 'Bank Name', key: 'bankName' },
+    { label: 'Account Number', key: 'accountNumber' },
+    { label: 'IFSC Code', key: 'ifscCode' },
+    { label: 'Branch', key: 'branch' },
+  ]
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div style={{ fontWeight: 700, fontSize: 15, color: TEXT }}>Bank Account Details</div>
+        {!editing && <button onClick={() => setEditing(true)} style={{ background: '#eef2ff', color: ACCENT, border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{bankInfo ? 'Edit' : 'Add'}</button>}
+      </div>
+
+      {editing ? (
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+            {fields.map(f => (
+              <div key={f.key}>
+                <label style={{ fontSize: 12, color: MUTED, fontWeight: 600, display: 'block', marginBottom: 6 }}>{f.label}</label>
+                <input value={form[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} style={inputStyle} placeholder={`Enter ${f.label.toLowerCase()}`} />
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={handleSave} disabled={saving} style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+            <button onClick={() => setEditing(false)} style={{ background: BG, color: MUTED, border: '1px solid #e2e8f0', borderRadius: 8, padding: '9px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+          </div>
+        </div>
+      ) : bankInfo ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+          {fields.map(f => <InfoRow key={f.key} label={f.label} value={form[f.key]} />)}
+        </div>
+      ) : (
+        <div style={{ padding: 32, textAlign: 'center', color: MUTED, fontSize: 14 }}>No bank information added yet. Click "Add" to enter your details.</div>
+      )}
+    </div>
+  )
+}
+
+// ── My Scholarships (static) ──────────────────────────────────────────────────
+function MyScholarships() {
+  const data = [
+    { name: 'State Government Merit Scholarship', applied: '2022-09-01', status: 'Credited',     amount: 10000, credited: '2022-12-15', ref: 'SCH2022001' },
+    { name: 'Central Sector Scholarship',         applied: '2023-08-15', status: 'Credited',     amount: 12000, credited: '2023-11-20', ref: 'SCH2023001' },
+    { name: 'OBC Scholarship',                    applied: '2024-06-10', status: 'Under Review', amount: 5000,  credited: '—',          ref: 'SCH2024001' },
+  ]
+  const statusColor = { Credited: ['#dcfce7', '#16a34a'], 'Under Review': ['#fef9c3', '#854d0e'], Rejected: ['#fee2e2', '#dc2626'] }
+  return (
+    <div>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+          <thead>
+            <tr style={{ background: BG }}>
+              {['Scholarship Name', 'Applied On', 'Amount (₹)', 'Status', 'Credited On', 'Ref No'].map(h => (
+                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: MUTED, fontWeight: 600, fontSize: 12, borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((s, i) => {
+              const [bg, color] = statusColor[s.status] || ['#f1f5f9', MUTED]
+              return (
+                <tr key={i} style={{ borderBottom: '1px solid #f8fafc' }}>
+                  <td style={{ padding: '12px 14px', fontWeight: 600, color: TEXT }}>{s.name}</td>
+                  <td style={{ padding: '12px 14px', color: MUTED }}>{s.applied}</td>
+                  <td style={{ padding: '12px 14px', fontWeight: 700, color: '#16a34a' }}>₹{s.amount.toLocaleString('en-IN')}</td>
+                  <td style={{ padding: '12px 14px' }}><span style={{ background: bg, color, borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>{s.status}</span></td>
+                  <td style={{ padding: '12px 14px', color: MUTED }}>{s.credited}</td>
+                  <td style={{ padding: '12px 14px', color: ACCENT, fontFamily: 'monospace', fontSize: 12 }}>{s.ref}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
 
 export default function MyInfo() {
   const [active, setActive] = useState('Profile')
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  const [infoData, setInfoData] = useState(null)
 
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth <= 768)
     window.addEventListener('resize', h)
     return () => window.removeEventListener('resize', h)
   }, [])
-  const [editMode, setEditMode] = useState(false)
-  const [twoFA, setTwoFA] = useState(false)
-  const [dayboarderType] = useState('hosteller')
-  const [bankForm, setBankForm] = useState({
-    bank: 'State Bank of India',
-    account: '•••• •••• 4521',
-    ifsc: 'SBIN0012345',
-    holder: 'Arjun Kumar',
-    branch: 'Anna Nagar Branch',
-    type: 'Savings',
-    verified: true,
-  })
-  const [bankEdit, setBankEdit] = useState(false)
+
+  useEffect(() => {
+    api.get('/students/me/info')
+      .then(r => setInfoData(r.data.data))
+      .catch(() => toast.error('Failed to load student info'))
+  }, [])
 
   const navStyle = (item) => ({
-    padding: '10px 18px',
-    cursor: 'pointer',
-    fontSize: 14,
-    borderLeft: active === item ? '3px solid #6366f1' : '3px solid transparent',
+    display: isMobile ? 'inline-block' : 'block',
+    width: isMobile ? 'auto' : '100%',
+    padding: isMobile ? '6px 12px' : '10px 18px',
     background: active === item ? '#eef2ff' : 'transparent',
-    color: active === item ? ACCENT : TEXT,
+    border: 'none',
+    borderLeft: isMobile ? 'none' : (active === item ? `3px solid ${ACCENT}` : '3px solid transparent'),
+    borderBottom: isMobile ? (active === item ? '2px solid #6366f1' : '2px solid transparent') : 'none',
+    borderRadius: isMobile ? 100 : 0,
+    textAlign: 'left', fontSize: isMobile ? 12 : 14,
     fontWeight: active === item ? 600 : 400,
-    transition: 'all 0.15s',
-    userSelect: 'none',
+    color: active === item ? ACCENT : TEXT,
+    cursor: 'pointer', whiteSpace: 'nowrap',
   })
 
-  const card = {
-    background: '#fff',
-    borderRadius: 12,
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+  const sectionMap = {
+    'Profile':              () => <Profile infoData={infoData} />,
+    'Credentials':          () => <Credentials infoData={infoData} />,
+    'Dayboarder Info':      () => <DayboarderInfo />,
+    'Acknowledgement View': () => <AcknowledgementView />,
+    'Student Bank Info':    () => <StudentBankInfo />,
+    'My Scholarships':      () => <MyScholarships />,
   }
-
-  const btn = (variant = 'primary') => ({
-    padding: '8px 18px',
-    borderRadius: 8,
-    border: variant === 'outline' ? '1px solid #e2e8f0' : 'none',
-    cursor: 'pointer',
-    fontSize: 13,
-    fontWeight: 600,
-    background: variant === 'primary' ? ACCENT : variant === 'danger' ? '#ef4444' : variant === 'success' ? '#10b981' : '#f1f5f9',
-    color: variant === 'primary' || variant === 'danger' || variant === 'success' ? '#fff' : TEXT,
-  })
-
-  const inputStyle = {
-    width: '100%',
-    padding: '9px 12px',
-    borderRadius: 8,
-    border: '1px solid #e2e8f0',
-    fontSize: 14,
-    color: TEXT,
-    outline: 'none',
-    boxSizing: 'border-box',
-  }
-
-  const thStyle = {
-    padding: '10px 14px',
-    textAlign: 'left',
-    fontSize: 12,
-    fontWeight: 600,
-    color: MUTED,
-    textTransform: 'uppercase',
-    borderBottom: '1px solid #e2e8f0',
-    background: '#f8fafc',
-  }
-
-  const tdStyle = {
-    padding: '12px 14px',
-    fontSize: 14,
-    color: TEXT,
-    borderBottom: '1px solid #f1f5f9',
-  }
-
-  const InfoRow = ({ label, value }) => (
-    <div style={{ display: 'flex', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
-      <div style={{ width: 180, fontSize: 13, color: MUTED, flexShrink: 0 }}>{label}</div>
-      <div style={{ fontSize: 14, color: TEXT, fontWeight: 500 }}>{value}</div>
-    </div>
-  )
-
-  const renderProfile = () => (
-    <div>
-      <div style={{ ...card, padding: 24, marginBottom: 24, display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-        <div style={{ flexShrink: 0 }}>
-          <div style={{
-            width: 80, height: 80, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontSize: 28, fontWeight: 700,
-          }}>
-            AK
-          </div>
-          <div style={{ fontSize: 12, color: MUTED, textAlign: 'center', marginTop: 6 }}>Student</div>
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 20, fontWeight: 700, color: TEXT, marginBottom: 2 }}>{studentData.name}</div>
-          <div style={{ fontSize: 14, color: MUTED, marginBottom: 12 }}>{studentData.rollNo} · {studentData.department}</div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: '#dcfce7', color: '#16a34a' }}>{studentData.hostelStatus}</span>
-            <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: '#eef2ff', color: ACCENT }}>Sem {studentData.semester}</span>
-            <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: '#f1f5f9', color: MUTED }}>{studentData.batch}</span>
-          </div>
-        </div>
-        <button style={btn(editMode ? 'success' : 'outline')} onClick={() => setEditMode(!editMode)}>
-          {editMode ? 'Save Changes' : 'Edit Profile'}
-        </button>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
-        <div style={{ ...card, padding: 20 }}>
-          <div style={{ fontWeight: 600, fontSize: 14, color: TEXT, marginBottom: 14, paddingBottom: 10, borderBottom: '2px solid #eef2ff' }}>Personal Information</div>
-          <InfoRow label="Full Name" value={studentData.name} />
-          <InfoRow label="Roll Number" value={studentData.rollNo} />
-          <InfoRow label="Date of Birth" value={studentData.dob} />
-          <InfoRow label="Gender" value={studentData.gender} />
-          <InfoRow label="Blood Group" value={studentData.bloodGroup} />
-          <InfoRow label="Mobile" value={studentData.mobile} />
-          <InfoRow label="Email" value={studentData.email} />
-          <InfoRow label="Nationality" value={studentData.nationality} />
-          <InfoRow label="Religion" value={studentData.religion} />
-          <InfoRow label="Category" value={studentData.category} />
-        </div>
-
-        <div style={{ ...card, padding: 20 }}>
-          <div style={{ fontWeight: 600, fontSize: 14, color: TEXT, marginBottom: 14, paddingBottom: 10, borderBottom: '2px solid #eef2ff' }}>Academic Information</div>
-          <InfoRow label="Department" value={studentData.department} />
-          <InfoRow label="Programme" value={studentData.programme} />
-          <InfoRow label="Batch" value={studentData.batch} />
-          <InfoRow label="Semester" value={studentData.semester} />
-          <InfoRow label="Section" value={studentData.section} />
-          <InfoRow label="Hostel Status" value={studentData.hostelStatus} />
-          <InfoRow label="Regulation" value={studentData.regulation} />
-          <InfoRow label="Faculty Advisor" value={studentData.advisor} />
-        </div>
-      </div>
-
-      <div style={{ ...card, padding: 20 }}>
-        <div style={{ fontWeight: 600, fontSize: 14, color: TEXT, marginBottom: 14, paddingBottom: 10, borderBottom: '2px solid #eef2ff' }}>Emergency Contacts</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {emergencyContacts.map((c, i) => (
-            <div key={i} style={{ background: BG, borderRadius: 10, padding: 16, border: '1px solid #e2e8f0' }}>
-              <div style={{ fontWeight: 600, color: TEXT, marginBottom: 4 }}>{c.name}</div>
-              <div style={{ fontSize: 13, color: MUTED, marginBottom: 4 }}>{c.relation}</div>
-              <div style={{ fontSize: 14, color: ACCENT, fontWeight: 500 }}>{c.phone}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-
-  const renderCredentials = () => (
-    <div>
-      <div style={{ ...card, padding: 24, marginBottom: 24 }}>
-        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 16 }}>Login Credentials</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
-          {[
-            ['Username / Login ID', 'CS2021001'],
-            ['Registered Email', 'arjun.kumar@student.edu.in'],
-            ['Registered Mobile', '+91 9876543210'],
-            ['Last Login', '2024-06-12, 10:34 AM'],
-            ['Account Created', '2021-08-25'],
-            ['Account Status', 'Active'],
-          ].map(([label, value], i) => (
-            <div key={i} style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9', background: i % 4 < 2 ? '#fff' : '#fafafa' }}>
-              <div style={{ fontSize: 12, color: MUTED, marginBottom: 4 }}>{label}</div>
-              <div style={{ fontSize: 14, fontWeight: 500, color: label === 'Account Status' ? '#16a34a' : TEXT }}>{value}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-        <button style={btn('primary')}>Change Password</button>
-        <button style={btn('outline')}>Update Login ID</button>
-      </div>
-
-      <div style={{ ...card, padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontWeight: 600, fontSize: 15, color: TEXT, marginBottom: 4 }}>Two-Factor Authentication</div>
-            <div style={{ fontSize: 13, color: MUTED }}>Add an extra layer of security to your account</div>
-          </div>
-          <div
-            onClick={() => setTwoFA(!twoFA)}
-            style={{
-              width: 48, height: 26, borderRadius: 13,
-              background: twoFA ? ACCENT : '#e2e8f0',
-              cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
-            }}
-          >
-            <div style={{
-              position: 'absolute', top: 3, left: twoFA ? 25 : 3,
-              width: 20, height: 20, borderRadius: '50%', background: '#fff',
-              transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-            }} />
-          </div>
-        </div>
-        <div style={{ marginTop: 12, fontSize: 13, color: twoFA ? '#16a34a' : MUTED, fontWeight: twoFA ? 600 : 400 }}>
-          Status: {twoFA ? 'Enabled' : 'Disabled'}
-        </div>
-      </div>
-    </div>
-  )
-
-  const renderDayboarder = () => (
-    <div>
-      {dayboarderType === 'hosteller' ? (
-        <div>
-          <div style={{ ...card, padding: 24, marginBottom: 20 }}>
-            <div style={{ fontWeight: 600, fontSize: 15, color: TEXT, marginBottom: 16 }}>Hostel Details</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
-              {[
-                ['Block', 'Block C'],
-                ['Room Number', 'C-204'],
-                ['Floor', '2nd Floor'],
-                ['Warden Name', 'Mr. Gopalan'],
-                ['Warden Contact', '+91 9876501234'],
-                ['Room Type', 'Triple Sharing'],
-              ].map(([label, value], i) => (
-                <div key={i} style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                  <div style={{ fontSize: 12, color: MUTED, marginBottom: 4 }}>{label}</div>
-                  <div style={{ fontSize: 14, fontWeight: 500, color: TEXT }}>{value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ ...card, padding: 20 }}>
-            <div style={{ fontWeight: 600, fontSize: 14, color: TEXT, marginBottom: 12 }}>Hostel Fee Status</div>
-            <div style={{ display: 'flex', gap: 16 }}>
-              <div style={{ flex: 1, background: '#f0fdf4', borderRadius: 10, padding: 16, border: '1px solid #bbf7d0' }}>
-                <div style={{ fontSize: 12, color: MUTED, marginBottom: 4 }}>Sem 2 Hostel Fee</div>
-                <div style={{ fontWeight: 700, color: '#16a34a', fontSize: 18 }}>Paid ✓</div>
-                <div style={{ fontSize: 12, color: '#16a34a', marginTop: 4 }}>₹15,000 — Paid on Jun 10, 2024</div>
-              </div>
-              <div style={{ flex: 1, background: '#fef2f2', borderRadius: 10, padding: 16, border: '1px solid #fecaca' }}>
-                <div style={{ fontSize: 12, color: MUTED, marginBottom: 4 }}>Mess Charges (Jun)</div>
-                <div style={{ fontWeight: 700, color: '#dc2626', fontSize: 18 }}>Pending</div>
-                <div style={{ fontSize: 12, color: '#dc2626', marginTop: 4 }}>₹2,500 — Due Jun 30, 2024</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div style={{ ...card, padding: 24 }}>
-          <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 16 }}>Travel Details Form</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <div>
-              <label style={{ fontSize: 13, color: MUTED, display: 'block', marginBottom: 6 }}>Mode of Transport</label>
-              <select style={inputStyle}>
-                <option>Bus</option>
-                <option>Train</option>
-                <option>Own Vehicle</option>
-                <option>Walk</option>
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize: 13, color: MUTED, display: 'block', marginBottom: 6 }}>From Location</label>
-              <input style={inputStyle} placeholder="Your residential area" />
-            </div>
-            <div>
-              <label style={{ fontSize: 13, color: MUTED, display: 'block', marginBottom: 6 }}>Distance (km)</label>
-              <input type="number" style={inputStyle} placeholder="One-way distance" />
-            </div>
-            <div>
-              <label style={{ fontSize: 13, color: MUTED, display: 'block', marginBottom: 6 }}>Monthly Pass Number (if bus)</label>
-              <input style={inputStyle} placeholder="Bus pass number" />
-            </div>
-          </div>
-          <button style={{ ...btn('primary'), marginTop: 16 }}>Save Details</button>
-        </div>
-      )}
-    </div>
-  )
-
-  const renderAcknowledgement = () => (
-    <div>
-      <div style={{ ...card, overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
-          <thead>
-            <tr>
-              {['Document Name', 'Date Signed', 'Academic Year', 'Status', 'Download'].map(h => (
-                <th key={h} style={thStyle}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {acknowledgements.map((a, i) => (
-              <tr key={i}>
-                <td style={tdStyle}>{a.doc}</td>
-                <td style={tdStyle}>{a.date}</td>
-                <td style={tdStyle}>{a.year}</td>
-                <td style={tdStyle}>
-                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: '#dcfce7', color: '#16a34a' }}>
-                    {a.status}
-                  </span>
-                </td>
-                <td style={tdStyle}>
-                  <button style={{ ...btn('outline'), padding: '5px 12px', fontSize: 12, border: '1px solid #e2e8f0' }}>
-                    ⬇ Download
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        </div>
-      </div>
-    </div>
-  )
-
-  const renderBankInfo = () => (
-    <div>
-      <div style={{ ...card, padding: '14px 20px', marginBottom: 20, background: '#fffbeb', border: '1px solid #fde68a' }}>
-        <div style={{ fontSize: 13, color: '#92400e', fontWeight: 500 }}>
-          Ensure the bank account is in the student's name for scholarship and financial aid credits.
-        </div>
-      </div>
-
-      <div style={{ ...card, padding: 24, marginBottom: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <div style={{ fontWeight: 600, fontSize: 15, color: TEXT }}>Bank Account Details</div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: bankForm.verified ? '#dcfce7' : '#fef9c3', color: bankForm.verified ? '#16a34a' : '#854d0e' }}>
-              {bankForm.verified ? 'Verified' : 'Pending Verification'}
-            </span>
-            <button style={btn(bankEdit ? 'success' : 'outline')} onClick={() => setBankEdit(!bankEdit)}>
-              {bankEdit ? 'Save' : 'Edit'}
-            </button>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {[
-            ['Bank Name', 'bank', bankForm.bank],
-            ['Account Number', 'account', bankForm.account],
-            ['IFSC Code', 'ifsc', bankForm.ifsc],
-            ['Account Holder Name', 'holder', bankForm.holder],
-            ['Branch Name', 'branch', bankForm.branch],
-          ].map(([label, key, value]) => (
-            <div key={key}>
-              <label style={{ fontSize: 13, color: MUTED, display: 'block', marginBottom: 6 }}>{label}</label>
-              <input
-                style={{ ...inputStyle, ...(bankEdit ? {} : { background: '#f8fafc', color: MUTED }) }}
-                value={value}
-                readOnly={!bankEdit}
-                onChange={e => setBankForm({ ...bankForm, [key]: e.target.value })}
-              />
-            </div>
-          ))}
-          <div>
-            <label style={{ fontSize: 13, color: MUTED, display: 'block', marginBottom: 6 }}>Account Type</label>
-            {bankEdit ? (
-              <select style={inputStyle} value={bankForm.type} onChange={e => setBankForm({ ...bankForm, type: e.target.value })}>
-                {['Savings', 'Current'].map(t => <option key={t}>{t}</option>)}
-              </select>
-            ) : (
-              <input style={{ ...inputStyle, background: '#f8fafc', color: MUTED }} value={bankForm.type} readOnly />
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
-  const renderScholarships = () => {
-    const totalReceived = scholarshipsData.filter(s => s.status === 'Credited').reduce((sum, s) => sum + s.amount, 0)
-    return (
-      <div>
-        <div style={{ ...card, padding: 20, marginBottom: 20, background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontSize: 13, opacity: 0.85, marginBottom: 4 }}>Total Scholarship Received This Year</div>
-            <div style={{ fontSize: 28, fontWeight: 700 }}>₹{totalReceived.toLocaleString('en-IN')}</div>
-          </div>
-          <div style={{ fontSize: 40 }}>🎓</div>
-        </div>
-
-        <div style={{ ...card, overflow: 'hidden' }}>
-          <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
-            <thead>
-              <tr>
-                {['Scholarship Name', 'Applied Date', 'Status', 'Amount', 'Credited Date', 'Reference'].map(h => (
-                  <th key={h} style={thStyle}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {scholarshipsData.map((s, i) => {
-                const statusMap = {
-                  'Credited': { bg: '#dcfce7', color: '#16a34a' },
-                  'Under Review': { bg: '#fef9c3', color: '#854d0e' },
-                  'Approved': { bg: '#dbeafe', color: '#1d4ed8' },
-                  'Rejected': { bg: '#fee2e2', color: '#dc2626' },
-                }
-                const sc = statusMap[s.status] || { bg: '#f1f5f9', color: MUTED }
-                return (
-                  <tr key={i}>
-                    <td style={tdStyle}>{s.name}</td>
-                    <td style={tdStyle}>{s.applied}</td>
-                    <td style={tdStyle}>
-                      <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: sc.bg, color: sc.color }}>
-                        {s.status}
-                      </span>
-                    </td>
-                    <td style={{ ...tdStyle, fontWeight: 600 }}>₹{s.amount.toLocaleString('en-IN')}</td>
-                    <td style={tdStyle}>{s.credited}</td>
-                    <td style={{ ...tdStyle, color: ACCENT, fontWeight: 500 }}>{s.ref}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const contentMap = {
-    'Profile': renderProfile,
-    'Credentials': renderCredentials,
-    'Dayboarder Info': renderDayboarder,
-    'Acknowledgement View': renderAcknowledgement,
-    'Student Bank Info': renderBankInfo,
-    'My Scholarships': renderScholarships,
-  }
+  const ActiveSection = sectionMap[active]
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', background: BG, minHeight: '100vh', padding: 28 }}>
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, color: TEXT, margin: 0, marginBottom: 4 }}>Services — My Info</h1>
-        <p style={{ fontSize: 14, color: MUTED, margin: 0 }}>Personal information, bank details and scholarship records</p>
+        <p style={{ fontSize: 14, color: MUTED, margin: 0 }}>Your personal, academic and financial information</p>
       </div>
-
       <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: 520 }}>
         <div style={{
-          width: isMobile ? '100%' : 210,
-          borderRight: isMobile ? 'none' : '1px solid #e2e8f0',
-          borderBottom: isMobile ? '1px solid #e2e8f0' : 'none',
-          padding: isMobile ? '8px 4px' : undefined,
-          paddingTop: isMobile ? undefined : 8,
-          paddingBottom: isMobile ? undefined : 8,
-          flexShrink: 0,
-          display: isMobile ? 'flex' : 'block',
-          flexDirection: isMobile ? 'row' : undefined,
-          flexWrap: isMobile ? 'wrap' : undefined,
-          overflowX: isMobile ? 'auto' : undefined,
+          width: isMobile ? '100%' : 210, borderRight: isMobile ? 'none' : '1px solid #e2e8f0',
+          borderBottom: isMobile ? '1px solid #e2e8f0' : 'none', padding: isMobile ? '8px 4px' : '12px 0',
+          flexShrink: 0, display: isMobile ? 'flex' : 'block', flexWrap: isMobile ? 'wrap' : undefined, overflowX: isMobile ? 'auto' : undefined,
         }}>
-          {NAV_ITEMS.map(item => (
-            <div key={item} onClick={() => setActive(item)} style={{
-              ...navStyle(item),
-              padding: isMobile ? '6px 12px' : navStyle(item).padding,
-              fontSize: isMobile ? 12 : navStyle(item).fontSize,
-              borderLeft: isMobile ? 'none' : navStyle(item).borderLeft,
-              borderBottom: isMobile ? (active === item ? '2px solid #6366f1' : '2px solid transparent') : 'none',
-              borderRadius: isMobile ? 100 : 0,
-              whiteSpace: 'nowrap',
-            }}>
-              {item}
-            </div>
-          ))}
+          {NAV_ITEMS.map(item => <button key={item} onClick={() => setActive(item)} style={navStyle(item)}>{item}</button>)}
         </div>
-
-        <div style={{ flex: 1, padding: isMobile ? '16px' : 28, overflowY: 'auto' }}>
-          <div style={{ fontWeight: 700, fontSize: 17, color: TEXT, marginBottom: 20 }}>{active}</div>
-          {contentMap[active]?.()}
+        <div style={{ flex: 1, padding: isMobile ? '16px' : 28, background: BG, overflowY: 'auto' }}>
+          {ActiveSection && <ActiveSection />}
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import api from '../../services/api'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -15,8 +16,15 @@ function SectionHeader({ title }) {
 }
 
 function ComprehensiveExamSection() {
-  const [selected, setSelected] = useState({})
-  const examStarted = false
+  const [exams, setExams] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.get('/examination/online-exam/scheduled')
+      .then(r => setExams(r.data.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   const sysReqs = [
     { label: 'Browser: Chrome 120+', ok: true },
@@ -25,53 +33,59 @@ function ComprehensiveExamSection() {
     { label: 'Internet: Stable', ok: true },
   ]
 
+  const exam = exams[0] || null
+  const examStarted = false
+
+  const daysUntil = exam?.examDate
+    ? Math.max(0, Math.ceil((new Date(exam.examDate) - new Date()) / 86400000))
+    : null
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Exam details card */}
       <SectionCard>
         <SectionHeader title="Scheduled Comprehensive Exam" />
         <div style={{ padding: 20 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
-            {[
-              { label: 'Subject Code', value: 'CS6001' },
-              { label: 'Subject Name', value: 'Data Structures' },
-              { label: 'Date', value: 'June 15, 2025' },
-              { label: 'Time', value: '10:00 AM – 12:00 PM' },
-              { label: 'Duration', value: '2 Hours' },
-              { label: 'Max Marks', value: '100' },
-            ].map(({ label, value }) => (
-              <div key={label} style={{ background: BG, borderRadius: 8, padding: '12px 16px' }}>
-                <div style={{ fontSize: 11, color: MUTED, fontWeight: 600, marginBottom: 3 }}>{label}</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>{value}</div>
+          {loading ? (
+            <div style={{ color: '#64748b', fontSize: 14 }}>Loading…</div>
+          ) : !exam ? (
+            <div style={{ color: '#64748b', fontSize: 14 }}>No online exams scheduled at this time.</div>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
+                {[
+                  { label: 'Subject Code',  value: exam.subjectCode },
+                  { label: 'Subject Name',  value: exam.subjectName },
+                  { label: 'Date',          value: exam.examDate },
+                  { label: 'Time',          value: exam.timeSlot },
+                  { label: 'Duration',      value: `${exam.durationMinutes} Minutes` },
+                  { label: 'Max Marks',     value: String(exam.maxMarks) },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ background: BG, borderRadius: 8, padding: '12px 16px' }}>
+                    <div style={{ fontSize: 11, color: MUTED, fontWeight: 600, marginBottom: 3 }}>{label}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>{value}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-
-          {/* Countdown */}
-          <div style={{ padding: '14px 18px', background: '#eff6ff', borderRadius: 10, borderLeft: '4px solid #3b82f6', marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, color: '#1d4ed8', fontWeight: 500 }}>Exam starts in:</span>
-            <span style={{ fontSize: 20, fontWeight: 800, color: '#1d4ed8', fontFamily: 'monospace' }}>10 days 02:30:00</span>
-          </div>
-
-          {/* Join button */}
-          <button
-            disabled={!examStarted}
-            style={{
-              width: '100%', padding: '14px', fontSize: 15, fontWeight: 700,
-              background: examStarted ? '#16a34a' : '#d1d5db',
-              color: '#fff', border: 'none', borderRadius: 10, cursor: examStarted ? 'pointer' : 'not-allowed',
-              letterSpacing: 0.5,
-            }}
-          >
-            {examStarted ? '▶ Join Exam Now' : '🔒 Exam Not Started Yet'}
-          </button>
-          {!examStarted && (
-            <p style={{ fontSize: 12, color: MUTED, textAlign: 'center', marginTop: 8 }}>The "Join Exam" button will activate 10 minutes before the scheduled time.</p>
+              <div style={{ padding: '14px 18px', background: '#eff6ff', borderRadius: 10, borderLeft: '4px solid #3b82f6', marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 13, color: '#1d4ed8', fontWeight: 500 }}>Exam starts in:</span>
+                <span style={{ fontSize: 20, fontWeight: 800, color: '#1d4ed8', fontFamily: 'monospace' }}>{daysUntil} day{daysUntil !== 1 ? 's' : ''}</span>
+              </div>
+              <button disabled={!examStarted} style={{
+                width: '100%', padding: '14px', fontSize: 15, fontWeight: 700,
+                background: examStarted ? '#16a34a' : '#d1d5db',
+                color: '#fff', border: 'none', borderRadius: 10,
+                cursor: examStarted ? 'pointer' : 'not-allowed', letterSpacing: 0.5,
+              }}>
+                {examStarted ? '▶ Join Exam Now' : '🔒 Exam Not Started Yet'}
+              </button>
+              {!examStarted && (
+                <p style={{ fontSize: 12, color: MUTED, textAlign: 'center', marginTop: 8 }}>The "Join Exam" button will activate 10 minutes before the scheduled time.</p>
+              )}
+            </>
           )}
         </div>
       </SectionCard>
 
-      {/* System requirements */}
       <SectionCard>
         <SectionHeader title="System Requirements Check" />
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>

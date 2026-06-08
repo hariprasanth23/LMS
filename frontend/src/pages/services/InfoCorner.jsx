@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import api from '../../services/api'
+import toast from 'react-hot-toast'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -52,7 +54,7 @@ const faqData = [
   },
 ]
 
-const prevFeedbacks = [
+const myFeedbacks = [
   { date: '2024-04-10', doctor: 'Dr. Priya Nair', rating: 4, comment: 'Good consultation, waiting time was acceptable.' },
   { date: '2024-02-22', doctor: 'Nurse Kavitha', rating: 5, comment: 'Very helpful and attentive.' },
 ]
@@ -85,8 +87,17 @@ function HealthCenterFeedback() {
     doctor: 'Dr. Priya Nair',
     ratings: { waitingTime: 0, doctorConsultation: 0, medicationAvailability: 0, cleanliness: 0, overall: 0 },
     comments: '',
+    anonymous: true,
   })
+  const [myFeedbacks, setMyFeedbacks] = useState([])
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    api.get('/services/health-feedback')
+      .then(r => setMyFeedbacks(r.data.data || []))
+      .catch(() => {})
+  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -97,10 +108,29 @@ function HealthCenterFeedback() {
     setForm(prev => ({ ...prev, ratings: { ...prev.ratings, [key]: val } }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitted(true)
-    setTimeout(() => setSubmitted(false), 3000)
+    setSubmitting(true)
+    try {
+      const payload = {
+        visitReason: form.visitDate,
+        doctorRating: form.ratings.doctorConsultation,
+        facilityRating: form.ratings.cleanliness,
+        waitTimeRating: form.ratings.waitingTime,
+        comments: form.comments,
+        anonymous: form.anonymous,
+      }
+      const res = await api.post('/services/health-feedback', payload)
+      setMyFeedbacks(prev => [res.data.data, ...prev])
+      setSubmitted(true)
+      setForm({ visitDate: '', doctor: 'Dr. Priya Nair', ratings: { waitingTime: 0, doctorConsultation: 0, medicationAvailability: 0, cleanliness: 0, overall: 0 }, comments: '', anonymous: true })
+      setTimeout(() => setSubmitted(false), 3000)
+      toast.success('Feedback submitted!')
+    } catch {
+      toast.error('Submission failed')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -184,9 +214,10 @@ function HealthCenterFeedback() {
 
           <button
             type="submit"
-            style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 28px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+            disabled={submitting}
+            style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 28px', fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: submitting ? 0.7 : 1 }}
           >
-            Submit Feedback
+            {submitting ? 'Submitting…' : 'Submit Feedback'}
           </button>
         </form>
       </div>
@@ -194,7 +225,7 @@ function HealthCenterFeedback() {
       {/* Previous Feedbacks */}
       <div style={{ ...card, padding: 24 }}>
         <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 700, color: TEXT }}>My Previous Feedbacks</h3>
-        {prevFeedbacks.length === 0 ? (
+        {myFeedbacks.length === 0 ? (
           <p style={{ color: MUTED, fontSize: 14 }}>No previous feedbacks.</p>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
@@ -206,7 +237,7 @@ function HealthCenterFeedback() {
               </tr>
             </thead>
             <tbody>
-              {prevFeedbacks.map((fb, i) => (
+              {myFeedbacks.map((fb, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '12px 14px', color: TEXT }}>{fb.date}</td>
                   <td style={{ padding: '12px 14px', color: TEXT }}>{fb.doctor}</td>
