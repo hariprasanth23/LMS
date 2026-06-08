@@ -7,10 +7,12 @@ import com.college.auth.model.User;
 import com.college.auth.repository.UserRepository;
 import com.college.auth.service.AuthService;
 import com.college.common.dto.ApiResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,8 +37,30 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok("Login successful", authService.login(request)));
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
+            @Valid @RequestBody LoginRequest request,
+            HttpServletResponse response) {
+        AuthResponse auth = authService.login(request);
+        ResponseCookie cookie = ResponseCookie.from("jwt_token", auth.getToken())
+                .httpOnly(true)
+                .path("/")
+                .maxAge(24 * 60 * 60)   // 1 day, matches JWT expiry
+                .sameSite("Strict")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+        return ResponseEntity.ok(ApiResponse.ok("Login successful", auth));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout(HttpServletResponse response) {
+        ResponseCookie clear = ResponseCookie.from("jwt_token", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+        response.addHeader("Set-Cookie", clear.toString());
+        return ResponseEntity.ok(ApiResponse.ok("Logged out successfully", "OK"));
     }
 
     @GetMapping("/me")

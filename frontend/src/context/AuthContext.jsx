@@ -5,82 +5,66 @@ import toast from 'react-hot-toast'
 
 const AuthContext = createContext(null)
 
-// Easy to change: duration of inactivity before auto-logout (15 minutes)
 const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000
-
-// Activity events that reset the inactivity timer
 const ACTIVITY_EVENTS = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart']
-
-function parseJwtPayload(token) {
-  try {
-    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-    return JSON.parse(window.atob(base64))
-  } catch {
-    return null
-  }
-}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
-  const [token, setToken] = useState(null)
   const [portalType, setPortalType] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
-
-  // Use a ref for the timer so resets don't cause re-renders
   const inactivityTimerRef = useRef(null)
 
+  // On mount: verify the httpOnly cookie is still valid via /auth/me.
+  // Only non-sensitive user info (name, role) lives in localStorage.
   useEffect(() => {
-    const storedToken = localStorage.getItem('college_token')
-    const storedUser = localStorage.getItem('college_user')
+    const storedUser   = localStorage.getItem('college_user')
     const storedPortal = localStorage.getItem('college_portal')
-    if (storedToken && storedUser) {
-      setToken(storedToken)
-      try {
-        setUser(JSON.parse(storedUser))
-      } catch {
+
+    if (!storedUser) {
+      setLoading(false)
+      return
+    }
+
+    api.get('/auth/me')
+      .then(() => {
+        try { setUser(JSON.parse(storedUser)) } catch { /* ignore bad JSON */ }
+        if (storedPortal) setPortalType(storedPortal)
+      })
+      .catch(() => {
+        // Cookie expired or revoked — clear stale local state
         localStorage.removeItem('college_user')
-      }
-    }
-    if (storedPortal) {
-      setPortalType(storedPortal)
-    }
-    setLoading(false)
+        localStorage.removeItem('college_portal')
+      })
+      .finally(() => setLoading(false))
   }, [])
 
   const login = async (identifier, password, portal) => {
-    const response = await api.post('/auth/login', {
-      identifier,
-      password
-    })
-    const { token: newToken, refreshToken, userId, name, email, role } = response.data.data
+    const response = await api.post('/auth/login', { identifier, password })
+    // Backend sets the httpOnly jwt_token cookie via Set-Cookie header.
+    // We only store non-sensitive user info locally.
+    const { userId, name, email, role } = response.data.data
     const userData = { userId, name, email, role }
 
-    // SECURITY NOTE: Tokens are stored in localStorage, which is accessible to any
-    // JavaScript running on the page and therefore vulnerable to XSS attacks.
-    // To fully harden this, migrate to httpOnly cookies (requires backend to set/clear
-    // the cookie via Set-Cookie header) and add SameSite=Strict CSRF protection at that point.
-    localStorage.setItem('college_token', newToken)
     localStorage.setItem('college_user', JSON.stringify(userData))
     if (portal) {
       localStorage.setItem('college_portal', portal)
       setPortalType(portal)
     }
-    setToken(newToken)
     setUser(userData)
     return userData
   }
 
-  const logout = useCallback((showExpiredMessage = false) => {
-    // Clear inactivity timer first to prevent double-firing
+  const logout = useCallback(async (showExpiredMessage = false) => {
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current)
       inactivityTimerRef.current = null
     }
-    localStorage.removeItem('college_token')
+    // Ask backend to clear the httpOnly cookie
+    try { await api.post('/auth/logout') } catch { /* ignore */ }
+
     localStorage.removeItem('college_user')
     localStorage.removeItem('college_portal')
-    setToken(null)
     setUser(null)
     setPortalType(null)
     if (showExpiredMessage) {
@@ -89,10 +73,9 @@ export function AuthProvider({ children }) {
     navigate('/auth/login')
   }, [navigate])
 
-  // Inactivity tracking: only active while user is authenticated
+  // Inactivity tracking — only runs while authenticated
   useEffect(() => {
-    if (!token) {
-      // Not authenticated — clear any lingering timer and do nothing
+    if (!user) {
       if (inactivityTimerRef.current) {
         clearTimeout(inactivityTimerRef.current)
         inactivityTimerRef.current = null
@@ -101,35 +84,30 @@ export function AuthProvider({ children }) {
     }
 
     const resetTimer = () => {
-      if (inactivityTimerRef.current) {
-        clearTimeout(inactivityTimerRef.current)
-      }
-      inactivityTimerRef.current = setTimeout(() => {
-        logout(true)
-      }, INACTIVITY_TIMEOUT_MS)
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current)
+      inactivityTimerRef.current = setTimeout(() => logout(true), INACTIVITY_TIMEOUT_MS)
     }
 
-    // Start the timer immediately when authenticated
     resetTimer()
+    ACTIVITY_EVENTS.forEach(e => window.addEventListener(e, resetTimer, { passive: true }))
 
-    // Attach activity listeners
-    ACTIVITY_EVENTS.forEach(event => {
-      window.addEventListener(event, resetTimer, { passive: true })
-    })
-
-    // Cleanup: remove listeners and clear timer on logout or unmount
     return () => {
-      ACTIVITY_EVENTS.forEach(event => {
-        window.removeEventListener(event, resetTimer)
-      })
+      ACTIVITY_EVENTS.forEach(e => window.removeEventListener(e, resetTimer))
       if (inactivityTimerRef.current) {
         clearTimeout(inactivityTimerRef.current)
         inactivityTimerRef.current = null
       }
     }
-  }, [token, logout])
+  }, [user, logout])
 
-  const value = { user, token, portalType, login, logout, loading, isAuthenticated: !!token }
+  const value = {
+    user,
+    portalType,
+    login,
+    logout,
+    loading,
+    isAuthenticated: !!user,
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

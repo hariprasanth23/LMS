@@ -43,10 +43,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/logout").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
-                        // All other actuator endpoints require ADMIN
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
+                        // Swagger / OpenAPI — open for API exploration
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

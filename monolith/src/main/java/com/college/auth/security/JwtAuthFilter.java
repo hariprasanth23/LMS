@@ -2,6 +2,7 @@ package com.college.auth.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -35,14 +36,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader(AUTHORIZATION_HEADER);
+        // 1. Try httpOnly cookie first (preferred — not accessible to JS)
+        String jwt = extractFromCookie(request, "jwt_token");
 
-        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
+        // 2. Fall back to Authorization: Bearer header (API clients, Swagger)
+        if (jwt == null) {
+            final String authHeader = request.getHeader(AUTHORIZATION_HEADER);
+            if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
+                jwt = authHeader.substring(BEARER_PREFIX.length());
+            }
+        }
+
+        if (jwt == null) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        final String jwt = authHeader.substring(BEARER_PREFIX.length());
 
         try {
             final String userEmail = jwtUtil.extractUsername(jwt);
@@ -66,5 +74,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String extractFromCookie(HttpServletRequest request, String name) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) return null;
+        for (Cookie c : cookies) {
+            if (name.equals(c.getName())) return c.getValue();
+        }
+        return null;
     }
 }
