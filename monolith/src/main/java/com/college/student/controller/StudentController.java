@@ -1,7 +1,9 @@
 package com.college.student.controller;
 
 import com.college.auth.model.User;
+import com.college.auth.repository.UserRepository;
 import com.college.common.dto.ApiResponse;
+import com.college.student.dto.StudentImportRow;
 import com.college.student.dto.StudentRequest;
 import com.college.student.model.Student;
 import com.college.student.model.StudentBankInfo;
@@ -14,11 +16,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/students")
@@ -28,6 +31,8 @@ public class StudentController {
     private final StudentService studentService;
     private final StudentRepository studentRepository;
     private final StudentBankInfoRepository bankInfoRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY')")
@@ -66,6 +71,64 @@ public class StudentController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         studentService.delete(id);
         return ResponseEntity.ok(ApiResponse.ok("Student deleted", null));
+    }
+
+    // ── Bulk CSV Import ───────────────────────────────────────────────────────────
+
+    @PostMapping("/import")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> importStudents(
+            @RequestBody List<StudentImportRow> rows) {
+
+        int success = 0, failure = 0;
+        List<Map<String, Object>> results = new ArrayList<>();
+
+        for (int i = 0; i < rows.size(); i++) {
+            StudentImportRow row = rows.get(i);
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("row", i + 2);
+            result.put("rollNumber", row.getRollNumber());
+            try {
+                if (userRepository.existsByEmail(row.getEmail())) {
+                    throw new IllegalStateException("Email already exists: " + row.getEmail());
+                }
+                if (studentRepository.existsByRollNumber(row.getRollNumber())) {
+                    throw new IllegalStateException("Roll number already exists: " + row.getRollNumber());
+                }
+                User user = userRepository.save(User.builder()
+                        .name(row.getName()).email(row.getEmail()).phone(row.getPhone())
+                        .password(passwordEncoder.encode("Demo@123"))
+                        .role(User.Role.STUDENT).active(true).build());
+
+                StudentRequest req = new StudentRequest();
+                req.setUserId(user.getId());
+                req.setRollNumber(row.getRollNumber());
+                req.setDepartmentId(row.getDepartmentId());
+                req.setSemester(row.getSemester());
+                req.setBatch(row.getBatch());
+                req.setJoinDate(row.getJoinDate() != null ? row.getJoinDate() : LocalDate.now());
+                req.setStatus(row.getStatus() != null ? row.getStatus() : "ACTIVE");
+                req.setGuardianName(row.getGuardianName());
+                req.setGuardianPhone(row.getGuardianPhone());
+                req.setAddress(row.getAddress());
+                studentService.create(req);
+
+                result.put("success", true);
+                result.put("message", "Imported successfully");
+                success++;
+            } catch (Exception e) {
+                result.put("success", false);
+                result.put("message", e.getMessage());
+                failure++;
+            }
+            results.add(result);
+        }
+
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("successCount", success);
+        summary.put("failureCount", failure);
+        summary.put("results", results);
+        return ResponseEntity.ok(ApiResponse.ok("Import complete", summary));
     }
 
     // ── MyInfo: combined profile + bank info ──────────────────────────────────────

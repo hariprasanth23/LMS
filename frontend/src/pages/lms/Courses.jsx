@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
-import { MdAdd, MdSearch, MdClose, MdBook, MdPeople, MdSchool } from 'react-icons/md'
+import { MdAdd, MdSearch, MdClose, MdBook, MdPeople, MdSchool, MdUploadFile } from 'react-icons/md'
+import CsvImportModal from '../../components/common/CsvImportModal'
 import PageHeader from '../../components/common/PageHeader'
 
 const TEXT = '#1e293b'
@@ -42,6 +43,7 @@ export default function Courses() {
   const [tab, setTab] = useState('my') // 'my' | 'all'
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
   const [submitting, setSubmitting] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
@@ -124,16 +126,16 @@ export default function Courses() {
         subtitle={`${baseList.length} course${baseList.length !== 1 ? 's' : ''} available`}
         action={
           (user?.role === 'ADMIN' || user?.role === 'FACULTY') ? (
-            <button
-              onClick={() => setShowModal(true)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px',
-                background: ACCENT, color: '#fff', border: 'none', borderRadius: 9,
-                fontSize: 13, fontWeight: 700, cursor: 'pointer'
-              }}
-            >
-              <MdAdd size={18} /> Create Course
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {user?.role === 'ADMIN' && (
+                <button onClick={() => setShowImport(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', background: '#fff', color: '#6366f1', border: '1.5px solid #c7d2fe', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                  <MdUploadFile size={16} /> Import CSV
+                </button>
+              )}
+              <button onClick={() => setShowModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                <MdAdd size={18} /> Create Course
+              </button>
+            </div>
           ) : null
         }
       />
@@ -398,6 +400,49 @@ export default function Courses() {
           </div>
         </div>
       )}
+
+      <CsvImportModal
+        isOpen={showImport}
+        onClose={() => setShowImport(false)}
+        onDone={() => fetchCourses()}
+        title="Import Courses"
+        sampleFile="sample_courses.csv"
+        columns={[
+          { key: 'code',         label: 'Course Code',          required: true },
+          { key: 'name',         label: 'Course Name',          required: true },
+          { key: 'description',  label: 'Description',          required: false },
+          { key: 'departmentId', label: 'Department ID (1–5)',  required: true, type: 'number' },
+          { key: 'credits',      label: 'Credits',              required: true, type: 'number' },
+          { key: 'semester',     label: 'Semester',             required: true, type: 'number', min: 1, max: 8 },
+          { key: 'facultyId',    label: 'Faculty ID (UUID)',    required: false },
+          { key: 'status',       label: 'Status (ACTIVE)',      required: false },
+        ]}
+        sampleRows={[
+          { code: 'CS7001', name: 'Sample Course A', description: 'Sample description A', departmentId: 1, credits: 3, semester: 5, facultyId: '', status: 'ACTIVE' },
+          { code: 'EC5001', name: 'Sample Course B', description: 'Sample description B', departmentId: 2, credits: 4, semester: 3, facultyId: '', status: 'ACTIVE' },
+        ]}
+        importFn={async (rows) => {
+          const results = []
+          let successCount = 0, failureCount = 0
+          for (let i = 0; i < rows.length; i++) {
+            const r = rows[i]
+            try {
+              await api.post('/courses', {
+                code: r.code, name: r.name, description: r.description || null,
+                departmentId: Number(r.departmentId), credits: Number(r.credits),
+                semester: Number(r.semester), facultyId: r.facultyId || null,
+                status: r.status || 'ACTIVE',
+              })
+              results.push({ row: i + 2, code: r.code, success: true, message: 'Imported successfully' })
+              successCount++
+            } catch (e) {
+              results.push({ row: i + 2, code: r.code, success: false, message: e.response?.data?.message || e.message })
+              failureCount++
+            }
+          }
+          return { successCount, failureCount, results }
+        }}
+      />
     </div>
   )
 }

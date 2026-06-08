@@ -9,6 +9,7 @@ import Register from './pages/auth/Register'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import Dashboard from './pages/dashboard/Dashboard'
 import Students from './pages/student/Students'
+import Departments from './pages/admin/Departments'
 import StudentDetail from './pages/student/StudentDetail'
 import Courses from './pages/lms/Courses'
 import CourseDetail from './pages/lms/CourseDetail'
@@ -130,6 +131,7 @@ function AppRoutes() {
         <Route path="courses/:id" element={<CourseDetail />} />
         <Route path="assignments" element={<Assignments />} />
         <Route path="employees" element={<Employees />} />
+        <Route path="departments" element={<Departments />} />
         <Route path="attendance" element={<Attendance />} />
         <Route path="leaves" element={<Leaves />} />
         <Route path="payroll" element={<Payroll />} />

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
-import { MdAdd, MdSearch, MdBadge, MdEdit, MdDeleteOutline, MdClose, MdPerson, MdEmail, MdPhone, MdWork, MdCalendarToday } from 'react-icons/md'
+import { MdAdd, MdSearch, MdBadge, MdEdit, MdDeleteOutline, MdClose, MdPerson, MdEmail, MdPhone, MdWork, MdCalendarToday, MdUploadFile } from 'react-icons/md'
+import CsvImportModal from '../../components/common/CsvImportModal'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -61,6 +62,7 @@ export default function Employees() {
   const [sortBy, setSortBy] = useState('name-asc')
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [editEmp, setEditEmp] = useState(null)
   const [detailEmp, setDetailEmp] = useState(null)
   const [submitting, setSubmitting] = useState(false)
@@ -188,16 +190,14 @@ export default function Employees() {
           <p style={{ margin: '4px 0 0', fontSize: 13, color: MUTED }}>{total} employees total</p>
         </div>
         {user?.role === 'ADMIN' && (
-          <button
-            onClick={openCreate}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px',
-              background: ACCENT, color: '#fff', border: 'none', borderRadius: 8,
-              fontSize: 13, fontWeight: 600, cursor: 'pointer'
-            }}
-          >
-            <MdAdd size={18} /> Add Employee
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setShowImport(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', background: '#fff', color: '#6366f1', border: '1.5px solid #c7d2fe', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              <MdUploadFile size={16} /> Import CSV
+            </button>
+            <button onClick={openCreate} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              <MdAdd size={18} /> Add Employee
+            </button>
+          </div>
         )}
       </div>
 
@@ -533,6 +533,39 @@ export default function Employees() {
           </div>
         </div>
       )}
+
+      <CsvImportModal
+        isOpen={showImport}
+        onClose={() => setShowImport(false)}
+        onDone={() => fetchEmployees()}
+        title="Import Employees"
+        sampleFile="sample_employees.csv"
+        columns={[
+          { key: 'empCode',      label: 'Emp Code',              required: true },
+          { key: 'name',         label: 'Full Name',             required: true },
+          { key: 'email',        label: 'Email',                 required: true, type: 'email' },
+          { key: 'phone',        label: 'Phone',                 required: false },
+          { key: 'departmentId', label: 'Department ID (1–5)',   required: true, type: 'number' },
+          { key: 'designation',  label: 'Designation',           required: true },
+          { key: 'employeeType', label: 'Type (FACULTY/STAFF)',  required: true, enum: ['FACULTY', 'STAFF', 'ADMIN'] },
+          { key: 'joinDate',     label: 'Join Date (YYYY-MM-DD)',required: true, type: 'date' },
+          { key: 'baseSalary',   label: 'Base Salary',           required: true, type: 'number' },
+          { key: 'qualifications', label: 'Qualifications',      required: false },
+        ]}
+        sampleRows={[
+          { empCode: 'FAC006', name: 'Sample Faculty A', email: 'facA@college.edu', phone: '9000000201', departmentId: 1, designation: 'Assistant Professor', employeeType: 'FACULTY', joinDate: '2024-06-01', baseSalary: 65000, qualifications: 'M.Tech' },
+          { empCode: 'STF002', name: 'Sample Staff B',   email: 'stfB@college.edu', phone: '9000000202', departmentId: 2, designation: 'Lab Instructor',       employeeType: 'STAFF',   joinDate: '2024-07-01', baseSalary: 40000, qualifications: 'B.E.' },
+        ]}
+        importFn={async (rows) => {
+          const res = await api.post('/employees/import', rows.map(r => ({
+            empCode: r.empCode, name: r.name, email: r.email, phone: r.phone || null,
+            departmentId: Number(r.departmentId), designation: r.designation,
+            employeeType: r.employeeType, joinDate: r.joinDate,
+            baseSalary: Number(r.baseSalary), qualifications: r.qualifications || null,
+          })))
+          return res.data.data
+        }}
+      />
     </div>
   )
 }

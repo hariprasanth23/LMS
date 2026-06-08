@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom'
 import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
-import { MdAdd, MdSearch, MdDownload, MdEdit, MdClose, MdChevronLeft, MdChevronRight } from 'react-icons/md'
+import { MdAdd, MdSearch, MdDownload, MdEdit, MdClose, MdChevronLeft, MdChevronRight, MdUploadFile } from 'react-icons/md'
 import PageHeader from '../../components/common/PageHeader'
+import CsvImportModal from '../../components/common/CsvImportModal'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -47,6 +48,7 @@ export default function Students() {
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [editStudent, setEditStudent] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [submitting, setSubmitting] = useState(false)
@@ -189,17 +191,20 @@ export default function Students() {
               <MdDownload size={16} /> Export CSV
             </button>
             {user?.role === 'ADMIN' && (
-              <button
-                onClick={openAdd}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '9px 16px', background: ACCENT, color: '#fff',
-                  border: 'none', borderRadius: 8, fontSize: 13,
-                  fontWeight: 600, fontFamily: 'system-ui, sans-serif', cursor: 'pointer'
-                }}
-              >
-                <MdAdd size={18} /> Add Student
-              </button>
+              <>
+                <button
+                  onClick={() => setShowImport(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', background: '#fff', color: '#6366f1', border: '1.5px solid #c7d2fe', borderRadius: 8, fontSize: 13, fontWeight: 600, fontFamily: 'system-ui, sans-serif', cursor: 'pointer' }}
+                >
+                  <MdUploadFile size={16} /> Import CSV
+                </button>
+                <button
+                  onClick={openAdd}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, fontFamily: 'system-ui, sans-serif', cursor: 'pointer' }}
+                >
+                  <MdAdd size={18} /> Add Student
+                </button>
+              </>
             )}
           </div>
         }
@@ -515,6 +520,39 @@ export default function Students() {
           </div>
         </div>
       )}
+
+      <CsvImportModal
+        isOpen={showImport}
+        onClose={() => setShowImport(false)}
+        onDone={() => fetchStudents()}
+        title="Import Students"
+        sampleFile="sample_students.csv"
+        columns={[
+          { key: 'rollNumber',    label: 'Roll Number',          required: true },
+          { key: 'name',          label: 'Full Name',            required: true },
+          { key: 'email',         label: 'Email',                required: true, type: 'email' },
+          { key: 'phone',         label: 'Phone',                required: true },
+          { key: 'departmentId',  label: 'Department ID (1–5)',  required: true, type: 'number' },
+          { key: 'semester',      label: 'Semester (1–8)',       required: true, type: 'number', min: 1, max: 8 },
+          { key: 'batch',         label: 'Batch (e.g. 2023-27)', required: false },
+          { key: 'guardianName',  label: 'Guardian Name',        required: false },
+          { key: 'guardianPhone', label: 'Guardian Phone',       required: false },
+          { key: 'address',       label: 'Address',              required: false },
+        ]}
+        sampleRows={[
+          { rollNumber: 'CSE2024001', name: 'Sample Student A', email: 'stuA@college.edu', phone: '9000000101', departmentId: 1, semester: 3, batch: '2024-28', guardianName: 'Guardian A', guardianPhone: '9100000101', address: '1 Sample Street' },
+          { rollNumber: 'ECE2024001', name: 'Sample Student B', email: 'stuB@college.edu', phone: '9000000102', departmentId: 2, semester: 2, batch: '2024-28', guardianName: 'Guardian B', guardianPhone: '9100000102', address: '2 Sample Street' },
+        ]}
+        importFn={async (rows) => {
+          const res = await api.post('/students/import', rows.map(r => ({
+            rollNumber: r.rollNumber, name: r.name, email: r.email, phone: r.phone,
+            departmentId: Number(r.departmentId), semester: Number(r.semester),
+            batch: r.batch || null, guardianName: r.guardianName || null,
+            guardianPhone: r.guardianPhone || null, address: r.address || null,
+          })))
+          return res.data.data
+        }}
+      />
     </div>
   )
 }

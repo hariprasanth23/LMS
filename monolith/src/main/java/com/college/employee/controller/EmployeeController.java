@@ -1,18 +1,24 @@
 package com.college.employee.controller;
 
+import com.college.auth.model.User;
+import com.college.auth.repository.UserRepository;
 import com.college.common.dto.ApiResponse;
+import com.college.employee.dto.EmployeeImportRow;
 import com.college.employee.dto.EmployeeRequest;
 import com.college.employee.dto.EmployeeResponse;
+import com.college.employee.repository.EmployeeRepository;
 import com.college.employee.service.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -20,6 +26,9 @@ import java.util.UUID;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final EmployeeRepository employeeRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STAFF', 'STUDENT', 'PARENT', 'ALUMNI')")
@@ -66,5 +75,66 @@ public class EmployeeController {
     public ResponseEntity<ApiResponse<Void>> deactivate(@PathVariable UUID id) {
         employeeService.deactivate(id);
         return ResponseEntity.ok(ApiResponse.ok("Employee deactivated", null));
+    }
+
+    // ── Bulk CSV Import ───────────────────────────────────────────────────────────
+
+    @PostMapping("/import")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> importEmployees(
+            @RequestBody List<EmployeeImportRow> rows) {
+
+        int success = 0, failure = 0;
+        List<Map<String, Object>> results = new ArrayList<>();
+
+        for (int i = 0; i < rows.size(); i++) {
+            EmployeeImportRow row = rows.get(i);
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("row", i + 2);
+            result.put("empCode", row.getEmpCode());
+            try {
+                if (employeeRepository.existsByEmpCode(row.getEmpCode())) {
+                    throw new IllegalStateException("Emp code already exists: " + row.getEmpCode());
+                }
+                if (row.getEmail() != null && userRepository.existsByEmail(row.getEmail())) {
+                    throw new IllegalStateException("Email already exists: " + row.getEmail());
+                }
+                User.Role role = "FACULTY".equalsIgnoreCase(row.getEmployeeType())
+                        ? User.Role.FACULTY : User.Role.STAFF;
+                User user = userRepository.save(User.builder()
+                        .name(row.getName()).email(row.getEmail()).phone(row.getPhone())
+                        .password(passwordEncoder.encode("Demo@123"))
+                        .role(role).active(true).build());
+
+                EmployeeRequest req = new EmployeeRequest();
+                req.setUserId(user.getId());
+                req.setEmpCode(row.getEmpCode());
+                req.setName(row.getName());
+                req.setEmail(row.getEmail());
+                req.setPhone(row.getPhone());
+                req.setDepartmentId(row.getDepartmentId());
+                req.setDesignation(row.getDesignation());
+                req.setEmployeeType(row.getEmployeeType() != null ? row.getEmployeeType() : "STAFF");
+                req.setJoinDate(row.getJoinDate() != null ? row.getJoinDate() : LocalDate.now());
+                req.setBaseSalary(row.getBaseSalary());
+                req.setQualifications(row.getQualifications());
+                employeeService.create(req);
+
+                result.put("success", true);
+                result.put("message", "Imported successfully");
+                success++;
+            } catch (Exception e) {
+                result.put("success", false);
+                result.put("message", e.getMessage());
+                failure++;
+            }
+            results.add(result);
+        }
+
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("successCount", success);
+        summary.put("failureCount", failure);
+        summary.put("results", results);
+        return ResponseEntity.ok(ApiResponse.ok("Import complete", summary));
     }
 }

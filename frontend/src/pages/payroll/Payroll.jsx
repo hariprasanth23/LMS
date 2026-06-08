@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
-import { MdPayment, MdAdd, MdCheck, MdDownload, MdClose, MdTrendingUp, MdPeople, MdAccountBalanceWallet } from 'react-icons/md'
+import { MdPayment, MdAdd, MdCheck, MdDownload, MdClose, MdTrendingUp, MdPeople, MdAccountBalanceWallet, MdUploadFile } from 'react-icons/md'
+import CsvImportModal from '../../components/common/CsvImportModal'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -126,6 +127,7 @@ export default function Payroll() {
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [showGenModal, setShowGenModal] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [filterMonth, setFilterMonth] = useState('')
   const [filterYear, setFilterYear] = useState('')
   const [genForm, setGenForm] = useState({
@@ -215,16 +217,14 @@ export default function Payroll() {
           </p>
         </div>
         {isAdmin && (
-          <button
-            onClick={() => setShowGenModal(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px',
-              background: ACCENT, color: '#fff', border: 'none', borderRadius: 8,
-              fontSize: 13, fontWeight: 600, cursor: 'pointer'
-            }}
-          >
-            <MdAdd size={18} /> Generate Payroll
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setShowImport(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', background: '#fff', color: '#6366f1', border: '1.5px solid #c7d2fe', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              <MdUploadFile size={16} /> Import CSV
+            </button>
+            <button onClick={() => setShowGenModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              <MdAdd size={18} /> Generate Payroll
+            </button>
+          </div>
         )}
       </div>
 
@@ -419,6 +419,49 @@ export default function Payroll() {
           </div>
         </div>
       )}
+
+      <CsvImportModal
+        isOpen={showImport}
+        onClose={() => setShowImport(false)}
+        onDone={() => fetchRecords()}
+        title="Import Payroll Records"
+        sampleFile="sample_payroll.csv"
+        columns={[
+          { key: 'employeeId',     label: 'Employee ID (UUID)',  required: true },
+          { key: 'month',          label: 'Month (1–12)',        required: true, type: 'number', min: 1, max: 12 },
+          { key: 'year',           label: 'Year',               required: true, type: 'number' },
+          { key: 'baseSalary',     label: 'Base Salary',        required: true, type: 'number' },
+          { key: 'allowances',     label: 'Allowances',         required: false, type: 'number' },
+          { key: 'deductions',     label: 'Deductions',         required: false, type: 'number' },
+          { key: 'leaveDeductions',label: 'Leave Deductions',   required: false, type: 'number' },
+          { key: 'netSalary',      label: 'Net Salary',         required: true, type: 'number' },
+        ]}
+        sampleRows={[
+          { employeeId: 'cccc0001-0000-0000-0000-000000000000', month: 7, year: 2026, baseSalary: 75000, allowances: 10000, deductions: 8000, leaveDeductions: 0, netSalary: 77000 },
+          { employeeId: 'cccc0002-0000-0000-0000-000000000000', month: 7, year: 2026, baseSalary: 65000, allowances: 8000,  deductions: 7000, leaveDeductions: 0, netSalary: 66000 },
+        ]}
+        importFn={async (rows) => {
+          const results = []
+          let successCount = 0, failureCount = 0
+          for (let i = 0; i < rows.length; i++) {
+            const r = rows[i]
+            try {
+              await api.post('/payroll/generate', {
+                employeeId: r.employeeId, month: Number(r.month), year: Number(r.year),
+                baseSalary: Number(r.baseSalary), allowances: Number(r.allowances || 0),
+                deductions: Number(r.deductions || 0), leaveDeductions: Number(r.leaveDeductions || 0),
+                netSalary: Number(r.netSalary),
+              })
+              results.push({ row: i + 2, empCode: r.employeeId?.slice(0, 8), success: true, message: 'Imported successfully' })
+              successCount++
+            } catch (e) {
+              results.push({ row: i + 2, empCode: r.employeeId?.slice(0, 8), success: false, message: e.response?.data?.message || e.message })
+              failureCount++
+            }
+          }
+          return { successCount, failureCount, results }
+        }}
+      />
     </div>
   )
 }

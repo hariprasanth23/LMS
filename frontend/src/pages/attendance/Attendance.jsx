@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react'
 import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
-import { MdCheck, MdClose, MdCalendarToday, MdWarning, MdChevronLeft, MdChevronRight } from 'react-icons/md'
+import { MdCheck, MdClose, MdCalendarToday, MdWarning, MdChevronLeft, MdChevronRight, MdUploadFile } from 'react-icons/md'
 import PageHeader from '../../components/common/PageHeader'
+import CsvImportModal from '../../components/common/CsvImportModal'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -357,6 +358,7 @@ function FacultyView({ user, courses }) {
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [studentSearch, setStudentSearch] = useState('')
+  const [showImport, setShowImport] = useState(false)
 
   useEffect(() => {
     if (!selectedCourse) return
@@ -415,17 +417,15 @@ function FacultyView({ user, courses }) {
         badge={user?.role === 'ADMIN' ? 'Admin' : 'Faculty'}
         subtitle="Select a course and date to record attendance"
         action={
-          <button
-            onClick={handleMark}
-            disabled={submitting || !selectedCourse || students.length === 0}
-            style={{
-              padding: '10px 22px', background: (submitting || !selectedCourse || students.length === 0) ? '#a5b4fc' : ACCENT,
-              color: '#fff', border: 'none', borderRadius: 9, fontSize: 13,
-              fontWeight: 700, cursor: (submitting || !selectedCourse || students.length === 0) ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {submitting ? 'Saving…' : '💾 Save Attendance'}
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setShowImport(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', background: '#fff', color: '#6366f1', border: '1.5px solid #c7d2fe', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              <MdUploadFile size={16} /> Import CSV
+            </button>
+            <button onClick={handleMark} disabled={submitting || !selectedCourse || students.length === 0}
+              style={{ padding: '10px 22px', background: (submitting || !selectedCourse || students.length === 0) ? '#a5b4fc' : ACCENT, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: (submitting || !selectedCourse || students.length === 0) ? 'not-allowed' : 'pointer' }}>
+              {submitting ? 'Saving…' : '💾 Save Attendance'}
+            </button>
+          </div>
         }
       />
 
@@ -560,6 +560,49 @@ function FacultyView({ user, courses }) {
           )}
         </div>
       )}
+
+      <CsvImportModal
+        isOpen={showImport}
+        onClose={() => setShowImport(false)}
+        title="Import Student Attendance"
+        sampleFile="sample_attendance.csv"
+        columns={[
+          { key: 'studentId', label: 'Student ID (UUID)',        required: true },
+          { key: 'courseId',  label: 'Course ID (UUID)',         required: true },
+          { key: 'date',      label: 'Date (YYYY-MM-DD)',        required: true, type: 'date' },
+          { key: 'status',    label: 'Status',                   required: true, enum: ['PRESENT','ABSENT','LATE','EXCUSED'] },
+        ]}
+        sampleRows={[
+          { studentId: 'bbbb0001-0000-0000-0000-000000000000', courseId: 'dddd0001-0000-0000-0000-000000000000', date: '2026-07-01', status: 'PRESENT' },
+          { studentId: 'bbbb0002-0000-0000-0000-000000000000', courseId: 'dddd0002-0000-0000-0000-000000000000', date: '2026-07-01', status: 'ABSENT' },
+        ]}
+        importFn={async (rows) => {
+          const grouped = {}
+          rows.forEach(r => {
+            const key = `${r.courseId}|${r.date}`
+            if (!grouped[key]) grouped[key] = { courseId: r.courseId, date: r.date, entries: [] }
+            grouped[key].entries.push({ studentId: r.studentId, status: r.status })
+          })
+          let successCount = 0, failureCount = 0
+          const results = []
+          let rowIdx = 2
+          for (const payload of Object.values(grouped)) {
+            try {
+              await api.post('/attendance/student', payload)
+              payload.entries.forEach(() => {
+                results.push({ row: rowIdx++, success: true, message: 'Imported successfully' })
+                successCount++
+              })
+            } catch (e) {
+              payload.entries.forEach(() => {
+                results.push({ row: rowIdx++, success: false, message: e.response?.data?.message || e.message })
+                failureCount++
+              })
+            }
+          }
+          return { successCount, failureCount, results }
+        }}
+      />
     </div>
   )
 }
