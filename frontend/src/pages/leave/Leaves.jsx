@@ -2,8 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
-import { MdAdd, MdCheck, MdClose, MdBeachAccess, MdChevronLeft, MdChevronRight, MdUpload, MdUploadFile } from 'react-icons/md'
-import CsvImportModal from '../../components/common/CsvImportModal'
+import { MdAdd, MdCheck, MdClose, MdBeachAccess, MdChevronLeft, MdChevronRight, MdUpload } from 'react-icons/md'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -163,7 +162,7 @@ export default function Leaves() {
   const [balance, setBalance] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [showImport, setShowImport] = useState(false)
+
   const [form, setForm] = useState({ leaveType: 'CASUAL', fromDate: '', toDate: '', reason: '' })
   const [submitting, setSubmitting] = useState(false)
   const [confirmAction, setConfirmAction] = useState(null) // { type: 'approve'|'reject', leave }
@@ -283,18 +282,11 @@ export default function Leaves() {
             {leaves.length} {isAdminOrFaculty ? 'total' : ''} requests
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {isAdminOrFaculty && (
-            <button onClick={() => setShowImport(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', background: '#fff', color: '#6366f1', border: '1.5px solid #c7d2fe', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-              <MdUploadFile size={16} /> Import CSV
-            </button>
-          )}
-          {!isAdminOrFaculty && (
-            <button onClick={() => setShowModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-              <MdAdd size={18} /> Apply for Leave
-            </button>
-          )}
-        </div>
+        {!isAdminOrFaculty && (
+          <button onClick={() => setShowModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            <MdAdd size={18} /> Apply for Leave
+          </button>
+        )}
       </div>
 
       {/* Non-admin layout: balance cards + calendar on the right */}
@@ -552,40 +544,6 @@ export default function Leaves() {
         </div>
       )}
 
-      <CsvImportModal
-        isOpen={showImport}
-        onClose={() => setShowImport(false)}
-        onDone={() => fetchLeaves ? fetchLeaves() : window.location.reload()}
-        title="Import Leave Requests"
-        sampleFile="sample_leaves.csv"
-        columns={[
-          { key: 'employeeId', label: 'Employee ID (UUID)', required: true },
-          { key: 'leaveType',  label: 'Leave Type',         required: true, enum: ['CASUAL','SICK','EARNED','MATERNITY','PATERNITY','UNPAID'] },
-          { key: 'fromDate',   label: 'From Date (YYYY-MM-DD)', required: true, type: 'date' },
-          { key: 'toDate',     label: 'To Date (YYYY-MM-DD)',   required: true, type: 'date' },
-          { key: 'reason',     label: 'Reason',             required: false },
-        ]}
-        sampleRows={[
-          { employeeId: 'cccc0001-0000-0000-0000-000000000000', leaveType: 'CASUAL', fromDate: '2026-07-10', toDate: '2026-07-11', reason: 'Personal work' },
-          { employeeId: 'cccc0002-0000-0000-0000-000000000000', leaveType: 'SICK',   fromDate: '2026-07-15', toDate: '2026-07-15', reason: 'Medical appointment' },
-        ]}
-        importFn={async (rows) => {
-          const results = []
-          let successCount = 0, failureCount = 0
-          for (let i = 0; i < rows.length; i++) {
-            const r = rows[i]
-            try {
-              await api.post('/leaves', { employeeId: r.employeeId, leaveType: r.leaveType, fromDate: r.fromDate, toDate: r.toDate, reason: r.reason || null })
-              results.push({ row: i + 2, empCode: r.employeeId?.slice(0, 8), success: true, message: 'Imported successfully' })
-              successCount++
-            } catch (e) {
-              results.push({ row: i + 2, empCode: r.employeeId?.slice(0, 8), success: false, message: e.response?.data?.message || e.message })
-              failureCount++
-            }
-          }
-          return { successCount, failureCount, results }
-        }}
-      />
     </div>
   )
 }
