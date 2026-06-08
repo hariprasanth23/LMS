@@ -358,7 +358,7 @@ export default function Login() {
             {row3.map((p) => renderPortalButton(p))}
           </div>
 
-          {/* ── Demo Credentials Card (always visible) ── */}
+          {/* ── Sample Credentials Card ── */}
           <div style={{
             marginTop: 16,
             background: 'linear-gradient(135deg, #f0f9ff 0%, #eff6ff 100%)',
@@ -377,14 +377,14 @@ export default function Login() {
                 background: 'linear-gradient(135deg, #6366f1, #3b82f6)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
-                <span style={{ fontSize: 15 }}>🎓</span>
+                <span style={{ fontSize: 15 }}>🔑</span>
               </div>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#1e40af', marginBottom: 2, fontFamily: ff }}>
-                  Demo Account · Works with all portals
+                  All sample accounts share the same password
                 </div>
-                <div style={{ fontSize: 12, color: '#3b82f6', fontFamily: 'monospace' }}>
-                  demo@college.com
+                <div style={{ fontSize: 11, color: '#64748b', fontFamily: ff }}>
+                  Use any email below to sign in
                 </div>
               </div>
             </div>
@@ -403,7 +403,7 @@ export default function Login() {
             </div>
           </div>
 
-          {/* ── Per-role demo credentials ── */}
+          {/* ── Per-role sample accounts ── */}
           <div style={{
             marginTop: 10,
             background: '#f8fafc',
@@ -412,28 +412,39 @@ export default function Login() {
             padding: '12px 16px',
           }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10, fontFamily: ff }}>
-              Role-specific accounts · password: Demo@123
+              Sample accounts · password: Demo@123
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               {[
-                { role: 'Admin',   email: 'admin@demo.com',   color: '#dc2626', bg: '#fef2f2' },
-                { role: 'Student', email: 'student@demo.com', color: '#3b82f6', bg: '#eff6ff' },
-                { role: 'Staff',   email: 'staff@demo.com',   color: '#8b5cf6', bg: '#f5f3ff' },
-              ].map(({ role, email, color, bg }) => (
+                { role: 'Admin',   email: 'admin@sample.edu',    note: null,      color: '#dc2626', bg: '#fef2f2' },
+                { role: 'Student', email: 'student1@sample.edu', note: '1 – 5',   color: '#3b82f6', bg: '#eff6ff' },
+                { role: 'Faculty', email: 'faculty1@sample.edu', note: '1 – 5',   color: '#8b5cf6', bg: '#f5f3ff' },
+              ].map(({ role, email, note, color, bg }) => (
                 <div key={role} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  background: bg, borderRadius: 8, padding: '7px 12px',
+                  background: bg, borderRadius: 8, padding: '7px 12px', gap: 8,
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                     <span style={{
                       fontSize: 10, fontWeight: 700, color, background: '#fff',
-                      border: `1px solid ${color}30`, borderRadius: 4, padding: '2px 6px', fontFamily: ff,
+                      border: `1px solid ${color}30`, borderRadius: 4, padding: '2px 6px',
+                      fontFamily: ff, flexShrink: 0,
                     }}>{role}</span>
-                    <span style={{ fontSize: 12, color: '#475569', fontFamily: 'monospace' }}>{email}</span>
+                    <span style={{ fontSize: 12, color: '#475569', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {email}
+                    </span>
+                    {note && (
+                      <span style={{ fontSize: 10, color: color, fontWeight: 600, fontFamily: ff, flexShrink: 0, opacity: 0.8 }}>
+                        ({note})
+                      </span>
+                    )}
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', fontFamily: 'monospace' }}>Demo@123</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', fontFamily: 'monospace', flexShrink: 0 }}>Demo@123</span>
                 </div>
               ))}
+            </div>
+            <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8', fontFamily: ff }}>
+              e.g. student2@sample.edu, faculty3@sample.edu also work
             </div>
           </div>
 
