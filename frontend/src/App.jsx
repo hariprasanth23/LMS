@@ -41,6 +41,9 @@ import ResearchGeneral from './pages/research/ResearchGeneral'
 
 import FeedbackGeneral from './pages/feedback/FeedbackGeneral'
 
+import AlumniPortal from './pages/alumni/AlumniPortal'
+import ParentPortal from './pages/parent/ParentPortal'
+
 import FacultyResearchGeneral from './pages/faculty/research/FacultyResearchGeneral'
 import FacultyCourseworkAllocation from './pages/faculty/research/FacultyCourseworkAllocation'
 
@@ -153,6 +156,9 @@ function AppRoutes() {
         <Route path="research/general" element={<ResearchGeneral />} />
 
         <Route path="feedback/general" element={<FeedbackGeneral />} />
+
+        <Route path="alumni" element={<AlumniPortal />} />
+        <Route path="parent" element={<ParentPortal />} />
 
         <Route path="faculty/research/general" element={<FacultyResearchGeneral />} />
         <Route path="faculty/research/coursework-allocation" element={<FacultyCourseworkAllocation />} />

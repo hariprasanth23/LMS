@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import api from '../../services/api'
+import toast from 'react-hot-toast'
 
 const TEXT = '#1e293b'
 const MUTED = '#64748b'
@@ -63,12 +65,36 @@ function ResearchRegulations() {
 
 // ─── My Research Profile ──────────────────────────────────────────────────────
 function MyResearchProfile() {
+  const [profile, setProfile] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.get('/research/profile')
+      .then(r => setProfile(r.data.data))
+      .catch(() => toast.error('Failed to load research profile'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: MUTED }}>Loading…</div>
+  if (!profile)  return <div style={{ padding: 24, color: MUTED, fontSize: 14 }}>No research profile found. Contact the research office to register.</div>
+
   const stats = [
-    { label: 'Publications', value: 3, color: ACCENT },
-    { label: 'Conferences', value: 2, color: '#16a34a' },
-    { label: 'Patents', value: 0, color: '#d97706' },
-    { label: 'Course Work Credits', value: '12/20', color: '#7c3aed' },
+    { label: 'Publications',        value: profile.publications,    color: ACCENT },
+    { label: 'Conferences',          value: profile.conferences,     color: '#16a34a' },
+    { label: 'Patents',              value: profile.patents,         color: '#d97706' },
+    { label: 'Course Work Credits',  value: `${profile.courseWorkCredits}/${profile.totalRequiredCredits}`, color: '#7c3aed' },
   ]
+
+  const fields = [
+    ['Scholar ID',           profile.scholarId],
+    ['Programme',            profile.programme],
+    ['Area of Research',     profile.areaOfResearch],
+    ['Date of Registration', profile.registrationDate],
+    ['Guide',                profile.guideName],
+    ['Co-Guide',             profile.coGuideName || '—'],
+    ['Status',               profile.status],
+  ]
+
   return (
     <div>
       <h2 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700, color: TEXT }}>My Research Profile</h2>
@@ -77,17 +103,7 @@ function MyResearchProfile() {
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>👨‍🎓</div>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 14 }}>
-              {[
-                ['Scholar ID', 'RSC2022001'],
-                ['Name', 'Hari Prasanth S'],
-                ['Department', 'Computer Science & Engineering'],
-                ['Programme', 'Ph.D'],
-                ['Area of Research', 'Machine Learning & NLP'],
-                ['Date of Registration', 'January 2022'],
-                ['Guide', 'Dr. A. Rajesh (IIT Alumni)'],
-                ['Co-Guide', 'Dr. S. Meena'],
-                ['Status', 'Active'],
-              ].map(([k, v]) => (
+              {fields.map(([k, v]) => (
                 <div key={k}>
                   <span style={{ color: MUTED, fontWeight: 600, fontSize: 13 }}>{k}: </span>
                   <span style={{ color: k === 'Status' ? '#16a34a' : TEXT, fontWeight: k === 'Status' ? 700 : 400 }}>{v}</span>
@@ -682,41 +698,60 @@ function GuideScholarMeeting() {
 }
 
 // ─── Weekly Scholar Workload ──────────────────────────────────────────────────
-const weeklyLogs = [
-  { week: 'May 13–19, 2024', activities: ['Literature Review', 'Analysis'], hours: 32, summary: 'Completed review of 8 papers, started data analysis pipeline.' },
-  { week: 'May 6–12, 2024', activities: ['Experiment', 'Data Collection'], hours: 38, summary: 'Ran baseline experiments, collected dataset samples.' },
-  { week: 'Apr 29–May 5, 2024', activities: ['Writing', 'Literature Review'], hours: 28, summary: 'Drafted methodology section, reviewed 5 more papers.' },
-]
-
 const allActivities = ['Literature Review', 'Experiment', 'Data Collection', 'Analysis', 'Writing', 'Others']
 
 function WeeklyScholarWorkload() {
+  const [logs, setLogs] = useState([])
   const [form, setForm] = useState({ activities: [], hours: '', summary: '' })
-  const [submitted, setSubmitted] = useState(false)
-  const currentWeek = 'May 20–26, 2024'
+  const [submitting, setSubmitting] = useState(false)
 
-  const toggleActivity = (act) => {
-    setForm(p => ({
-      ...p,
-      activities: p.activities.includes(act) ? p.activities.filter(a => a !== act) : [...p.activities, act],
-    }))
-  }
+  const currentWeek = (() => {
+    const now = new Date()
+    const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7))
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6)
+    const fmt = d => d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    return `${fmt(mon)} – ${fmt(sun)}`
+  })()
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    api.get('/research/weekly-logs')
+      .then(r => setLogs(r.data.data || []))
+      .catch(() => {})
+  }, [])
+
+  const toggleActivity = (act) => setForm(p => ({
+    ...p,
+    activities: p.activities.includes(act) ? p.activities.filter(a => a !== act) : [...p.activities, act],
+  }))
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitted(true)
-    setForm({ activities: [], hours: '', summary: '' })
-    setTimeout(() => setSubmitted(false), 3000)
+    if (!form.hours || !form.summary) { toast.error('Fill hours and summary'); return }
+    setSubmitting(true)
+    try {
+      const res = await api.post('/research/weekly-logs', {
+        weekLabel: currentWeek,
+        activities: form.activities,
+        hoursSpent: parseInt(form.hours),
+        summary: form.summary,
+      })
+      setLogs(prev => [res.data.data, ...prev])
+      setForm({ activities: [], hours: '', summary: '' })
+      toast.success('Weekly log submitted!')
+    } catch {
+      toast.error('Failed to submit log')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  const maxHours = Math.max(...weeklyLogs.map(l => l.hours), 1)
+  const maxHours = logs.length ? Math.max(...logs.map(l => l.hoursSpent || 0), 1) : 1
 
   return (
     <div>
       <h2 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700, color: TEXT }}>Weekly Scholar Workload</h2>
       <div style={{ ...card, padding: 24, marginBottom: 20 }}>
         <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 700, color: TEXT }}>Log for Week: <span style={{ color: ACCENT }}>{currentWeek}</span></h3>
-        {submitted && <div style={{ background: '#dcfce7', border: '1px solid #86efac', borderRadius: 8, padding: '10px 16px', marginBottom: 14, color: '#166534', fontWeight: 500, fontSize: 14 }}>Weekly log submitted!</div>}
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 10 }}>Research Activities (select all that apply)</label>
@@ -739,24 +774,28 @@ function WeeklyScholarWorkload() {
               <textarea value={form.summary} onChange={e => setForm(p => ({ ...p, summary: e.target.value }))} required rows={2} placeholder="Brief summary of work done this week..." style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 14, color: TEXT, resize: 'vertical', boxSizing: 'border-box' }} />
             </div>
           </div>
-          <button type="submit" style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 24px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Submit Weekly Log</button>
+          <button type="submit" disabled={submitting} style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 24px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+            {submitting ? 'Submitting…' : 'Submit Weekly Log'}
+          </button>
         </form>
       </div>
-      <div style={{ ...card, padding: 24 }}>
-        <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 700, color: TEXT }}>Workload Chart (Previous Weeks)</h3>
-        {weeklyLogs.map((log, i) => (
-          <div key={i} style={{ marginBottom: 18 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
-              <span style={{ fontWeight: 600, color: TEXT }}>{log.week}</span>
-              <span style={{ color: MUTED }}>{log.hours} hrs · {log.activities.join(', ')}</span>
+      {logs.length > 0 && (
+        <div style={{ ...card, padding: 24 }}>
+          <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 700, color: TEXT }}>Workload Chart (Previous Weeks)</h3>
+          {logs.map((log, i) => (
+            <div key={log.id || i} style={{ marginBottom: 18 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                <span style={{ fontWeight: 600, color: TEXT }}>{log.weekLabel}</span>
+                <span style={{ color: MUTED }}>{log.hoursSpent} hrs · {log.activities}</span>
+              </div>
+              <div style={{ height: 10, background: '#f1f5f9', borderRadius: 99, overflow: 'hidden' }}>
+                <div style={{ width: `${((log.hoursSpent || 0) / maxHours) * 100}%`, height: '100%', background: ACCENT, borderRadius: 99 }} />
+              </div>
+              <div style={{ fontSize: 12, color: MUTED, marginTop: 5 }}>{log.summary}</div>
             </div>
-            <div style={{ height: 10, background: '#f1f5f9', borderRadius: 99, overflow: 'hidden' }}>
-              <div style={{ width: `${(log.hours / maxHours) * 100}%`, height: '100%', background: ACCENT, borderRadius: 99 }} />
-            </div>
-            <div style={{ fontSize: 12, color: MUTED, marginTop: 5 }}>{log.summary}</div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

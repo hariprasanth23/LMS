@@ -6,6 +6,26 @@ import com.college.auth.model.User;
 import com.college.auth.repository.UserRepository;
 import com.college.employee.model.Employee;
 import com.college.employee.repository.EmployeeRepository;
+import com.college.examination.model.ExamSchedule;
+import com.college.examination.model.InternalMark;
+import com.college.examination.model.SemesterGrade;
+import com.college.examination.repository.ExamScheduleRepository;
+import com.college.examination.repository.InternalMarkRepository;
+import com.college.examination.repository.SemesterGradeRepository;
+import com.college.finance.model.FeeRecord;
+import com.college.finance.model.PaymentReceipt;
+import com.college.finance.model.WalletTransaction;
+import com.college.finance.repository.FeeRecordRepository;
+import com.college.finance.repository.PaymentReceiptRepository;
+import com.college.finance.repository.WalletTransactionRepository;
+import com.college.notification.model.Notification;
+import com.college.notification.repository.NotificationRepository;
+import com.college.research.model.ResearchProfile;
+import com.college.research.repository.ResearchProfileRepository;
+import com.college.services.model.BonafideApplication;
+import com.college.services.model.LibraryBook;
+import com.college.services.repository.BonafideRepository;
+import com.college.services.repository.LibraryBookRepository;
 import com.college.lms.model.Announcement;
 import com.college.lms.model.Course;
 import com.college.lms.repository.AnnouncementRepository;
@@ -42,6 +62,16 @@ public class DataInitializer implements ApplicationRunner {
     private final EnrollmentRepository enrollmentRepository;
     private final AnnouncementRepository announcementRepository;
     private final StudentAttendanceRepository studentAttendanceRepository;
+    private final ExamScheduleRepository examScheduleRepository;
+    private final InternalMarkRepository internalMarkRepository;
+    private final SemesterGradeRepository semesterGradeRepository;
+    private final FeeRecordRepository feeRecordRepository;
+    private final PaymentReceiptRepository paymentReceiptRepository;
+    private final WalletTransactionRepository walletTransactionRepository;
+    private final BonafideRepository bonafideRepository;
+    private final LibraryBookRepository libraryBookRepository;
+    private final ResearchProfileRepository researchProfileRepository;
+    private final NotificationRepository notificationRepository;
     private final PasswordEncoder passwordEncoder;
 
     private static final String DEFAULT_PASSWORD = "Demo@123";
@@ -61,6 +91,41 @@ public class DataInitializer implements ApplicationRunner {
             seedLmsData();
         } else {
             log.info("[DataInitializer] LMS data already seeded — skipping courses/announcements");
+        }
+
+        // ── Seed Examination data ────────────────────────────────────────────────────
+        if (examScheduleRepository.count() == 0) {
+            seedExaminationData();
+        } else {
+            log.info("[DataInitializer] Examination data already seeded — skipping");
+        }
+
+        // ── Seed Finance data ────────────────────────────────────────────────────────
+        if (feeRecordRepository.count() == 0) {
+            seedFinanceData();
+        } else {
+            log.info("[DataInitializer] Finance data already seeded — skipping");
+        }
+
+        // ── Seed Services data ───────────────────────────────────────────────────────
+        if (libraryBookRepository.count() == 0) {
+            seedServicesData();
+        } else {
+            log.info("[DataInitializer] Services data already seeded — skipping");
+        }
+
+        // ── Seed Research data ───────────────────────────────────────────────────────
+        if (researchProfileRepository.count() == 0) {
+            seedResearchData();
+        } else {
+            log.info("[DataInitializer] Research data already seeded — skipping");
+        }
+
+        // ── Seed Notifications ───────────────────────────────────────────────────────
+        if (notificationRepository.count() == 0) {
+            seedNotifications();
+        } else {
+            log.info("[DataInitializer] Notifications already seeded — skipping");
         }
     }
 
@@ -82,11 +147,11 @@ public class DataInitializer implements ApplicationRunner {
         createUser("Demo User", "demo@college.com", "9000000000", User.Role.ADMIN);
 
         // Per-role demo accounts
-        User admin   = createUser("Admin User",       "admin@demo.com",  "9000000001", User.Role.ADMIN);
+        createUser("Admin User",  "admin@demo.com",  "9000000001", User.Role.ADMIN);
         User student = createUser("Arjun Kumar",      "student@demo.com","9000000002", User.Role.STUDENT);
         User staff   = createUser("Dr. Priya Sharma", "staff@demo.com",  "9000000003", User.Role.FACULTY);
-        User parent  = createUser("Parent User",      "parent@demo.com", "9000000004", User.Role.PARENT);
-        User alumni  = createUser("Alumni User",      "alumni@demo.com", "9000000005", User.Role.ALUMNI);
+        createUser("Parent User", "parent@demo.com", "9000000004", User.Role.PARENT);
+        createUser("Alumni User", "alumni@demo.com", "9000000005", User.Role.ALUMNI);
 
         // Additional college users
         User faculty2 = createUser("Prof. Rajan Kumar", "rajan.kumar@college.edu", "9000000006", User.Role.FACULTY);
@@ -119,7 +184,7 @@ public class DataInitializer implements ApplicationRunner {
                 .baseSalary(new BigDecimal("35000")).status("ACTIVE").build());
 
         // Students
-        Student arjun = studentRepository.save(Student.builder()
+        studentRepository.save(Student.builder()
                 .id(UUID.randomUUID()).userId(student.getId())
                 .rollNumber("CSE2022001").department(csDept)
                 .semester(6).batch("2022-26").joinDate(LocalDate.of(2022, 8, 1))
@@ -274,6 +339,244 @@ public class DataInitializer implements ApplicationRunner {
                 .postedBy(facultyId).build());
 
         log.info("[DataInitializer] ✓ LMS data seeded — courses: 6, announcements: 4, attendance records: 120");
+    }
+
+    private void seedExaminationData() {
+        log.info("[DataInitializer] Seeding examination data...");
+
+        Optional<Student> arjunOpt = studentRepository.findByRollNumber("CSE2022001");
+        if (arjunOpt.isEmpty()) {
+            log.warn("[DataInitializer] Demo student not found — skipping examination seed");
+            return;
+        }
+        UUID arjunId = arjunOpt.get().getId();
+        LocalDate examBase = LocalDate.now().plusDays(5);
+
+        // ── Exam Schedule (Semester 6) ────────────────────────────────────────────
+        String[][] scheduleData = {
+            {"CS6001","Data Warehousing & Mining","10:00 AM","Hall A - 101","End Semester"},
+            {"CS6002","Compiler Design","02:00 PM","Hall B - 203","End Semester"},
+            {"CS6003","Cloud Computing","10:00 AM","Hall A - 102","End Semester"},
+            {"CS6004","Cryptography & Network Security","02:00 PM","Hall C - 301","End Semester"},
+            {"CS6005","Elective I — Big Data Analytics","10:00 AM","Hall B - 204","End Semester"},
+            {"CS6006","Elective II — DevOps","02:00 PM","Hall A - 103","End Semester"},
+        };
+        for (int i = 0; i < scheduleData.length; i++) {
+            String[] d = scheduleData[i];
+            examScheduleRepository.save(ExamSchedule.builder()
+                    .courseCode(d[0]).courseName(d[1])
+                    .examDate(examBase.plusDays(i * 2L))
+                    .timeSlot(d[2]).venue(d[3]).examType(d[4])
+                    .semester(6).batch("2022-26").departmentCode("CSE").build());
+        }
+
+        // ── Internal Marks (Semester 6) ───────────────────────────────────────────
+        int[][] marks = {
+            {18, 17, 19, 43, 5},  // CS6001
+            {15, 16, 14, 38, 4},  // CS6002
+            {19, 18, 20, 46, 5},  // CS6003
+            {16, 15, 17, 40, 4},  // CS6004
+            {20, 19, 18, 45, 5},  // CS6005
+            {14, 16, 15, 35, 3},  // CS6006
+        };
+        String[] courseCodes = {"CS6001","CS6002","CS6003","CS6004","CS6005","CS6006"};
+        String[] courseNames = {
+            "Data Warehousing & Mining","Compiler Design","Cloud Computing",
+            "Cryptography & Network Security","Elective I — Big Data Analytics","Elective II — DevOps"
+        };
+        for (int i = 0; i < marks.length; i++) {
+            internalMarkRepository.save(InternalMark.builder()
+                    .studentId(arjunId).courseCode(courseCodes[i]).courseName(courseNames[i])
+                    .semester(6).ca1(marks[i][0]).ca2(marks[i][1]).ca3(marks[i][2])
+                    .modelExam(marks[i][3]).attendanceMark(marks[i][4]).build());
+        }
+
+        // ── Semester Grades (past 5 semesters + current) ─────────────────────────
+        // Past semesters: 1–5 — realistic grades
+        Object[][][] pastGrades = {
+            // Sem 1
+            {{"CS1001","Programming in C",4,"B+",new BigDecimal("7")},{"MA1001","Engineering Mathematics I",4,"A",new BigDecimal("8")},{"PH1001","Engineering Physics",4,"B",new BigDecimal("6")},{"CS1002","Digital Logic Design",3,"A+",new BigDecimal("9")}},
+            // Sem 2
+            {{"CS2001","Data Structures",4,"O",new BigDecimal("10")},{"MA2001","Engineering Mathematics II",4,"A+",new BigDecimal("9")},{"CS2002","Object Oriented Programming",4,"A",new BigDecimal("8")},{"EC2001","Electronic Circuits",3,"B+",new BigDecimal("7")}},
+            // Sem 3
+            {{"CS3001","Design & Analysis of Algorithms",4,"A+",new BigDecimal("9")},{"CS3002","Computer Organization",4,"A",new BigDecimal("8")},{"CS3003","Database Management Systems",4,"O",new BigDecimal("10")},{"MA3001","Probability & Statistics",3,"A",new BigDecimal("8")}},
+            // Sem 4
+            {{"CS4001","Operating Systems",4,"A+",new BigDecimal("9")},{"CS4002","Computer Networks",4,"A",new BigDecimal("8")},{"CS4003","Software Engineering",3,"O",new BigDecimal("10")},{"CS4004","Microprocessors",3,"F",new BigDecimal("0")}},
+            // Sem 5
+            {{"CS5001","Machine Learning",4,"O",new BigDecimal("10")},{"CS5002","Web Technologies",4,"A+",new BigDecimal("9")},{"CS5003","Theory of Computation",3,"A",new BigDecimal("8")},{"CS5004","Elective I",3,"A+",new BigDecimal("9")}},
+        };
+        for (int sem = 0; sem < pastGrades.length; sem++) {
+            for (Object[] g : pastGrades[sem]) {
+                semesterGradeRepository.save(SemesterGrade.builder()
+                        .studentId(arjunId)
+                        .courseCode((String) g[0]).courseName((String) g[1])
+                        .semester(sem + 1).credits((Integer) g[2])
+                        .grade((String) g[3]).gradePoints((BigDecimal) g[4]).build());
+            }
+        }
+
+        // Current semester grades
+        String[][] sem6Grades = {
+            {"CS6001","Data Warehousing & Mining","4","O","10"},
+            {"CS6002","Compiler Design","4","A+","9"},
+            {"CS6003","Cloud Computing","4","O","10"},
+            {"CS6004","Cryptography & Network Security","3","A","8"},
+            {"CS6005","Elective I — Big Data Analytics","3","A+","9"},
+            {"CS6006","Elective II — DevOps","3","B+","7"},
+        };
+        for (String[] g : sem6Grades) {
+            semesterGradeRepository.save(SemesterGrade.builder()
+                    .studentId(arjunId).courseCode(g[0]).courseName(g[1])
+                    .semester(6).credits(Integer.parseInt(g[2]))
+                    .grade(g[3]).gradePoints(new BigDecimal(g[4])).build());
+        }
+
+        log.info("[DataInitializer] ✓ Examination data seeded — schedule: 6, marks: 6, grades: 26");
+    }
+
+    private void seedNotifications() {
+        log.info("[DataInitializer] Seeding notifications...");
+        userRepository.findByEmail("student@demo.com").ifPresent(u -> {
+            Object[][] notifs = {
+                {"Assignment Due Tomorrow", "Data Warehousing & Mining assignment due in 24 hours. Please submit via LMS.", "ASSIGNMENT"},
+                {"Exam Schedule Released", "End Semester Examination schedule for Semester 6 has been published.", "EXAM"},
+                {"Fee Payment Reminder", "Tuition fee of ₹45,000 is due by 1st Jul 2025. Pay to avoid penalty.", "PAYMENT"},
+                {"Attendance Warning", "Your attendance in Cloud Computing is below 75%. Attend classes to avoid debarment.", "ALERT"},
+                {"Quiz Result Available", "Your DBMS Chapter 5 Quiz result is now available. Score: 9/10.", "INFO"},
+            };
+            for (Object[] n : notifs) {
+                notificationRepository.save(Notification.builder()
+                        .userId(u.getId()).title((String) n[0])
+                        .message((String) n[1]).type((String) n[2])
+                        .isRead(false).build());
+            }
+        });
+        userRepository.findByEmail("staff@demo.com").ifPresent(u -> {
+            Object[][] notifs = {
+                {"Marks Entry Pending", "Please enter CAT-2 marks for CS6001 — Data Warehousing before Friday.", "ASSIGNMENT"},
+                {"Leave Request Approved", "Your leave request for 10 Jun 2025 has been approved by the HoD.", "INFO"},
+                {"Faculty Meeting Reminder", "Academic Council meeting scheduled on 12 Jun 2025 at 11 AM.", "EVENT"},
+            };
+            for (Object[] n : notifs) {
+                notificationRepository.save(Notification.builder()
+                        .userId(u.getId()).title((String) n[0])
+                        .message((String) n[1]).type((String) n[2])
+                        .isRead(false).build());
+            }
+        });
+        log.info("[DataInitializer] ✓ Notifications seeded");
+    }
+
+    private void seedResearchData() {
+        log.info("[DataInitializer] Seeding research data...");
+        studentRepository.findByRollNumber("CSE2022001").ifPresent(arjun ->
+            researchProfileRepository.save(ResearchProfile.builder()
+                    .studentId(arjun.getId())
+                    .scholarId("RSC2022001")
+                    .programme("Ph.D")
+                    .areaOfResearch("Machine Learning & NLP")
+                    .registrationDate(LocalDate.of(2022, 1, 15))
+                    .guideName("Dr. A. Rajesh")
+                    .coGuideName("Dr. S. Meena")
+                    .status("Active")
+                    .publications(3)
+                    .conferences(2)
+                    .patents(0)
+                    .courseWorkCredits(12)
+                    .totalRequiredCredits(20)
+                    .build())
+        );
+        log.info("[DataInitializer] ✓ Research data seeded");
+    }
+
+    private void seedServicesData() {
+        log.info("[DataInitializer] Seeding services data...");
+        Optional<Student> arjunOpt = studentRepository.findByRollNumber("CSE2022001");
+        if (arjunOpt.isEmpty()) return;
+        UUID arjunId = arjunOpt.get().getId();
+
+        // Bonafide applications
+        bonafideRepository.save(BonafideApplication.builder()
+                .studentId(arjunId).applicationNumber("BON2024001")
+                .purpose("Higher Studies").addressedTo("The Visa Officer")
+                .description("Required for university application").language("English")
+                .copies(2).urgency("Normal").status("Ready for Collection").build());
+        bonafideRepository.save(BonafideApplication.builder()
+                .studentId(arjunId).applicationNumber("BON2024002")
+                .purpose("Bank Account").addressedTo("The Branch Manager")
+                .description("Account opening").language("English")
+                .copies(1).urgency("Normal").status("Processing").build());
+
+        // Issued library books
+        LocalDate today = LocalDate.now();
+        libraryBookRepository.save(LibraryBook.builder()
+                .studentId(arjunId).title("Introduction to Algorithms")
+                .author("CLRS").isbn("978-0262046305")
+                .issueDate(today.minusDays(10)).dueDate(today.plusDays(11))
+                .renewalsUsed(0).maxRenewals(2).returned(false).build());
+        libraryBookRepository.save(LibraryBook.builder()
+                .studentId(arjunId).title("Clean Code")
+                .author("Robert C. Martin").isbn("978-0132350884")
+                .issueDate(today.minusDays(5)).dueDate(today.plusDays(16))
+                .renewalsUsed(1).maxRenewals(2).returned(false).build());
+        libraryBookRepository.save(LibraryBook.builder()
+                .studentId(arjunId).title("Deep Learning")
+                .author("Goodfellow et al.").isbn("978-0262035613")
+                .issueDate(today.minusDays(25)).dueDate(today.minusDays(4))
+                .renewalsUsed(2).maxRenewals(2).returned(false).build());
+
+        log.info("[DataInitializer] ✓ Services data seeded");
+    }
+
+    private void seedFinanceData() {
+        log.info("[DataInitializer] Seeding finance data...");
+
+        Optional<Student> arjunOpt = studentRepository.findByRollNumber("CSE2022001");
+        if (arjunOpt.isEmpty()) return;
+        UUID arjunId = arjunOpt.get().getId();
+        LocalDate dueDate = LocalDate.now().plusMonths(1).withDayOfMonth(1);
+
+        // ── Fee records ───────────────────────────────────────────────────────────
+        String[][] fees = {
+            {"Tuition Fee",                   "45000", "PENDING"},
+            {"Hostel Fee",                    "15000", "PAID"},
+            {"Library Fee",                   "500",   "PAID"},
+            {"Lab Fee",                       "2000",  "PENDING"},
+            {"Exam Fee",                      "500",   "PAID"},
+            {"University Development Fund",   "5000",  "PENDING"},
+        };
+        for (String[] f : fees) {
+            feeRecordRepository.save(FeeRecord.builder()
+                    .studentId(arjunId).feeType(f[0])
+                    .amount(new BigDecimal(f[1]))
+                    .dueDate(dueDate).status(f[2])
+                    .academicYear("2024-25").semester(6).build());
+        }
+
+        // ── Payment receipts ──────────────────────────────────────────────────────
+        Object[][] receipts = {
+            {"RCP001", "Tuition Fee - Sem 5",   45000, "UPI"},
+            {"RCP002", "Hostel Fee - Sem 5",    15000, "Net Banking"},
+            {"RCP003", "Exam Fee - Sem 4",      500,   "Card"},
+            {"RCP004", "Lab Fee - Sem 4",       2000,  "UPI"},
+            {"RCP005", "Library Fee",           500,   "Wallet"},
+            {"RCP006", "Tuition Fee - Sem 4",   45000, "Net Banking"},
+        };
+        for (Object[] r : receipts) {
+            paymentReceiptRepository.save(PaymentReceipt.builder()
+                    .studentId(arjunId).receiptNumber((String) r[0])
+                    .description((String) r[1])
+                    .amount(new BigDecimal((int) r[2]))
+                    .paymentMode((String) r[3]).status("Success").build());
+        }
+
+        // ── Wallet with initial balance ───────────────────────────────────────────
+        walletTransactionRepository.save(WalletTransaction.builder()
+                .studentId(arjunId).type("Credit")
+                .amount(new BigDecimal("2340"))
+                .mode("Net Banking").balanceAfter(new BigDecimal("2340")).build());
+
+        log.info("[DataInitializer] ✓ Finance data seeded");
     }
 
     private User createUser(String name, String email, String phone, User.Role role) {

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import api from '../../services/api'
 import {
   MdSearch,
   MdNotifications,
@@ -31,32 +32,24 @@ const roleColors = {
   ALUMNI:  { bg: '#fff7ed', color: '#ea580c',  avatar: '#ea580c'  },
 }
 
-const MOCK_NOTIFICATIONS = [
-  {
-    id: 1,
-    icon: MdAssignment,
-    iconColor: ACCENT,
-    text: 'Assignment due tomorrow – Data Structures',
-    time: '2 hrs ago',
-    unread: true,
-  },
-  {
-    id: 2,
-    icon: MdEvent,
-    iconColor: '#10b981',
-    text: 'Exam schedule released',
-    time: '5 hrs ago',
-    unread: true,
-  },
-  {
-    id: 3,
-    icon: MdPayment,
-    iconColor: '#f59e0b',
-    text: 'Fee payment reminder: ₹47,500 due',
-    time: '1 day ago',
-    unread: true,
-  },
-]
+// Icon + colour map keyed by notification type from the backend
+const TYPE_ICON = {
+  ASSIGNMENT: { icon: MdAssignment, color: ACCENT      },
+  EXAM:       { icon: MdEvent,      color: '#10b981'   },
+  PAYMENT:    { icon: MdPayment,    color: '#f59e0b'   },
+  ALERT:      { icon: MdEvent,      color: '#ef4444'   },
+  EVENT:      { icon: MdEvent,      color: '#8b5cf6'   },
+  INFO:       { icon: MdAssignment, color: MUTED       },
+}
+
+function relativeTime(isoString) {
+  if (!isoString) return ''
+  const diff = Math.floor((Date.now() - new Date(isoString)) / 1000)
+  if (diff < 60)    return 'just now'
+  if (diff < 3600)  return `${Math.floor(diff / 60)} min ago`
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`
+  return `${Math.floor(diff / 86400)} day ago`
+}
 
 // ─── Page title / breadcrumb helpers ─────────────────────────────────────────
 
@@ -219,11 +212,24 @@ function DropdownPanel({ children, style = {} }) {
 
 // ─── Notifications dropdown ───────────────────────────────────────────────────
 
-function NotificationsDropdown({ onClose }) {
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS)
-  const unreadCount = notifications.filter(n => n.unread).length
+function NotificationsDropdown({ onClose, onCountChange }) {
+  const [notifications, setNotifications] = useState([])
 
-  const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, unread: false })))
+  useEffect(() => {
+    api.get('/notifications')
+      .then(r => setNotifications(r.data.data || []))
+      .catch(() => {})
+  }, [])
+
+  const unreadCount = notifications.filter(n => !n.isRead).length
+
+  const markAllRead = async () => {
+    try {
+      await api.post('/notifications/mark-all-read')
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
+      onCountChange?.(0)
+    } catch { /* silent */ }
+  }
 
   return (
     <DropdownPanel style={{ width: 320, padding: 0 }}>
@@ -255,8 +261,13 @@ function NotificationsDropdown({ onClose }) {
 
       {/* Items */}
       <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+        {notifications.length === 0 && (
+          <div style={{ padding: '20px 16px', textAlign: 'center', color: MUTED, fontFamily: 'system-ui, sans-serif', fontSize: 13 }}>
+            No notifications
+          </div>
+        )}
         {notifications.map(n => {
-          const Icon = n.icon
+          const { icon: Icon, color: iconColor } = TYPE_ICON[n.type] || TYPE_ICON.INFO
           return (
             <div
               key={n.id}
@@ -266,57 +277,33 @@ function NotificationsDropdown({ onClose }) {
                 gap: 10,
                 padding: '11px 16px',
                 borderBottom: '1px solid #f8fafc',
-                background: n.unread ? '#fafbff' : '#fff',
+                background: !n.isRead ? '#fafbff' : '#fff',
                 cursor: 'default',
               }}
             >
               {/* Icon bubble */}
               <div style={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                background: n.iconColor + '18',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                marginTop: 1,
+                width: 32, height: 32, borderRadius: '50%',
+                background: iconColor + '18',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, marginTop: 1,
               }}>
-                <Icon style={{ color: n.iconColor, fontSize: 16 }} />
+                <Icon style={{ color: iconColor, fontSize: 16 }} />
               </div>
 
               {/* Text */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontFamily: 'system-ui, sans-serif',
-                  fontSize: 13,
-                  color: TEXT,
-                  fontWeight: n.unread ? 600 : 400,
-                  lineHeight: 1.4,
-                  whiteSpace: 'normal',
-                }}>
-                  {n.text}
+                <div style={{ fontFamily: 'system-ui, sans-serif', fontSize: 13, color: TEXT, fontWeight: !n.isRead ? 600 : 400, lineHeight: 1.4, whiteSpace: 'normal' }}>
+                  {n.title}
                 </div>
-                <div style={{
-                  fontFamily: 'system-ui, sans-serif',
-                  fontSize: 11,
-                  color: MUTED,
-                  marginTop: 2,
-                }}>
-                  {n.time}
+                <div style={{ fontFamily: 'system-ui, sans-serif', fontSize: 11, color: MUTED, marginTop: 2 }}>
+                  {relativeTime(n.createdAt)}
                 </div>
               </div>
 
               {/* Unread dot */}
-              {n.unread && (
-                <div style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: '50%',
-                  background: ACCENT,
-                  flexShrink: 0,
-                  marginTop: 5,
-                }} />
+              {!n.isRead && (
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: ACCENT, flexShrink: 0, marginTop: 5 }} />
               )}
             </div>
           )
@@ -490,9 +477,17 @@ export default function Navbar({ onToggleSidebar, isMobile }) {
 
   const [showNotifications, setShowNotifications] = useState(false)
   const [showUserMenu,      setShowUserMenu]      = useState(false)
+  const [unreadCount,       setUnreadCount]       = useState(0)
 
   const notifRef   = useRef(null)
   const userMenuRef = useRef(null)
+
+  // Fetch unread count on mount (lightweight — just a number)
+  useEffect(() => {
+    api.get('/notifications/unread-count')
+      .then(r => setUnreadCount(r.data.data?.count ?? 0))
+      .catch(() => {})
+  }, [])
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -508,9 +503,8 @@ export default function Navbar({ onToggleSidebar, isMobile }) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const roleStyle  = roleColors[user?.role] || roleColors.FACULTY
-  const initials   = getInitials(user?.name)
-  const unreadCount = MOCK_NOTIFICATIONS.filter(n => n.unread).length
+  const roleStyle = roleColors[user?.role] || roleColors.FACULTY
+  const initials  = getInitials(user?.name)
 
   const { title, breadcrumbs } = getPageTitle(location.pathname)
 
@@ -675,7 +669,10 @@ export default function Navbar({ onToggleSidebar, isMobile }) {
           </CircleButton>
 
           {showNotifications && (
-            <NotificationsDropdown onClose={() => setShowNotifications(false)} />
+            <NotificationsDropdown
+              onClose={() => setShowNotifications(false)}
+              onCountChange={setUnreadCount}
+            />
           )}
         </div>
 

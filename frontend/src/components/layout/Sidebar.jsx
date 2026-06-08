@@ -715,10 +715,12 @@ export default function Sidebar({ onCollapsedChange, isMobile, sidebarOpen, onCl
 
   // ── Role config ──
   const roleColors = {
-    ADMIN: '#ef4444',
+    ADMIN:   '#ef4444',
     FACULTY: '#6366f1',
     STUDENT: '#10b981',
-    STAFF: '#f59e0b'
+    STAFF:   '#f59e0b',
+    ALUMNI:  '#0ea5e9',
+    PARENT:  '#a855f7',
   }
   const roleColor = roleColors[role] || ACCENT
 
@@ -744,10 +746,22 @@ export default function Sidebar({ onCollapsedChange, isMobile, sidebarOpen, onCl
     { to: '/attendance', icon: <MdEventNote />, label: 'Attendance' }
   ]
 
+  const alumniItems = [
+    { to: '/alumni',  icon: <MdSchool />,   label: 'Alumni Portal' },
+    { to: '/profile', icon: <MdPerson />,   label: 'My Profile'   },
+  ]
+
+  const parentItems = [
+    { to: '/parent',  icon: <MdSupervisorAccount />, label: 'Parent Portal' },
+    { to: '/profile', icon: <MdPerson />,            label: 'My Profile'   },
+  ]
+
   const roleItems = {
-    ADMIN: adminItems,
+    ADMIN:   adminItems,
     FACULTY: facultyItems,
-    STAFF: staffItems
+    STAFF:   staffItems,
+    ALUMNI:  alumniItems,
+    PARENT:  parentItems,
   }
 
   const specificItems = roleItems[role] || []
