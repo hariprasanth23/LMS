@@ -424,38 +424,37 @@ export default function Payroll() {
         isOpen={showImport}
         onClose={() => setShowImport(false)}
         onDone={() => fetchRecords()}
-        title="Import Payroll Records"
-        sampleFile="sample_payroll.csv"
+        title="Generate Payroll via CSV"
+        sampleFile="sample_payroll_periods.csv"
         columns={[
-          { key: 'employeeId',     label: 'Employee ID (UUID)',  required: true },
-          { key: 'month',          label: 'Month (1–12)',        required: true, type: 'number', min: 1, max: 12 },
-          { key: 'year',           label: 'Year',               required: true, type: 'number' },
-          { key: 'baseSalary',     label: 'Base Salary',        required: true, type: 'number' },
-          { key: 'allowances',     label: 'Allowances',         required: false, type: 'number' },
-          { key: 'deductions',     label: 'Deductions',         required: false, type: 'number' },
-          { key: 'leaveDeductions',label: 'Leave Deductions',   required: false, type: 'number' },
-          { key: 'netSalary',      label: 'Net Salary',         required: true, type: 'number' },
+          { key: 'month',   label: 'Month (1–12)', required: true, type: 'number', min: 1, max: 12 },
+          { key: 'year',    label: 'Year',         required: true, type: 'number' },
+          { key: 'remarks', label: 'Remarks',      required: false },
         ]}
         sampleRows={[
-          { employeeId: 'cccc0001-0000-0000-0000-000000000000', month: 7, year: 2026, baseSalary: 75000, allowances: 10000, deductions: 8000, leaveDeductions: 0, netSalary: 77000 },
-          { employeeId: 'cccc0002-0000-0000-0000-000000000000', month: 7, year: 2026, baseSalary: 65000, allowances: 8000,  deductions: 7000, leaveDeductions: 0, netSalary: 66000 },
+          { month: 9, year: 2026, remarks: 'September payroll' },
+          { month: 10, year: 2026, remarks: 'October payroll' },
         ]}
         importFn={async (rows) => {
           const results = []
           let successCount = 0, failureCount = 0
+          const seen = new Set()
           for (let i = 0; i < rows.length; i++) {
             const r = rows[i]
+            const key = `${r.month}-${r.year}`
+            if (seen.has(key)) {
+              results.push({ row: i + 2, empCode: key, success: false, message: 'Duplicate month/year — skipped' })
+              failureCount++
+              continue
+            }
+            seen.add(key)
             try {
-              await api.post('/payroll/generate', {
-                employeeId: r.employeeId, month: Number(r.month), year: Number(r.year),
-                baseSalary: Number(r.baseSalary), allowances: Number(r.allowances || 0),
-                deductions: Number(r.deductions || 0), leaveDeductions: Number(r.leaveDeductions || 0),
-                netSalary: Number(r.netSalary),
-              })
-              results.push({ row: i + 2, empCode: r.employeeId?.slice(0, 8), success: true, message: 'Imported successfully' })
+              const res = await api.post('/payroll/generate', { month: Number(r.month), year: Number(r.year), remarks: r.remarks || null })
+              const count = res.data.data?.length || 0
+              results.push({ row: i + 2, empCode: `${r.month}/${r.year}`, success: true, message: `Generated for ${count} employees` })
               successCount++
             } catch (e) {
-              results.push({ row: i + 2, empCode: r.employeeId?.slice(0, 8), success: false, message: e.response?.data?.message || e.message })
+              results.push({ row: i + 2, empCode: `${r.month}/${r.year}`, success: false, message: e.response?.data?.message || e.message })
               failureCount++
             }
           }
