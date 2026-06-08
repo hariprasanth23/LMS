@@ -222,9 +222,15 @@ public class DataInitializer implements ApplicationRunner {
     private void seedLmsData() {
         log.info("[DataInitializer] Seeding LMS data (courses, enrollments, announcements, attendance)...");
 
-        // Look up the faculty user by email to use as instructor
+        // Look up the faculty user by email to use as instructor; fall back to any admin if missing
         Optional<User> staffOpt = userRepository.findByEmail("staff@demo.com");
-        UUID facultyId = staffOpt.map(User::getId).orElse(null);
+        if (staffOpt.isEmpty()) {
+            staffOpt = userRepository.findByEmail("admin@demo.com");
+        }
+        if (staffOpt.isEmpty()) {
+            staffOpt = userRepository.findByEmail("demo@college.com");
+        }
+        final UUID facultyId = staffOpt.map(User::getId).orElse(null);
 
         // Look up CSE department
         Optional<Department> csDeptOpt = departmentRepository.findByCode("CSE");
@@ -301,21 +307,24 @@ public class DataInitializer implements ApplicationRunner {
                  "PRESENT","ABSENT","PRESENT","PRESENT","PRESENT"},
             };
 
-            LocalDate baseDate = LocalDate.now().minusDays(28);
-            for (int ci = 0; ci < courses.size(); ci++) {
-                UUID courseId = courses.get(ci).getId();
-                String[] pattern = attendancePattern[ci];
-                int classDay = 0;
-                for (int dayOffset = 0; dayOffset < 30 && classDay < 20; dayOffset++) {
-                    LocalDate date = baseDate.plusDays(dayOffset);
-                    // Skip weekends
-                    if (date.getDayOfWeek().getValue() >= 6) continue;
-                    studentAttendanceRepository.save(StudentAttendance.builder()
-                            .studentId(arjunId).courseId(courseId)
-                            .date(date).status(pattern[classDay])
-                            .markedBy(facultyId).build());
-                    classDay++;
+            if (facultyId != null) {
+                LocalDate baseDate = LocalDate.now().minusDays(28);
+                for (int ci = 0; ci < courses.size(); ci++) {
+                    UUID courseId = courses.get(ci).getId();
+                    String[] pattern = attendancePattern[ci];
+                    int classDay = 0;
+                    for (int dayOffset = 0; dayOffset < 30 && classDay < 20; dayOffset++) {
+                        LocalDate date = baseDate.plusDays(dayOffset);
+                        if (date.getDayOfWeek().getValue() >= 6) continue;
+                        studentAttendanceRepository.save(StudentAttendance.builder()
+                                .studentId(arjunId).courseId(courseId)
+                                .date(date).status(pattern[classDay])
+                                .markedBy(facultyId).build());
+                        classDay++;
+                    }
                 }
+            } else {
+                log.warn("[DataInitializer] Faculty user not found — skipping attendance seed");
             }
         }
 
