@@ -184,11 +184,17 @@ export default function Students() {
 
   const buildPayload = () => ({
     ...form,
-    // Backend expects Long/Integer — never send empty strings for number fields
+    // Numbers — backend parses these; empty string causes NumberFormatException
     semester:      form.semester      !== '' ? Number(form.semester)      : null,
     admissionYear: form.admissionYear !== '' ? Number(form.admissionYear) : null,
-    // departmentId must be a Long — d.id from the dropdown is already numeric
     departmentId:  form.departmentId  !== '' ? Number(form.departmentId)  : null,
+    // Dates — backend calls LocalDate.parse(); empty string causes DateTimeParseException
+    dateOfBirth:   form.dateOfBirth   !== '' ? form.dateOfBirth           : null,
+    // Empty-string enums saved as "" break @Pattern; send null so backend stores null
+    gender:        form.gender        !== '' ? form.gender        : null,
+    bloodGroup:    form.bloodGroup    !== '' ? form.bloodGroup    : null,
+    category:      form.category      !== '' ? form.category      : null,
+    aadhaarNumber: form.aadhaarNumber !== '' ? form.aadhaarNumber : null,
   })
 
   const handleSubmit = async () => {
