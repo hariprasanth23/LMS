@@ -208,11 +208,11 @@ const FEATURES = [
 ]
 
 const PORTALS = [
-  { key: 'admin',   label: 'Admin',   icon: MdAdminPanelSettings, color: '#f87171', bg: 'rgba(239,68,68,0.15)',   desc: 'Full system administration, employee management, payroll, departments & bulk imports.' },
-  { key: 'student', label: 'Student', icon: MdSchool,             color: '#60a5fa', bg: 'rgba(59,130,246,0.15)',  desc: 'Academic portal — courses, attendance, exams, fees, research & personal profile.' },
-  { key: 'staff',   label: 'Staff',   icon: MdBadge,              color: '#c084fc', bg: 'rgba(168,85,247,0.15)',  desc: 'Teaching tools — course management, assignments, marks entry & student feedback.' },
-  { key: 'parent',  label: 'Parent',  icon: MdPeople,             color: '#fbbf24', bg: 'rgba(245,158,11,0.15)',  desc: 'Track ward progress — attendance, performance, fee status & announcements.' },
-  { key: 'alumni',  label: 'Alumni',  icon: MdStar,               color: '#34d399', bg: 'rgba(16,185,129,0.15)', desc: 'Alumni network — updates, achievements, reconnect with the institution.' },
+  { key: 'admin',   label: 'Admin',   icon: MdAdminPanelSettings, color: '#f87171', bg: 'rgba(239,68,68,0.15)',   desc: 'Full system administration, employee management, payroll, departments & bulk imports.', count: '30+' },
+  { key: 'student', label: 'Student', icon: MdSchool,             color: '#60a5fa', bg: 'rgba(59,130,246,0.15)',  desc: 'Academic portal — courses, attendance, exams, fees, research & personal profile.', count: '50+' },
+  { key: 'staff',   label: 'Staff',   icon: MdBadge,              color: '#c084fc', bg: 'rgba(168,85,247,0.15)',  desc: 'Teaching tools — course management, assignments, marks entry & student feedback.', count: '20+' },
+  { key: 'parent',  label: 'Parent',  icon: MdPeople,             color: '#fbbf24', bg: 'rgba(245,158,11,0.15)',  desc: 'Track ward progress — attendance, performance, fee status & announcements.', count: '10+' },
+  { key: 'alumni',  label: 'Alumni',  icon: MdStar,               color: '#34d399', bg: 'rgba(16,185,129,0.15)', desc: 'Alumni network — updates, achievements, reconnect with the institution.', count: '8+' },
 ]
 
 const ACADEMICS_GENERAL_ITEMS = [
@@ -588,12 +588,20 @@ export default function LandingPage() {
             </div>
 
             {/* Trust row */}
-            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', animation: 'zoomIn .7s ease .4s both' }}>
-              {[{ icon: MdShield, text: 'Enterprise Secure' }, { icon: MdCheck, text: 'Role-Based Access' }, { icon: MdPublic, text: '24/7 Online' }].map(({ icon: Icon, text }) => (
-                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
-                  <Icon style={{ fontSize: 15, color: '#a78bfa' }} />{text}
-                </div>
-              ))}
+            <div style={{ animation: 'zoomIn .7s ease .4s both' }}>
+              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 18 }}>
+                {[{ icon: MdShield, text: 'Enterprise Secure' }, { icon: MdCheck, text: 'Role-Based Access' }, { icon: MdPublic, text: '24/7 Online' }, { icon: MdSpeed, text: 'Real-Time Sync' }].map(({ icon: Icon, text }) => (
+                  <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'rgba(255,255,255,0.52)', fontSize: 13 }}>
+                    <Icon style={{ fontSize: 14, color: '#a78bfa' }} />{text}
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                {['Admin', 'Student', 'Faculty', 'Parent', 'Alumni'].map((role, i) => (
+                  <div key={role} style={{ width: 28, height: 28, borderRadius: '50%', background: ['#f87171','#60a5fa','#c084fc','#fbbf24','#34d399'][i] + '22', border: `1.5px solid ${['#f87171','#60a5fa','#c084fc','#fbbf24','#34d399'][i]}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: ['#f87171','#60a5fa','#c084fc','#fbbf24','#34d399'][i], marginLeft: i > 0 ? -8 : 0, zIndex: 5 - i }}>{role.slice(0,2).toUpperCase()}</div>
+                ))}
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginLeft: 6 }}>5 portals · 1 unified system</span>
+              </div>
             </div>
           </div>
 
@@ -653,13 +661,17 @@ export default function LandingPage() {
               </GlassCard>
 
               {/* Floating badges */}
-              <div style={{ position: 'absolute', top: -18, right: -18, background: 'linear-gradient(135deg,rgba(16,185,129,.9),rgba(5,150,105,.9))', border: '1px solid rgba(16,185,129,.4)', borderRadius: 100, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 20px rgba(16,185,129,.4)', animation: 'floatSlow 5s ease-in-out infinite .5s' }}>
+              <div style={{ position: 'absolute', top: -18, right: -18, background: 'linear-gradient(135deg,rgba(16,185,129,.92),rgba(5,150,105,.92))', border: '1px solid rgba(16,185,129,.4)', borderRadius: 100, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 20px rgba(16,185,129,.5)', animation: 'floatSlow 5s ease-in-out infinite .5s' }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff', display: 'inline-block' }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>CGPA +0.4 this sem</span>
               </div>
-              <div style={{ position: 'absolute', bottom: -18, left: -18, background: 'rgba(99,102,241,.85)', border: '1px solid rgba(99,102,241,.4)', borderRadius: 100, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 20px rgba(99,102,241,.4)', animation: 'floatSlow 6s ease-in-out infinite 1s' }}>
+              <div style={{ position: 'absolute', bottom: -18, left: -18, background: 'rgba(99,102,241,.88)', border: '1px solid rgba(99,102,241,.45)', borderRadius: 100, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 20px rgba(99,102,241,.45)', animation: 'floatSlow 6s ease-in-out infinite 1s' }}>
                 <MdMenuBook style={{ fontSize: 13, color: '#fff' }} />
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>50+ Features</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>80+ Features</span>
+              </div>
+              <div style={{ position: 'absolute', top: '45%', left: -24, background: 'rgba(245,158,11,.88)', border: '1px solid rgba(245,158,11,.4)', borderRadius: 100, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 20px rgba(245,158,11,.4)', animation: 'floatSlow 7s ease-in-out infinite 1.8s' }}>
+                <MdNotificationsActive style={{ fontSize: 13, color: '#fff' }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>3 new alerts</span>
               </div>
             </div>
           )}
@@ -783,6 +795,7 @@ export default function LandingPage() {
                   >
                     {/* Subtle bg gradient */}
                     <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 75% 15%, ${feat.color}08 0%, transparent 55%)`, pointerEvents: 'none' }} />
+                    <div style={{ position: 'absolute', top: 14, left: 14, fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.15)', letterSpacing: '.04em' }}>{String(i + 1).padStart(2, '0')}</div>
                     {feat.badge && (
                       <div style={{ position: 'absolute', top: 14, right: 14, background: 'linear-gradient(135deg,#ec4899,#8b5cf6)', color: '#fff', fontSize: 9, fontWeight: 800, padding: '3px 9px', borderRadius: 20, letterSpacing: '.06em' }}>{feat.badge}</div>
                     )}
@@ -796,6 +809,15 @@ export default function LandingPage() {
               )
             })}
           </div>
+          {/* Bottom CTA row */}
+          <Reveal delay={500}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, marginTop: 44, paddingTop: 36, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>Covers every campus workflow end-to-end</span>
+              <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '11px 26px', borderRadius: 10, fontSize: 14, fontWeight: 700, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+                Access All Features <MdArrowForward size={16} />
+              </button>
+            </div>
+          </Reveal>
         </div>
       </section>
 
@@ -872,22 +894,34 @@ export default function LandingPage() {
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#34d399', textTransform: 'uppercase', letterSpacing: '.08em' }}>College ERP</div>
               </div>
               {COMPARISON_ROWS.map((row, i) => (
-                <div key={row.category} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: isMobile ? '14px 16px' : '18px 28px', borderBottom: i < COMPARISON_ROWS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', alignItems: 'center', gap: 12 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{row.category}</div>
+                <div key={row.category} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: isMobile ? '14px 16px' : '16px 28px', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center', gap: 12, background: i % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent', transition: 'background .2s' }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>{row.category}</div>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                     <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
                       <span style={{ fontSize: 10, color: '#f87171', fontWeight: 800 }}>✕</span>
                     </div>
-                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>{row.old}</span>
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.38)', lineHeight: 1.5 }}>{row.old}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
                       <MdCheck style={{ fontSize: 11, color: '#34d399' }} />
                     </div>
-                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5, fontWeight: 500 }}>{row.erp}</span>
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5, fontWeight: 500 }}>{row.erp}</span>
                   </div>
                 </div>
               ))}
+              {/* Winner summary strip */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: isMobile ? '14px 16px' : '16px 28px', background: 'rgba(52,211,153,0.06)', borderTop: '1px solid rgba(52,211,153,0.15)', alignItems: 'center', gap: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '.06em' }}>Result</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 11, color: '#f87171', fontWeight: 800 }}>0</span></div>
+                  <span style={{ fontSize: 12, color: '#f87171', fontWeight: 600 }}>Manual & fragmented</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(52,211,153,0.2)', border: '1px solid rgba(52,211,153,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 10, color: '#34d399', fontWeight: 900 }}>✓</span></div>
+                  <span style={{ fontSize: 12, color: '#34d399', fontWeight: 700 }}>Unified, digital, instant</span>
+                </div>
+              </div>
             </div>
           </Reveal>
         </div>
@@ -932,8 +966,11 @@ export default function LandingPage() {
                       boxShadow: hov ? `0 24px 48px ${p.color}20` : 'none',
                     }}
                   >
-                    <div style={{ width: 52, height: 52, borderRadius: 14, background: `${p.color}20`, border: `1px solid ${p.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Icon style={{ fontSize: 28, color: p.color }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ width: 52, height: 52, borderRadius: 14, background: `${p.color}20`, border: `1px solid ${p.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon style={{ fontSize: 28, color: p.color }} />
+                      </div>
+                      <span style={{ background: `${p.color}15`, color: p.color, border: `1px solid ${p.color}30`, borderRadius: 20, padding: '4px 10px', fontSize: 11, fontWeight: 700 }}>{p.count} features</span>
                     </div>
                     <div style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>{p.label}</div>
                     <div style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', lineHeight: 1.65, flex: 1 }}>{p.desc}</div>
@@ -976,25 +1013,31 @@ export default function LandingPage() {
           </Reveal>
 
           <Reveal dir="right" delay={150} style={{ flex: '1 1 300px' }}>
-            <div style={{ flex: '1 1 300px', display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
+            <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {[
-                { title: 'General',           count: 19, color: '#818cf8', bg: 'rgba(99,102,241,.12)',  icon: MdMenuBook },
-                { title: 'Course Reg.',        count: 8,  color: '#60a5fa', bg: 'rgba(59,130,246,.12)', icon: MdSchool },
-                { title: 'Project Proposal',   count: 1,  color: '#c084fc', bg: 'rgba(168,85,247,.12)', icon: MdBadge },
-                { title: 'More coming soon',   count: null, color: '#475569', bg: 'rgba(71,85,105,.08)', icon: MdAccessTime },
+                { title: 'General Academics', count: 19, color: '#818cf8', bg: 'rgba(99,102,241,.12)', icon: MdMenuBook, items: ['Curriculum', 'Timetable', 'Attendance', 'Digital Assignments', '+15 more'] },
+                { title: 'Course Registration', count: 8, color: '#60a5fa', bg: 'rgba(59,130,246,.12)', icon: MdSchool, items: ['Wishlist', 'MOOC', 'EXC', 'Internship', '+4 more'] },
+                { title: 'Project & Research', count: 6, color: '#c084fc', bg: 'rgba(168,85,247,.12)', icon: MdBadge, items: ['Open Projects', 'Proposals', 'Progress Review', '+3 more'] },
               ].map(card => {
                 const Icon = card.icon
                 return (
-                  <div key={card.title} style={{ background: card.bg, border: `1px solid ${card.color}25`, borderRadius: 14, padding: 20, transition: 'transform .2s', cursor: 'default' }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
-                    <div style={{ width: 36, height: 36, borderRadius: 9, background: `${card.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                      <Icon style={{ fontSize: 20, color: card.color }} />
+                  <div key={card.title} style={{ background: card.bg, border: `1px solid ${card.color}25`, borderRadius: 16, padding: '18px 20px', transition: 'all .25s cubic-bezier(.22,1,.36,1)', cursor: 'default' }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(4px)'; e.currentTarget.style.borderColor = `${card.color}50`; e.currentTarget.style.boxShadow = `0 8px 24px ${card.color}15` }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = `${card.color}25`; e.currentTarget.style.boxShadow = 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                      <div style={{ width: 38, height: 38, borderRadius: 10, background: `${card.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Icon style={{ fontSize: 20, color: card.color }} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{card.title}</div>
+                        <div style={{ fontSize: 11, color: card.color, fontWeight: 600 }}>{card.count} modules</div>
+                      </div>
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{card.title}</div>
-                    {card.count !== null
-                      ? <div style={{ fontSize: 12, color: card.color, fontWeight: 600 }}>{card.count} items</div>
-                      : <div style={{ fontSize: 12, color: 'rgba(255,255,255,.25)', fontWeight: 500 }}>In progress</div>}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                      {card.items.map(item => (
+                        <span key={item} style={{ background: `${card.color}10`, color: card.color, border: `1px solid ${card.color}20`, borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 500 }}>{item}</span>
+                      ))}
+                    </div>
                   </div>
                 )
               })}
@@ -1523,7 +1566,14 @@ export default function LandingPage() {
             {TESTIMONIALS.map((t, i) => (
               <Reveal key={t.name} delay={i * 80}>
                 <GlassCard style={{ padding: '32px 28px' }}>
-                  <div style={{ fontSize: 56, fontWeight: 900, color: 'rgba(167,139,250,0.18)', lineHeight: .8, marginBottom: 16, fontFamily: 'Georgia, serif' }}>&ldquo;</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', gap: 3 }}>
+                      {[...Array(5)].map((_, si) => (
+                        <MdStar key={si} style={{ fontSize: 16, color: '#fbbf24', filter: 'drop-shadow(0 0 4px rgba(251,191,36,0.5))' }} />
+                      ))}
+                    </div>
+                    <div style={{ fontSize: 56, fontWeight: 900, color: 'rgba(167,139,250,0.18)', lineHeight: .8, fontFamily: 'Georgia, serif' }}>&ldquo;</div>
+                  </div>
                   <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.72)', lineHeight: 1.8, marginBottom: 24, marginTop: 0 }}>{t.quote}</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                     <div style={{ width: 44, height: 44, borderRadius: '50%', background: `${t.color}25`, border: `2px solid ${t.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: t.color, flexShrink: 0 }}>{t.initials}</div>
@@ -1585,10 +1635,24 @@ export default function LandingPage() {
             </p>
           </Reveal>
           <Reveal delay={300}>
-            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 52 }}>
+            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 40 }}>
               <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '17px 40px', borderRadius: 14, fontSize: 17, fontWeight: 800, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 10 }}>
                 Get Started Free <MdArrowForward size={20} />
               </button>
+              <button className="btn-ghost" onClick={() => scrollTo('how-it-works')} style={{ padding: '17px 28px', borderRadius: 14, fontSize: 15, fontWeight: 600, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                How it works
+              </button>
+            </div>
+            {/* Demo credentials quick ref */}
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: '16px 24px', maxWidth: 560, margin: '0 auto 40px', display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>Try demo →</span>
+              {[{ role: 'Admin', email: 'demo@college.com', color: '#f87171' }, { role: 'Student', email: 'student@demo.com', color: '#60a5fa' }, { role: 'Faculty', email: 'staff@demo.com', color: '#c084fc' }].map(d => (
+                <div key={d.role} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ background: `${d.color}15`, color: d.color, border: `1px solid ${d.color}30`, borderRadius: 6, padding: '2px 8px', fontSize: 10, fontWeight: 700 }}>{d.role}</span>
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.42)', fontFamily: 'monospace' }}>{d.email}</span>
+                </div>
+              ))}
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)' }}>pw: Demo@123</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 32, flexWrap: 'wrap' }}>
               {[{ icon: MdShield, t: 'Enterprise Secure' }, { icon: MdCheck, t: 'Role-Based Access' }, { icon: MdPublic, t: '24/7 Available' }, { icon: MdAccessTime, t: 'Real-Time Sync' }].map(({ icon: Icon, t }) => (
