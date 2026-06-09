@@ -362,8 +362,8 @@ export default function CsvImportModal({
               </div>
 
               {/* Validation table — click error rows to expand */}
-              <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, minWidth: 480 }}>
                   <thead>
                     <tr style={{ background: '#f8fafc' }}>
                       <th style={{ padding: '9px 12px', textAlign: 'left', fontWeight: 700, color: '#374151', width: 40 }}>#</th>

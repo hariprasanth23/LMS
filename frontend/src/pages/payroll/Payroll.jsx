@@ -311,7 +311,8 @@ export default function Payroll() {
             <div style={{ fontSize: 14, color: MUTED }}>No payroll records found</div>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 600 }}>
             <thead>
               <tr style={{ background: '#f8fafc' }}>
                 {[isAdmin ? 'Employee' : null, 'Period', 'Gross', 'Deductions', 'Net Salary', 'Status', 'Actions'].filter(Boolean).map(h => (
@@ -367,6 +368,7 @@ export default function Payroll() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

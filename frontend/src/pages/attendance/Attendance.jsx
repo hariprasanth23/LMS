@@ -308,7 +308,8 @@ function StudentView({ myAttendance }) {
             <div style={{ fontSize: 13, color: MUTED }}>Attendance will appear here once classes are marked.</div>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 420 }}>
             <thead>
               <tr style={{ background: '#f8fafc' }}>
                 {['Date', 'Course', 'Status'].map(h => (
@@ -341,6 +342,7 @@ function StudentView({ myAttendance }) {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

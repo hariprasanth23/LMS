@@ -885,15 +885,16 @@ export default function LandingPage() {
             </div>
           </Reveal>
           <Reveal delay={100}>
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, overflow: 'hidden' }}>
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, overflowX: 'auto' }}>
+              <div style={{ minWidth: isMobile ? 560 : 'auto' }}>
               {/* Header row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: 'rgba(255,255,255,0.04)', padding: isMobile ? '14px 16px' : '16px 28px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: 'rgba(255,255,255,0.04)', padding: '16px 28px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Category</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#f87171', textTransform: 'uppercase', letterSpacing: '.08em' }}>Traditional</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#34d399', textTransform: 'uppercase', letterSpacing: '.08em' }}>College ERP</div>
               </div>
               {COMPARISON_ROWS.map((row, i) => (
-                <div key={row.category} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: isMobile ? '14px 16px' : '16px 28px', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center', gap: 12, background: i % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent', transition: 'background .2s' }}>
+                <div key={row.category} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: '16px 28px', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center', gap: 12, background: i % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent', transition: 'background .2s' }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>{row.category}</div>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                     <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
@@ -910,7 +911,7 @@ export default function LandingPage() {
                 </div>
               ))}
               {/* Winner summary strip */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: isMobile ? '14px 16px' : '16px 28px', background: 'rgba(52,211,153,0.06)', borderTop: '1px solid rgba(52,211,153,0.15)', alignItems: 'center', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: '16px 28px', background: 'rgba(52,211,153,0.06)', borderTop: '1px solid rgba(52,211,153,0.15)', alignItems: 'center', gap: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '.06em' }}>Result</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                   <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 11, color: '#f87171', fontWeight: 800 }}>0</span></div>
@@ -920,6 +921,7 @@ export default function LandingPage() {
                   <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(52,211,153,0.2)', border: '1px solid rgba(52,211,153,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 10, color: '#34d399', fontWeight: 900 }}>✓</span></div>
                   <span style={{ fontSize: 12, color: '#34d399', fontWeight: 700 }}>Unified, digital, instant</span>
                 </div>
+              </div>
               </div>
             </div>
           </Reveal>
