@@ -781,10 +781,10 @@ export default function LandingPage() {
                       flexDirection: 'column',
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.border = `1.5px solid ${feat.border}`
-                      e.currentTarget.style.boxShadow = `0 16px 40px ${feat.color}22`
+                      e.currentTarget.style.border = `1.5px solid ${feat.color}50`
+                      e.currentTarget.style.boxShadow = `0 20px 44px ${feat.color}25`
                       e.currentTarget.style.transform = 'translateY(-7px) scale(1.01)'
-                      e.currentTarget.style.background = `rgba(255,255,255,0.05)`
+                      e.currentTarget.style.background = feat.bg
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.border = '1.5px solid rgba(255,255,255,0.07)'
@@ -795,7 +795,6 @@ export default function LandingPage() {
                   >
                     {/* Subtle bg gradient */}
                     <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 75% 15%, ${feat.color}08 0%, transparent 55%)`, pointerEvents: 'none' }} />
-                    <div style={{ position: 'absolute', top: 14, left: 14, fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.15)', letterSpacing: '.04em' }}>{String(i + 1).padStart(2, '0')}</div>
                     {feat.badge && (
                       <div style={{ position: 'absolute', top: 14, right: 14, background: 'linear-gradient(135deg,#ec4899,#8b5cf6)', color: '#fff', fontSize: 9, fontWeight: 800, padding: '3px 9px', borderRadius: 20, letterSpacing: '.06em' }}>{feat.badge}</div>
                     )}
