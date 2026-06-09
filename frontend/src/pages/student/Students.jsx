@@ -181,16 +181,30 @@ export default function Students() {
     setFormStep(s => s + 1)
   }
 
+  const buildPayload = () => ({
+    ...form,
+    // Backend expects Integer/null — never send an empty string for number fields
+    semester:      form.semester      !== '' ? Number(form.semester)      : null,
+    admissionYear: form.admissionYear !== '' ? Number(form.admissionYear) : null,
+    departmentId:  form.departmentId  !== '' ? form.departmentId          : null,
+  })
+
   const handleSubmit = async () => {
+    if (!form.rollNumber || !form.name) {
+      toast.error('Roll number and name are required')
+      setFormStep(1)
+      return
+    }
     setSubmitting(true)
     try {
+      const payload = buildPayload()
       if (editStudent) {
-        await api.put(`/students/${editStudent.id}`, form)
+        await api.put(`/students/${editStudent.id}`, payload)
         toast.success('Student updated')
         setShowModal(false); setForm(EMPTY_FORM); setEditStudent(null)
         fetchStudents()
       } else {
-        const res = await api.post('/students', form)
+        const res = await api.post('/students', payload)
         const pwd = res.data.data?.initialPassword
         setCreatedPassword(pwd)
         toast.success('Student created')
