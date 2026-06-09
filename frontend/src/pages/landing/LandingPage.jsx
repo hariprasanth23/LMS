@@ -1309,7 +1309,144 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 14. Final CTA ──────────────────────────────────────────────────── */}
+      {/* ── 14. Meet the Team ─────────────────────────────────────────────── */}
+      <section style={{
+        background: '#f8fafc',
+        padding: isMobile ? '60px 20px' : '96px 48px',
+      }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: 56 }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)',
+              borderRadius: 100, padding: '6px 18px', marginBottom: 20
+            }}>
+              <MdPeople style={{ fontSize: 14, color: '#6366f1' }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#6366f1' }}>The Builders</span>
+            </div>
+            <h2 style={{
+              fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: '#1e293b',
+              margin: '0 0 16px', letterSpacing: '-1px', fontFamily: FONT
+            }}>
+              Meet the Team
+            </h2>
+            <p style={{ fontSize: 17, color: '#64748b', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+              The passionate people who designed, built, and launched College ERP.
+            </p>
+          </div>
+
+          {/* Team cards */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+            gap: 28,
+            maxWidth: 960,
+            margin: '0 auto'
+          }}>
+            {[
+              {
+                name: 'Manoj Kumar',
+                role: 'Founder & Marketing Team Lead',
+                initials: 'MK',
+                gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                glow: 'rgba(99,102,241,0.25)',
+                tag: 'Founder',
+                tagBg: '#eef2ff',
+                tagColor: '#6366f1',
+                desc: 'Driving the vision, strategy and growth of College ERP — from concept to campus.',
+              },
+              {
+                name: 'Hari Prasanth',
+                role: 'Co Founder & Full Stack Developer',
+                initials: 'HP',
+                gradient: 'linear-gradient(135deg, #10b981, #059669)',
+                glow: 'rgba(16,185,129,0.25)',
+                tag: 'Co Founder',
+                tagBg: '#f0fdf4',
+                tagColor: '#10b981',
+                desc: 'Architecting and building the entire platform — backend, frontend, and everything in between.',
+              },
+              {
+                name: 'Pavitaran',
+                role: 'Co Founder & DevOps Lead',
+                initials: 'PV',
+                gradient: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                glow: 'rgba(245,158,11,0.25)',
+                tag: 'Co Founder',
+                tagBg: '#fffbeb',
+                tagColor: '#d97706',
+                desc: 'Ensuring zero downtime and bulletproof infrastructure — keeping College ERP always online.',
+              },
+            ].map((member, i) => (
+              <div
+                key={member.name}
+                style={{
+                  background: '#fff', borderRadius: 20,
+                  padding: '32px 28px', textAlign: 'center',
+                  border: '1.5px solid #f1f5f9',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                  transition: 'transform 0.22s ease, box-shadow 0.22s ease',
+                  cursor: 'default',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-6px)'
+                  e.currentTarget.style.boxShadow = `0 20px 48px ${member.glow}`
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'none'
+                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.05)'
+                }}
+              >
+                {/* Avatar */}
+                <div style={{
+                  width: 80, height: 80, borderRadius: '50%',
+                  background: member.gradient,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 20px',
+                  fontSize: 28, fontWeight: 800, color: '#fff', letterSpacing: 1,
+                  boxShadow: `0 8px 24px ${member.glow}`,
+                  fontFamily: FONT,
+                }}>
+                  {member.initials}
+                </div>
+
+                {/* Role tag */}
+                <span style={{
+                  display: 'inline-block',
+                  background: member.tagBg, color: member.tagColor,
+                  border: `1px solid ${member.tagColor}30`,
+                  fontSize: 10, fontWeight: 800, letterSpacing: '0.06em',
+                  textTransform: 'uppercase', padding: '3px 12px', borderRadius: 20,
+                  marginBottom: 14,
+                }}>
+                  {member.tag}
+                </span>
+
+                {/* Name */}
+                <div style={{ fontSize: 19, fontWeight: 800, color: '#0f172a', marginBottom: 6, fontFamily: FONT }}>
+                  {member.name}
+                </div>
+
+                {/* Title */}
+                <div style={{ fontSize: 13, fontWeight: 600, color: member.tagColor, marginBottom: 16 }}>
+                  {member.role}
+                </div>
+
+                {/* Divider */}
+                <div style={{ height: 1, background: '#f1f5f9', margin: '0 0 16px' }} />
+
+                {/* Desc */}
+                <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.7, margin: 0 }}>
+                  {member.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 15. Final CTA ──────────────────────────────────────────────────── */}
       <section style={{
         background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
         padding: isMobile ? '60px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', textAlign: 'center'
