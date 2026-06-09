@@ -4,8 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 import {
   MdAdd, MdSearch, MdBadge, MdEdit, MdDeleteOutline, MdClose,
-  MdPerson, MdEmail, MdPhone, MdWork, MdCalendarToday,
-  MdUploadFile, MdCheckCircle
+  MdPerson, MdEmail, MdPhone, MdWork, MdCalendarToday, MdUploadFile
 } from 'react-icons/md'
 import CsvImportModal from '../../components/common/CsvImportModal'
 
@@ -43,33 +42,7 @@ const typeColors = {
   ADMIN:   { bg: '#f0fdf4', color: '#10b981' },
 }
 
-// ── Step indicator ─────────────────────────────────────────────────────────────
-const EMP_STEPS = ['Basic Information', 'Role & Compensation']
-
-function EmpStepBar({ current }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 20 }}>
-      {EMP_STEPS.map((label, i) => {
-        const done   = current > i + 1
-        const active = current === i + 1
-        return (
-          <React.Fragment key={i}>
-            {i > 0 && <div style={{ flex: 1, height: 2, marginTop: 11, background: done ? ACCENT : '#e2e8f0', transition: 'background 0.3s' }} />}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-              <div style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, background: done || active ? ACCENT : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.3s', boxShadow: active ? '0 0 0 3px #eef2ff' : 'none' }}>
-                {done
-                  ? <MdCheckCircle style={{ color: '#fff', fontSize: 15 }} />
-                  : <span style={{ fontSize: 11, fontWeight: 800, color: active ? '#fff' : '#94a3b8' }}>{i + 1}</span>
-                }
-              </div>
-              <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? ACCENT : done ? '#64748b' : '#94a3b8', textAlign: 'center', lineHeight: 1.3, maxWidth: 80 }}>{label}</span>
-            </div>
-          </React.Fragment>
-        )
-      })}
-    </div>
-  )
-}
+const EMP_TABS = ['Basic Information', 'Department & Compensation']
 
 const EMPTY_FORM = {
   empCode: '', name: '', email: '', phone: '',
@@ -150,13 +123,6 @@ export default function Employees() {
       qualifications: emp.qualifications || '',
     })
     setEmpStep(1); setShowModal(true)
-  }
-
-  const handleNext = () => {
-    if (!form.empCode || !form.name || !form.employeeType) {
-      toast.error('Emp code, name, and type are required'); return
-    }
-    setEmpStep(2)
   }
 
   const handleSave = async () => {
@@ -373,113 +339,102 @@ export default function Employees() {
               </button>
             </div>
 
-            <EmpStepBar current={empStep} />
+            {/* ── Tab bar ── */}
+            <div style={{ display: 'flex', borderBottom: '2px solid #f1f5f9', marginBottom: 20 }}>
+              {EMP_TABS.map((tab, i) => (
+                <button key={i} type="button" onClick={() => setEmpStep(i + 1)}
+                  style={{ padding: '9px 16px', background: 'none', border: 'none', borderBottom: empStep === i + 1 ? `2px solid ${ACCENT}` : '2px solid transparent', marginBottom: -2, color: empStep === i + 1 ? ACCENT : MUTED, fontSize: 13, fontWeight: empStep === i + 1 ? 700 : 500, cursor: 'pointer', fontFamily: 'system-ui, sans-serif' }}>
+                  {tab}
+                </button>
+              ))}
+            </div>
 
-            <div>
-              {/* ── Step 1: Basic Information ── */}
-              {empStep === 1 && (
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
-                  {/* Identity fields */}
-                  <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: 1 }}>Identity</span>
-                    <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
-                  </div>
-                  {[
-                    { label: 'Emp Code', key: 'empCode', type: 'text', placeholder: 'e.g. FAC001', required: true },
-                    { label: 'Full Name', key: 'name',    type: 'text', placeholder: 'e.g. Dr. Ravi Kumar', required: true },
-                    { label: 'Email',    key: 'email',   type: 'email', placeholder: 'faculty@college.edu' },
-                    { label: 'Phone',    key: 'phone',   type: 'tel',  placeholder: '10-digit mobile' },
-                  ].map(f => (
-                    <div key={f.key}>
-                      <label style={lbl}>{f.label}{f.required && <span style={{ color: '#ef4444' }}> *</span>}</label>
-                      <input type={f.type} value={form[f.key]} placeholder={f.placeholder}
-                        onChange={e => setForm({ ...form, [f.key]: e.target.value })}
-                        style={inp} onFocus={onFocus} onBlur={onBlur} />
-                    </div>
-                  ))}
-
-                  {/* Role fields */}
-                  <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0 2px' }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: 1 }}>Role</span>
-                    <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
-                  </div>
-                  <div>
-                    <label style={lbl}>Employee Type <span style={{ color: '#ef4444' }}>*</span></label>
-                    <select value={form.employeeType} onChange={e => setForm({ ...form, employeeType: e.target.value })} style={{ ...inp, cursor: 'pointer' }}>
-                      {EMP_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={lbl}>Designation</label>
-                    <select value={form.designation} onChange={e => setForm({ ...form, designation: e.target.value })} style={{ ...inp, cursor: 'pointer' }}>
-                      {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                  </div>
+            {/* ── Tab 1: Basic Information ── */}
+            {empStep === 1 && (
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
+                <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: 1 }}>Identity</span>
+                  <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
                 </div>
-              )}
-
-              {/* ── Step 2: Role & Compensation ── */}
-              {empStep === 2 && (
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
-                  <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: 1 }}>Department & Employment</span>
-                    <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+                {[
+                  { label: 'Emp Code *', key: 'empCode', type: 'text',  placeholder: 'e.g. FAC001' },
+                  { label: 'Full Name *', key: 'name',   type: 'text',  placeholder: 'e.g. Dr. Ravi Kumar' },
+                  { label: 'Email',       key: 'email',  type: 'email', placeholder: 'faculty@college.edu' },
+                  { label: 'Phone',       key: 'phone',  type: 'tel',   placeholder: '10-digit mobile' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label style={lbl}>{f.label}</label>
+                    <input type={f.type} value={form[f.key]} placeholder={f.placeholder}
+                      onChange={e => setForm({ ...form, [f.key]: e.target.value })}
+                      style={inp} onFocus={onFocus} onBlur={onBlur} />
                   </div>
-                  <div style={{ gridColumn: 'span 2' }}>
-                    <label style={lbl}>Department</label>
-                    <select value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} style={{ ...inp, cursor: 'pointer' }}>
-                      <option value="">Select Department</option>
-                      {departments.map(d => (
-                        <option key={d.id} value={d.name}>{d.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={lbl}>Join Date</label>
-                    <input type="date" value={form.joinDate} onChange={e => setForm({ ...form, joinDate: e.target.value })} style={inp} onFocus={onFocus} onBlur={onBlur} />
-                  </div>
-                  <div>
-                    <label style={lbl}>Base Salary (₹)</label>
-                    <input type="number" value={form.baseSalary} onChange={e => setForm({ ...form, baseSalary: e.target.value })} placeholder="e.g. 65000" style={inp} onFocus={onFocus} onBlur={onBlur} min={0} />
-                  </div>
-                  <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0 2px' }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: 1 }}>Qualifications</span>
-                    <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
-                  </div>
-                  <div style={{ gridColumn: 'span 2' }}>
-                    <label style={lbl}>Qualifications / Degrees</label>
-                    <textarea value={form.qualifications} onChange={e => setForm({ ...form, qualifications: e.target.value })}
-                      placeholder="e.g. M.Tech (IIT Madras), Ph.D (IIT Bombay)" rows={3}
-                      style={{ ...inp, resize: 'vertical' }} onFocus={onFocus} onBlur={onBlur} />
-                  </div>
+                ))}
+                <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0 2px' }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: 1 }}>Role</span>
+                  <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
                 </div>
-              )}
-
-              {/* Navigation */}
-              <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
-                {empStep === 2 ? (
-                  <button type="button" onClick={() => setEmpStep(1)}
-                    style={{ flex: 1, padding: '10px', background: '#f1f5f9', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: MUTED }}>
-                    ← Back
-                  </button>
-                ) : (
-                  <button type="button" onClick={() => setShowModal(false)}
-                    style={{ flex: 1, padding: '10px', background: '#f1f5f9', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: MUTED }}>
-                    Cancel
-                  </button>
-                )}
-                {empStep === 1 ? (
-                  <button type="button" onClick={handleNext}
-                    style={{ flex: 1, padding: '10px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                    Next →
-                  </button>
-                ) : (
-                  <button type="button" onClick={handleSave} disabled={submitting}
-                    style={{ flex: 1, padding: '10px', background: submitting ? '#a5b4fc' : ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer' }}>
-                    {submitting ? 'Saving…' : editEmp ? 'Update' : 'Create'}
-                  </button>
-                )}
+                <div>
+                  <label style={lbl}>Employee Type *</label>
+                  <select value={form.employeeType} onChange={e => setForm({ ...form, employeeType: e.target.value })} style={{ ...inp, cursor: 'pointer' }}>
+                    {EMP_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={lbl}>Designation</label>
+                  <select value={form.designation} onChange={e => setForm({ ...form, designation: e.target.value })} style={{ ...inp, cursor: 'pointer' }}>
+                    {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
               </div>
+            )}
+
+            {/* ── Tab 2: Department & Compensation ── */}
+            {empStep === 2 && (
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
+                <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: 1 }}>Department & Employment</span>
+                  <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+                </div>
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label style={lbl}>Department</label>
+                  <select value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} style={{ ...inp, cursor: 'pointer' }}>
+                    <option value="">Select Department</option>
+                    {departments.map(d => (
+                      <option key={d.id} value={d.name}>{d.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={lbl}>Join Date</label>
+                  <input type="date" value={form.joinDate} onChange={e => setForm({ ...form, joinDate: e.target.value })} style={inp} onFocus={onFocus} onBlur={onBlur} />
+                </div>
+                <div>
+                  <label style={lbl}>Base Salary (₹)</label>
+                  <input type="number" value={form.baseSalary} onChange={e => setForm({ ...form, baseSalary: e.target.value })} placeholder="e.g. 65000" style={inp} onFocus={onFocus} onBlur={onBlur} min={0} />
+                </div>
+                <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0 2px' }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: 1 }}>Qualifications</span>
+                  <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+                </div>
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label style={lbl}>Qualifications / Degrees</label>
+                  <textarea value={form.qualifications} onChange={e => setForm({ ...form, qualifications: e.target.value })}
+                    placeholder="e.g. M.Tech (IIT Madras), Ph.D (IIT Bombay)" rows={3}
+                    style={{ ...inp, resize: 'vertical' }} onFocus={onFocus} onBlur={onBlur} />
+                </div>
+              </div>
+            )}
+
+            {/* ── Footer: always-visible Save button ── */}
+            <div style={{ display: 'flex', gap: 10, marginTop: 24, paddingTop: 16, borderTop: '1px solid #f1f5f9' }}>
+              <button type="button" onClick={() => setShowModal(false)}
+                style={{ flex: 1, padding: '10px', background: '#f1f5f9', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: MUTED }}>
+                Cancel
+              </button>
+              <button type="button" onClick={handleSave} disabled={submitting}
+                style={{ flex: 1, padding: '10px', background: submitting ? '#a5b4fc' : ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer' }}>
+                {submitting ? 'Saving…' : editEmp ? 'Update Employee' : 'Create Employee'}
+              </button>
             </div>
           </div>
         </div>
