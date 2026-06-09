@@ -1308,63 +1308,153 @@ export default function LandingPage() {
       </section>
 
       {/* ── 12. Research ────────────────────────────────────────────────────── */}
-      <section id="research" style={{ background: 'linear-gradient(135deg,#04081a 0%,#0d1537 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle,rgba(139,92,246,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', gap: 72, alignItems: 'flex-start', flexDirection: isMobile ? 'column' : 'row', position: 'relative', zIndex: 1 }}>
-          <Reveal dir="left" style={{ flex: '1 1 340px' }}>
-            <div style={{ flex: '1 1 340px' }}>
-              <div className="section-tag" style={{ background: 'rgba(139,92,246,0.12)', color: '#c084fc', border: '1px solid rgba(139,92,246,0.25)', marginBottom: 24 }}>
-                <MdScience size={14} /> 🔬 Research Portal
+      <section id="research" style={{ background: 'linear-gradient(160deg,#04081a 0%,#0b0b2e 45%,#04081a 100%)', padding: isMobile ? '64px 20px' : '100px 48px', position: 'relative', overflow: 'hidden' }}>
+        {/* Background glows */}
+        <div style={{ position: 'absolute', top: '-12%', left: '-6%', width: 520, height: 520, borderRadius: '50%', background: 'radial-gradient(circle,rgba(139,92,246,0.16) 0%,transparent 65%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-10%', right: '-4%', width: 440, height: 440, borderRadius: '50%', background: 'radial-gradient(circle,rgba(99,102,241,0.13) 0%,transparent 65%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '45%', right: '22%', width: 260, height: 260, borderRadius: '50%', background: 'radial-gradient(circle,rgba(52,211,153,0.07) 0%,transparent 65%)', pointerEvents: 'none' }} />
+        <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .25 }} />
+
+        <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+
+          {/* Centered header */}
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+              <div className="section-tag" style={{ background: 'rgba(139,92,246,0.12)', color: '#c084fc', border: '1px solid rgba(139,92,246,0.28)', marginBottom: 20, margin: '0 auto 20px' }}>
+                <MdScience size={14} /> PhD & Research
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3vw,42px)', fontWeight: 800, color: '#fff', marginBottom: 18, lineHeight: 1.15, letterSpacing: '-1px' }}>
-                PhD &amp; Research<br />Scholar Portal
+              <h2 style={{ fontSize: 'clamp(28px,3.8vw,54px)', fontWeight: 900, color: '#fff', letterSpacing: '-1.5px', lineHeight: 1.08, marginBottom: 18 }}>
+                Complete PhD Journey,<br /><GradText from="#c084fc" to="#34d399">One Platform</GradText>
               </h2>
-              <p style={{ fontSize: 16, color: 'rgba(255,255,255,.55)', lineHeight: 1.8, maxWidth: 440, marginBottom: 36 }}>
-                A dedicated research portal covering all aspects of the PhD journey — from registration to thesis submission and weekly workload tracking.
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 560, margin: '0 auto', lineHeight: 1.75 }}>
+                From first registration to final thesis submission — every milestone of the research scholar journey, digitally managed and fully trackable.
               </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {RESEARCH_ITEMS.map(item => (
-                  <span key={item} className="chip" style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.25)', padding: '5px 14px', fontSize: 12, fontWeight: 600, color: '#c4b5fd' }}>{item}</span>
-                ))}
-              </div>
             </div>
           </Reveal>
 
-          <Reveal dir="right" delay={150} style={{ flex: '0 0 360px' }}>
-            <GlassCard style={{ padding: 28, flex: '0 0 360px' }} hover={false}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
-                <div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,.35)', marginBottom: 2, fontWeight: 500 }}>Research Dashboard</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>PhD Scholar Status</div>
-                </div>
-                <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(139,92,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <MdScience style={{ fontSize: 20, color: '#c084fc' }} />
-                </div>
-              </div>
-              {[{ label: 'Course Work', pct: 80, color: '#a78bfa' }, { label: 'Thesis Progress', pct: 35, color: '#6366f1' }, { label: 'Meetings Done', pct: 60, color: '#10b981' }].map(item => (
-                <div key={item.label} style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,.6)', fontWeight: 500 }}>{item.label}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: item.color }}>{item.pct}%</span>
-                  </div>
-                  <div style={{ height: 6, background: 'rgba(255,255,255,.08)', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${item.pct}%`, background: item.color, borderRadius: 3, transition: 'width 1s ease' }} />
-                  </div>
-                </div>
-              ))}
-              <div style={{ borderTop: '1px solid rgba(255,255,255,.08)', paddingTop: 18, marginTop: 4 }}>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.3)', marginBottom: 12, fontWeight: 700, letterSpacing: '.06em' }}>RECENT ACTIVITY</div>
-                {[{ text: 'Thesis Chapter 2 submitted', time: '2h ago', color: '#10b981' }, { text: 'Guide meeting scheduled', time: '1d ago', color: '#a78bfa' }, { text: 'Weekly workload updated', time: '3d ago', color: '#6366f1' }].map(act => (
-                  <div key={act.text} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,.05)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: act.color, flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, color: 'rgba(255,255,255,.65)', fontWeight: 500 }}>{act.text}</span>
+          {/* 4 Phase Journey Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: 14, marginBottom: 24, position: 'relative' }}>
+            {!isMobile && <div style={{ position: 'absolute', top: 38, left: '12.5%', right: '12.5%', height: 1, background: 'linear-gradient(90deg,rgba(52,211,153,0.4),rgba(139,92,246,0.5),rgba(99,102,241,0.4),rgba(99,102,241,0.15))', zIndex: 0 }} />}
+            {[
+              { phase: '01', title: 'Registration', desc: 'PhD enrollment, profile & research area', icon: MdHowToReg, color: '#34d399', done: true },
+              { phase: '02', title: 'Course Work', desc: 'Subject completion & grade tracking', icon: MdMenuBook, color: '#818cf8', done: true },
+              { phase: '03', title: 'Research', desc: 'Guide meetings, workload & documents', icon: MdScience, color: '#a78bfa', active: true },
+              { phase: '04', title: 'Thesis & Submit', desc: 'Electronic submission & research letters', icon: MdVerified, color: '#06b6d4' },
+            ].map((p, i) => {
+              const Icon = p.icon
+              return (
+                <Reveal key={p.phase} delay={i * 80} wrapStyle={{ zIndex: 1 }}>
+                  <div style={{ background: p.active ? 'rgba(167,139,250,0.1)' : 'rgba(255,255,255,0.03)', border: `1px solid ${p.active ? 'rgba(167,139,250,0.4)' : p.done ? `${p.color}30` : 'rgba(255,255,255,0.07)'}`, borderRadius: 18, padding: '22px 16px', textAlign: 'center', transition: 'all .3s cubic-bezier(.22,1,.36,1)', cursor: 'default', position: 'relative', boxShadow: p.active ? '0 0 32px rgba(167,139,250,0.12)' : 'none' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = `${p.color}12`; e.currentTarget.style.borderColor = `${p.color}50`; e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = `0 16px 32px ${p.color}15` }}
+                    onMouseLeave={e => { e.currentTarget.style.background = p.active ? 'rgba(167,139,250,0.1)' : 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = p.active ? 'rgba(167,139,250,0.4)' : p.done ? `${p.color}30` : 'rgba(255,255,255,0.07)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = p.active ? '0 0 32px rgba(167,139,250,0.12)' : 'none' }}>
+                    {p.done && <div style={{ position: 'absolute', top: 10, right: 10, width: 18, height: 18, borderRadius: '50%', background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdCheck style={{ fontSize: 11, color: '#34d399' }} /></div>}
+                    {p.active && <div style={{ position: 'absolute', top: 12, right: 12, width: 8, height: 8, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 10px #a78bfa', animation: 'pulse 2s infinite' }} />}
+                    <div style={{ width: 52, height: 52, borderRadius: 14, background: `${p.color}15`, border: `1.5px solid ${p.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', boxShadow: p.active ? `0 0 20px ${p.color}25` : 'none' }}>
+                      <Icon style={{ fontSize: 26, color: p.color }} />
                     </div>
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', fontWeight: 500 }}>{act.time}</span>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: p.color, letterSpacing: '.1em', marginBottom: 6, textTransform: 'uppercase' }}>Phase {p.phase}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 7 }}>{p.title}</div>
+                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>{p.desc}</div>
                   </div>
-                ))}
+                </Reveal>
+              )
+            })}
+          </div>
+
+          {/* Rich 3-col Dashboard */}
+          <Reveal delay={180}>
+            <GlassCard style={{ padding: isMobile ? '24px 18px' : '32px 36px' }} hover={false}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.5fr 1fr 1fr', gap: isMobile ? 28 : 36 }}>
+
+                {/* Col 1: PhD Journey Timeline */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.28)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 22 }}>PhD Journey</div>
+                  {[
+                    { label: 'PhD Registration', sub: 'Enrolled Jul 2022', done: true },
+                    { label: 'Course Work', sub: '4 subjects completed', done: true },
+                    { label: 'Research Phase', sub: 'Guide: Dr. Arjun Nair', active: true },
+                    { label: 'Thesis Writing', sub: 'Chapter 2 in progress' },
+                    { label: 'Final Submission', sub: 'Est. Dec 2025' },
+                  ].map((step, i, arr) => (
+                    <div key={step.label} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: step.done ? 'rgba(52,211,153,0.12)' : step.active ? 'rgba(167,139,250,0.15)' : 'rgba(255,255,255,0.04)', border: `2px solid ${step.done ? '#34d399' : step.active ? '#a78bfa' : 'rgba(255,255,255,0.1)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: step.active ? '0 0 14px rgba(167,139,250,0.35)' : 'none', transition: 'all .3s' }}>
+                          {step.done ? <MdCheck style={{ fontSize: 14, color: '#34d399' }} /> : step.active ? <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a78bfa', animation: 'pulse 2s infinite' }} /> : <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />}
+                        </div>
+                        {i < arr.length - 1 && <div style={{ width: 2, height: 28, background: step.done ? 'linear-gradient(180deg,rgba(52,211,153,0.4),rgba(52,211,153,0.1))' : 'rgba(255,255,255,0.05)', margin: '3px 0', borderRadius: 1 }} />}
+                      </div>
+                      <div style={{ paddingBottom: i < arr.length - 1 ? 22 : 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: step.done ? '#fff' : step.active ? '#c4b5fd' : 'rgba(255,255,255,0.35)' }}>{step.label}</div>
+                        <div style={{ fontSize: 11, color: step.active ? 'rgba(196,181,253,0.55)' : 'rgba(255,255,255,0.22)', marginTop: 2 }}>{step.sub}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Col 2: Thesis Ring + Progress Bars */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', borderLeft: isMobile ? 'none' : '1px solid rgba(255,255,255,0.06)', borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.06)', padding: isMobile ? '0' : '0 28px' }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.28)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 16, textAlign: 'center' }}>Thesis Progress</div>
+                  <RingCounter target={35} suffix="%" color="#a78bfa" size={118} />
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.45)', marginBottom: 22, textAlign: 'center' }}>Chapter 2 of 5 complete</div>
+                  <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {[{ l: 'Course Work', v: 100, c: '#34d399' }, { l: 'Research Hours', v: 62, c: '#818cf8' }, { l: 'Guide Meetings', v: 75, c: '#06b6d4' }].map(bar => (
+                      <div key={bar.l}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.42)', fontWeight: 500 }}>{bar.l}</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: bar.c }}>{bar.v}%</span>
+                        </div>
+                        <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${bar.v}%`, background: `linear-gradient(90deg,${bar.c}cc,${bar.c})`, borderRadius: 2, boxShadow: `0 0 6px ${bar.c}60` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Col 3: Activity + Mini Stats */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.28)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 16 }}>Recent Activity</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+                    {[
+                      { text: 'Thesis Ch.2 submitted', time: '2h ago', color: '#34d399', icon: MdAssignment },
+                      { text: 'Guide meeting logged', time: '1d ago', color: '#a78bfa', icon: MdPeople },
+                      { text: 'Weekly workload filed', time: '3d ago', color: '#818cf8', icon: MdMenuBook },
+                      { text: 'Research doc uploaded', time: '5d ago', color: '#06b6d4', icon: MdScience },
+                    ].map((act, ai) => {
+                      const AIcon = act.icon
+                      return (
+                        <div key={ai} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '9px 11px', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.05)' }}>
+                          <div style={{ width: 28, height: 28, borderRadius: 8, background: `${act.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <AIcon style={{ fontSize: 14, color: act.color }} />
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(255,255,255,0.7)', lineHeight: 1.3 }}>{act.text}</div>
+                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>{act.time}</div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    {[{ label: 'Years Enrolled', val: '2.5', color: '#a78bfa' }, { label: 'Publications', val: '3', color: '#34d399' }].map(stat => (
+                      <div key={stat.label} style={{ background: `${stat.color}10`, border: `1px solid ${stat.color}22`, borderRadius: 10, padding: '12px 10px', textAlign: 'center' }}>
+                        <div style={{ fontSize: 22, fontWeight: 900, color: stat.color, letterSpacing: '-0.5px' }}>{stat.val}</div>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 3, fontWeight: 500 }}>{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </GlassCard>
+          </Reveal>
+
+          {/* Feature chips strip */}
+          <Reveal delay={280}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 28 }}>
+              {RESEARCH_ITEMS.map(item => (
+                <span key={item} className="chip" style={{ background: 'rgba(139,92,246,0.09)', border: '1px solid rgba(139,92,246,0.22)', padding: '6px 16px', fontSize: 12, fontWeight: 600, color: '#c4b5fd' }}>{item}</span>
+              ))}
+            </div>
           </Reveal>
         </div>
       </section>
