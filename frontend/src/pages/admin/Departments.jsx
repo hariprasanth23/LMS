@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
-import { MdAdd, MdEdit, MdClose, MdBusiness, MdUploadFile } from 'react-icons/md'
+import { MdAdd, MdEdit, MdClose, MdBusiness, MdUploadFile, MdEmail, MdPhone, MdLocationOn, MdPeople } from 'react-icons/md'
 import PageHeader from '../../components/common/PageHeader'
 import CsvImportModal from '../../components/common/CsvImportModal'
 
@@ -16,7 +16,7 @@ const DEPT_COLORS = [
   ['#fef2f2','#ef4444'], ['#f0f9ff','#0ea5e9'], ['#fdf4ff','#a855f7'],
 ]
 
-const EMPTY = { code: '', name: '', description: '' }
+const EMPTY = { code: '', name: '', description: '', email: '', phone: '', location: '', establishedYear: '', totalSeats: '' }
 
 export default function Departments() {
   const { user } = useAuth()
@@ -39,7 +39,7 @@ export default function Departments() {
   useEffect(() => { fetchDepts() }, [])
 
   const openAdd = () => { setEditDept(null); setForm(EMPTY); setShowModal(true) }
-  const openEdit = (d) => { setEditDept(d); setForm({ code: d.code, name: d.name, description: d.description || '' }); setShowModal(true) }
+  const openEdit = (d) => { setEditDept(d); setForm({ code: d.code, name: d.name, description: d.description || '', email: d.email || '', phone: d.phone || '', location: d.location || '', establishedYear: d.establishedYear || '', totalSeats: d.totalSeats || '' }); setShowModal(true) }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -104,13 +104,24 @@ export default function Departments() {
                     </button>
                   )}
                 </div>
-                <div>
+                <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 16, fontWeight: 700, color: TEXT, marginBottom: 2 }}>{dept.name}</div>
-                  <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color, background: bg, borderRadius: 4, padding: '2px 7px', marginBottom: 6 }}>{dept.code}</div>
-                  {dept.description && <div style={{ fontSize: 13, color: MUTED, lineHeight: 1.5 }}>{dept.description}</div>}
+                  <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color, background: bg, borderRadius: 4, padding: '2px 7px', marginBottom: dept.description ? 6 : 10 }}>{dept.code}</div>
+                  {dept.description && <div style={{ fontSize: 13, color: MUTED, lineHeight: 1.5, marginBottom: 10 }}>{dept.description}</div>}
+                  {/* Extra info */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    {dept.email && <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: MUTED }}><MdEmail size={13} style={{ color, flexShrink: 0 }} />{dept.email}</div>}
+                    {dept.phone && <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: MUTED }}><MdPhone size={13} style={{ color, flexShrink: 0 }} />{dept.phone}</div>}
+                    {dept.location && <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: MUTED }}><MdLocationOn size={13} style={{ color, flexShrink: 0 }} />{dept.location}</div>}
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, color: MUTED, marginTop: 'auto' }}>
-                  ID: <span style={{ fontFamily: 'monospace' }}>{dept.id}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: 8, borderTop: '1px solid #f1f5f9' }}>
+                  <div style={{ fontSize: 11, color: MUTED }}>
+                    {dept.establishedYear ? <span>Est. {dept.establishedYear}</span> : null}
+                    {dept.totalSeats ? <span style={{ marginLeft: dept.establishedYear ? 10 : 0 }}><MdPeople size={11} style={{ verticalAlign: 'middle', marginRight: 3 }} />{dept.totalSeats} seats</span> : null}
+                    {!dept.establishedYear && !dept.totalSeats ? <span>ID: <span style={{ fontFamily: 'monospace' }}>{dept.id}</span></span> : null}
+                  </div>
+                  <div style={{ fontSize: 11, color: MUTED, fontFamily: 'monospace' }}>#{dept.id}</div>
                 </div>
               </div>
             )
@@ -126,19 +137,56 @@ export default function Departments() {
               <div style={{ fontSize: 16, fontWeight: 700, color: TEXT }}>{editDept ? 'Edit Department' : 'Add Department'}</div>
               <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED }}><MdClose size={20} /></button>
             </div>
-            <form onSubmit={handleSubmit} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={lbl}>Department Code *</label>
-                <input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} placeholder="e.g. CSE" style={inp} required />
+            <form onSubmit={handleSubmit} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+              {/* Row 1: Code + Name */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 14 }}>
+                <div>
+                  <label style={lbl}>Code *</label>
+                  <input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} placeholder="CSE" style={inp} required />
+                </div>
+                <div>
+                  <label style={lbl}>Department Name *</label>
+                  <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Computer Science & Engineering" style={inp} required />
+                </div>
               </div>
-              <div>
-                <label style={lbl}>Department Name *</label>
-                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Computer Science & Engineering" style={inp} required />
+
+              {/* Row 2: Email + Phone */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div>
+                  <label style={lbl}>Contact Email</label>
+                  <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="dept@college.edu" style={inp} />
+                </div>
+                <div>
+                  <label style={lbl}>Contact Phone</label>
+                  <input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="044-XXXXXXXX" style={inp} />
+                </div>
               </div>
+
+              {/* Row 3: Location */}
+              <div>
+                <label style={lbl}>Location / Office</label>
+                <input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. Block A, 2nd Floor, Room 201" style={inp} />
+              </div>
+
+              {/* Row 4: Established Year + Total Seats */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div>
+                  <label style={lbl}>Established Year</label>
+                  <input type="number" value={form.establishedYear} onChange={e => setForm({ ...form, establishedYear: e.target.value })} placeholder="e.g. 1995" min={1800} max={new Date().getFullYear()} style={inp} />
+                </div>
+                <div>
+                  <label style={lbl}>Total Seats / Intake</label>
+                  <input type="number" value={form.totalSeats} onChange={e => setForm({ ...form, totalSeats: e.target.value })} placeholder="e.g. 120" min={1} style={inp} />
+                </div>
+              </div>
+
+              {/* Description */}
               <div>
                 <label style={lbl}>Description</label>
-                <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Optional description" rows={3} style={{ ...inp, resize: 'vertical' }} />
+                <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Brief overview of the department" rows={2} style={{ ...inp, resize: 'vertical' }} />
               </div>
+
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
                 <button type="button" onClick={() => setShowModal(false)} style={{ padding: '9px 18px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
                   Cancel

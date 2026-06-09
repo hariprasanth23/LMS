@@ -40,8 +40,17 @@ public class PayrollService {
             }
 
             BigDecimal base = emp.getBaseSalary() != null ? emp.getBaseSalary() : BigDecimal.ZERO;
-            BigDecimal allowances = base.multiply(new BigDecimal("0.20")); // 20% allowance
-            BigDecimal deductions = base.multiply(new BigDecimal("0.10")); // 10% PF/tax deduction
+            // Use caller-supplied percentages or fall back to defaults (20% / 10%)
+            BigDecimal allowancePct = request.getAllowancePercentage() != null
+                    ? BigDecimal.valueOf(request.getAllowancePercentage() / 100.0)
+                    : new BigDecimal("0.20");
+            BigDecimal deductionPct = request.getDeductionPercentage() != null
+                    ? BigDecimal.valueOf(request.getDeductionPercentage() / 100.0)
+                    : new BigDecimal("0.10");
+            BigDecimal bonus = request.getBonusAmount() != null ? request.getBonusAmount() : BigDecimal.ZERO;
+
+            BigDecimal allowances = base.multiply(allowancePct).add(bonus);
+            BigDecimal deductions = base.multiply(deductionPct);
             BigDecimal leaveDeductions = BigDecimal.ZERO;
             BigDecimal netSalary = base.add(allowances).subtract(deductions).subtract(leaveDeductions);
 

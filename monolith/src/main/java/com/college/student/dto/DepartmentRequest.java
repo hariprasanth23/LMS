@@ -20,4 +20,18 @@ public class DepartmentRequest {
     private String description;
 
     private UUID headFacultyId;
+
+    @jakarta.validation.constraints.Email(message = "Invalid email address")
+    @Size(max = 100)
+    private String email;
+
+    @Size(max = 20)
+    private String phone;
+
+    @Size(max = 200)
+    private String location;
+
+    private Integer establishedYear;
+
+    private Integer totalSeats;
 }

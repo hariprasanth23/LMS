@@ -37,6 +37,11 @@ public class DepartmentService {
                 .code(request.getCode().toUpperCase())
                 .description(request.getDescription())
                 .headFacultyId(request.getHeadFacultyId())
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .location(request.getLocation())
+                .establishedYear(request.getEstablishedYear())
+                .totalSeats(request.getTotalSeats())
                 .build();
         return departmentRepository.save(department);
     }
@@ -54,6 +59,11 @@ public class DepartmentService {
         department.setCode(request.getCode().toUpperCase());
         department.setDescription(request.getDescription());
         department.setHeadFacultyId(request.getHeadFacultyId());
+        department.setEmail(request.getEmail());
+        department.setPhone(request.getPhone());
+        department.setLocation(request.getLocation());
+        department.setEstablishedYear(request.getEstablishedYear());
+        department.setTotalSeats(request.getTotalSeats());
         return departmentRepository.save(department);
     }
 

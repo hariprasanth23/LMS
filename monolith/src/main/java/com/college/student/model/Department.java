@@ -34,6 +34,21 @@ public class Department {
     @Column(name = "head_faculty_id")
     private UUID headFacultyId;
 
+    @Column(name = "email", length = 100)
+    private String email;
+
+    @Column(name = "phone", length = 20)
+    private String phone;
+
+    @Column(name = "location", length = 200)
+    private String location;
+
+    @Column(name = "established_year")
+    private Integer establishedYear;
+
+    @Column(name = "total_seats")
+    private Integer totalSeats;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

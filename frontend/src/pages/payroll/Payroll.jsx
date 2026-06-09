@@ -133,6 +133,9 @@ export default function Payroll() {
   const [genForm, setGenForm] = useState({
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
+    allowancePercentage: 20,
+    deductionPercentage: 10,
+    bonusAmount: '',
     remarks: ''
   })
   const [generating, setGenerating] = useState(false)
@@ -163,7 +166,15 @@ export default function Payroll() {
     e.preventDefault()
     setGenerating(true)
     try {
-      const res = await api.post('/payroll/generate', genForm)
+      const payload = {
+        month: genForm.month,
+        year: genForm.year,
+        allowancePercentage: genForm.allowancePercentage ?? 20,
+        deductionPercentage: genForm.deductionPercentage ?? 10,
+        bonusAmount: genForm.bonusAmount !== '' ? Number(genForm.bonusAmount) : null,
+        remarks: genForm.remarks || null,
+      }
+      const res = await api.post('/payroll/generate', payload)
       const count = res.data.data?.length || 0
       toast.success(`Payroll generated for ${count} employees`)
       setShowGenModal(false)
@@ -368,6 +379,7 @@ export default function Payroll() {
               <button onClick={() => setShowGenModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED }}><MdClose size={20} /></button>
             </div>
             <form onSubmit={handleGenerate}>
+              {/* Period */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
                 <div>
                   <label style={labelStyle}>Month *</label>
@@ -382,17 +394,55 @@ export default function Payroll() {
                   </select>
                 </div>
               </div>
-              <div style={{ marginBottom: 20 }}>
+
+              {/* Allowance / Deduction */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <label style={labelStyle}>Allowance % <span style={{ color: MUTED, fontWeight: 400 }}>(default 20)</span></label>
+                  <div style={{ position: 'relative' }}>
+                    <input type="number" value={genForm.allowancePercentage} min={0} max={100} step={0.5}
+                      onChange={e => setGenForm({ ...genForm, allowancePercentage: Number(e.target.value) })}
+                      style={{ ...inputStyle, paddingRight: 28 }} />
+                    <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: MUTED, pointerEvents: 'none' }}>%</span>
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>Deduction % <span style={{ color: MUTED, fontWeight: 400 }}>(default 10)</span></label>
+                  <div style={{ position: 'relative' }}>
+                    <input type="number" value={genForm.deductionPercentage} min={0} max={100} step={0.5}
+                      onChange={e => setGenForm({ ...genForm, deductionPercentage: Number(e.target.value) })}
+                      style={{ ...inputStyle, paddingRight: 28 }} />
+                    <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: MUTED, pointerEvents: 'none' }}>%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bonus */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={labelStyle}>Flat Bonus (₹) <span style={{ color: MUTED, fontWeight: 400 }}>— added to every employee's allowances</span></label>
+                <input type="number" value={genForm.bonusAmount} min={0} placeholder="0 (leave blank for no bonus)"
+                  onChange={e => setGenForm({ ...genForm, bonusAmount: e.target.value })}
+                  style={inputStyle} />
+              </div>
+
+              {/* Remarks */}
+              <div style={{ marginBottom: 14 }}>
                 <label style={labelStyle}>Remarks</label>
                 <textarea value={genForm.remarks} onChange={e => setGenForm({ ...genForm, remarks: e.target.value })} rows={2} style={{ ...inputStyle, resize: 'none' }} />
               </div>
-              <div style={{ background: '#fffbeb', borderRadius: 8, padding: '10px 14px', marginBottom: 18, fontSize: 12, color: '#92400e', fontFamily: 'system-ui, sans-serif' }}>
-                This will generate payroll records for all active employees for the selected period.
+
+              {/* Preview summary */}
+              <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, padding: '10px 14px', marginBottom: 18, fontSize: 12, color: '#0369a1', fontFamily: 'system-ui, sans-serif' }}>
+                <div style={{ fontWeight: 700, marginBottom: 4 }}>Payroll Preview (per employee)</div>
+                <div>Gross = Base + {genForm.allowancePercentage}% allowance{genForm.bonusAmount ? ` + ₹${Number(genForm.bonusAmount).toLocaleString('en-IN')} bonus` : ''}</div>
+                <div>Net = Gross − {genForm.deductionPercentage}% deductions</div>
+                <div style={{ marginTop: 6, color: '#0284c7', fontWeight: 600 }}>Applies to all active employees for {MONTHS[genForm.month - 1]} {genForm.year}</div>
               </div>
+
               <div style={{ display: 'flex', gap: 10 }}>
                 <button type="button" onClick={() => setShowGenModal(false)} style={{ flex: 1, padding: '10px', background: '#f1f5f9', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: MUTED }}>Cancel</button>
                 <button type="submit" disabled={generating} style={{ flex: 1, padding: '10px', background: generating ? '#a5b4fc' : ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                  {generating ? 'Generating...' : 'Generate'}
+                  {generating ? 'Generating…' : 'Generate Payroll'}
                 </button>
               </div>
             </form>
