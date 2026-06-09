@@ -1334,7 +1334,7 @@ export default function LandingPage() {
 
           {/* 4 Phase Journey Cards */}
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: 14, marginBottom: 24, position: 'relative' }}>
-            {!isMobile && <div style={{ position: 'absolute', top: 38, left: '12.5%', right: '12.5%', height: 1, background: 'linear-gradient(90deg,rgba(52,211,153,0.4),rgba(139,92,246,0.5),rgba(99,102,241,0.4),rgba(99,102,241,0.15))', zIndex: 0 }} />}
+            {!isMobile && <div style={{ position: 'absolute', top: 48, left: '14%', right: '14%', height: 1, background: 'linear-gradient(90deg,rgba(52,211,153,0.25),rgba(139,92,246,0.35),rgba(99,102,241,0.25),rgba(99,102,241,0.08))', zIndex: 0, pointerEvents: 'none' }} />}
             {[
               { phase: '01', title: 'Registration', desc: 'PhD enrollment, profile & research area', icon: MdHowToReg, color: '#34d399', done: true },
               { phase: '02', title: 'Course Work', desc: 'Subject completion & grade tracking', icon: MdMenuBook, color: '#818cf8', done: true },
