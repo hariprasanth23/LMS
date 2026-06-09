@@ -63,10 +63,12 @@ public class LoginRateLimitFilter implements Filter {
             log.warn("Rate limit exceeded for IP {} on {}", ip, uri);
             resp.setStatus(429); // 429 Too Many Requests
             resp.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            objectMapper.writeValue(resp.getWriter(),
-                    Map.of("success", false,
-                           "message", "Too many login attempts. Try again in 15 minutes.",
-                           "data", null));
+            // Map.of() forbids null values; use a mutable map for the null "data" field
+            java.util.LinkedHashMap<String, Object> body = new java.util.LinkedHashMap<>();
+            body.put("success", false);
+            body.put("message", "Too many login attempts. Try again in 15 minutes.");
+            body.put("data", null);
+            objectMapper.writeValue(resp.getWriter(), body);
             return;
         }
 
