@@ -31,7 +31,7 @@ function ProgressBar({ pct, color }) {
   )
 }
 
-const EMPTY_FORM = { courseCode: '', title: '', description: '', credits: '', semester: '', departmentId: '' }
+const EMPTY_FORM = { courseCode: '', title: '', description: '', credits: '', semester: '', departmentId: '', status: 'ACTIVE' }
 
 export default function Courses() {
   const { user } = useAuth()
@@ -361,25 +361,57 @@ export default function Courses() {
               </button>
             </div>
             <form onSubmit={handleCreate}>
-              {[
-                ['Course Code *', 'courseCode', 'text'],
-                ['Title *', 'title', 'text'],
-                ['Description', 'description', 'text'],
-                ['Credits', 'credits', 'number'],
-                ['Semester', 'semester', 'number']
-              ].map(([label, name, type]) => (
-                <div key={name} style={{ marginBottom: 14 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 5 }}>{label}</label>
-                  <input
-                    type={type}
-                    value={form[name]}
-                    onChange={e => setForm({ ...form, [name]: e.target.value })}
-                    style={inputStyle}
-                    onFocus={e => e.target.style.borderColor = ACCENT}
-                    onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-                  />
+              {/* Row 1: Code + Title */}
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                {[
+                  { label: 'Course Code *', key: 'courseCode', type: 'text', placeholder: 'e.g. CS301' },
+                  { label: 'Title *',       key: 'title',      type: 'text', placeholder: 'e.g. Data Structures' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 5 }}>{f.label}</label>
+                    <input type={f.type} placeholder={f.placeholder} value={form[f.key]}
+                      onChange={e => setForm({ ...form, [f.key]: e.target.value })} style={inputStyle}
+                      onFocus={e => e.target.style.borderColor = ACCENT} onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
+                  </div>
+                ))}
+              </div>
+              {/* Row 2: Dept + Semester + Credits + Status */}
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 5 }}>Department ID</label>
+                  <input type="number" placeholder="1–5" value={form.departmentId}
+                    onChange={e => setForm({ ...form, departmentId: e.target.value })} style={inputStyle} min={1}
+                    onFocus={e => e.target.style.borderColor = ACCENT} onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
                 </div>
-              ))}
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 5 }}>Semester</label>
+                  <select value={form.semester} onChange={e => setForm({ ...form, semester: e.target.value })} style={{ ...inputStyle, cursor: 'pointer' }}>
+                    <option value="">Select</option>
+                    {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>Sem {n}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 5 }}>Credits</label>
+                  <input type="number" placeholder="e.g. 3" value={form.credits}
+                    onChange={e => setForm({ ...form, credits: e.target.value })} style={inputStyle} min={1} max={6}
+                    onFocus={e => e.target.style.borderColor = ACCENT} onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 5 }}>Status</label>
+                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={{ ...inputStyle, cursor: 'pointer' }}>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </select>
+                </div>
+              </div>
+              {/* Description */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 5 }}>Description</label>
+                <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="Brief course description…" rows={3}
+                  style={{ ...inputStyle, resize: 'vertical' }}
+                  onFocus={e => e.target.style.borderColor = ACCENT} onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
+              </div>
               <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
                 <button
                   type="button"
@@ -408,18 +440,17 @@ export default function Courses() {
         title="Import Courses"
         sampleFile="sample_courses.csv"
         columns={[
-          { key: 'code',         label: 'Course Code',          required: true },
-          { key: 'name',         label: 'Course Name',          required: true },
+          { key: 'courseCode',   label: 'Course Code',          required: true },
+          { key: 'title',        label: 'Course Title',         required: true },
+          { key: 'departmentId', label: 'Department ID (1–5)',  required: true,  type: 'number' },
+          { key: 'semester',     label: 'Semester (1–8)',        required: true,  type: 'number', min: 1, max: 8 },
+          { key: 'credits',      label: 'Credits',              required: false, type: 'number' },
           { key: 'description',  label: 'Description',          required: false },
-          { key: 'departmentId', label: 'Department ID (1–5)',  required: true, type: 'number' },
-          { key: 'credits',      label: 'Credits',              required: true, type: 'number' },
-          { key: 'semester',     label: 'Semester',             required: true, type: 'number', min: 1, max: 8 },
-          { key: 'facultyId',    label: 'Faculty ID (UUID)',    required: false },
           { key: 'status',       label: 'Status (ACTIVE)',      required: false },
         ]}
         sampleRows={[
-          { code: 'CS7001', name: 'Sample Course A', description: 'Sample description A', departmentId: 1, credits: 3, semester: 5, facultyId: '', status: 'ACTIVE' },
-          { code: 'EC5001', name: 'Sample Course B', description: 'Sample description B', departmentId: 2, credits: 4, semester: 3, facultyId: '', status: 'ACTIVE' },
+          { courseCode: 'CS301', title: 'Data Structures', departmentId: 1, semester: 3, credits: 4, description: 'Core CS course', status: 'ACTIVE' },
+          { courseCode: 'EC201', title: 'Circuit Theory',  departmentId: 2, semester: 2, credits: 3, description: 'Electronics fundamentals', status: 'ACTIVE' },
         ]}
         importFn={async (rows) => {
           const results = []
@@ -428,15 +459,17 @@ export default function Courses() {
             const r = rows[i]
             try {
               await api.post('/courses', {
-                code: r.code, name: r.name, description: r.description || null,
-                departmentId: Number(r.departmentId), credits: Number(r.credits),
-                semester: Number(r.semester), facultyId: r.facultyId || null,
+                courseCode: r.courseCode, title: r.title,
+                description: r.description || null,
+                departmentId: Number(r.departmentId),
+                credits: r.credits ? Number(r.credits) : null,
+                semester: Number(r.semester),
                 status: r.status || 'ACTIVE',
               })
-              results.push({ row: i + 2, code: r.code, success: true, message: 'Imported successfully' })
+              results.push({ row: i + 2, code: r.courseCode, success: true, message: 'Imported successfully' })
               successCount++
             } catch (e) {
-              results.push({ row: i + 2, code: r.code, success: false, message: e.response?.data?.message || e.message })
+              results.push({ row: i + 2, code: r.courseCode, success: false, message: e.response?.data?.message || e.message })
               failureCount++
             }
           }

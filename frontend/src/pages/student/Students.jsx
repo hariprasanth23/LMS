@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 import {
   MdAdd, MdSearch, MdDownload, MdEdit, MdClose,
-  MdChevronLeft, MdChevronRight, MdUploadFile
+  MdChevronLeft, MdChevronRight, MdUploadFile, MdCheckCircle
 } from 'react-icons/md'
 import PageHeader from '../../components/common/PageHeader'
 import CsvImportModal from '../../components/common/CsvImportModal'
@@ -26,37 +26,26 @@ function getInitials(name = '') {
 function AvatarCircle({ name, index }) {
   const [bg, fg] = AVATAR_COLORS[index % AVATAR_COLORS.length]
   return (
-    <div style={{
-      width: 34, height: 34, borderRadius: '50%', background: bg, color: fg,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 12, fontWeight: 800, flexShrink: 0, letterSpacing: 0.5,
-    }}>
+    <div style={{ width: 34, height: 34, borderRadius: '50%', background: bg, color: fg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, flexShrink: 0, letterSpacing: 0.5 }}>
       {getInitials(name)}
     </div>
   )
 }
 
 const EMPTY_FORM = {
-  // identity (creates User account)
   name: '', email: '', phone: '',
-  // academic
   rollNumber: '', departmentId: '', program: '', semester: '', section: '',
   batch: '', admissionYear: '',
-  // personal
   dateOfBirth: '', gender: '', bloodGroup: '', category: '', aadhaarNumber: '',
-  // contact
   address: '',
-  // family
   fatherName: '', motherName: '', parentPhone: '',
   guardianName: '', guardianPhone: '',
-  // emergency
   emergencyContactName: '', emergencyContactPhone: '',
 }
 
 const PAGE_SIZE = 10
 
-// ── Reusable form field ────────────────────────────────────────────────────────
-
+// ── Shared form primitives ─────────────────────────────────────────────────────
 function Field({ label, required, span = 1, children }) {
   return (
     <div style={{ gridColumn: `span ${span}` }}>
@@ -68,33 +57,57 @@ function Field({ label, required, span = 1, children }) {
   )
 }
 
-function SectionLabel({ title }) {
+function SectionHeading({ text }) {
   return (
-    <div style={{
-      gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 10,
-      margin: '6px 0 2px',
-    }}>
-      <span style={{ fontSize: 11, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-        {title}
-      </span>
+    <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 10, margin: '4px 0 0' }}>
+      <span style={{ fontSize: 10, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: 1 }}>{text}</span>
       <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+    </div>
+  )
+}
+
+// ── Step indicator ─────────────────────────────────────────────────────────────
+const STEPS = ['Identity & Academics', 'Personal Details', 'Family & Emergency']
+
+function StepBar({ current }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 20 }}>
+      {STEPS.map((label, i) => {
+        const done = current > i + 1
+        const active = current === i + 1
+        return (
+          <React.Fragment key={i}>
+            {i > 0 && <div style={{ flex: 1, height: 2, marginTop: 11, background: done ? ACCENT : '#e2e8f0', transition: 'background 0.3s' }} />}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+              <div style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, background: done || active ? ACCENT : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.3s', boxShadow: active ? '0 0 0 3px #eef2ff' : 'none' }}>
+                {done
+                  ? <MdCheckCircle style={{ color: '#fff', fontSize: 15 }} />
+                  : <span style={{ fontSize: 11, fontWeight: 800, color: active ? '#fff' : '#94a3b8' }}>{i + 1}</span>
+                }
+              </div>
+              <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? ACCENT : done ? '#64748b' : '#94a3b8', textAlign: 'center', lineHeight: 1.3, maxWidth: 70 }}>{label}</span>
+            </div>
+          </React.Fragment>
+        )
+      })}
     </div>
   )
 }
 
 export default function Students() {
   const { user } = useAuth()
-  const [students, setStudents]     = useState([])
-  const [search, setSearch]         = useState('')
+  const [students, setStudents]         = useState([])
+  const [search, setSearch]             = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
-  const [loading, setLoading]       = useState(true)
-  const [showModal, setShowModal]   = useState(false)
-  const [showImport, setShowImport] = useState(false)
-  const [editStudent, setEditStudent] = useState(null)
-  const [form, setForm]             = useState(EMPTY_FORM)
-  const [submitting, setSubmitting] = useState(false)
-  const [page, setPage]             = useState(1)
+  const [loading, setLoading]           = useState(true)
+  const [showModal, setShowModal]       = useState(false)
+  const [showImport, setShowImport]     = useState(false)
+  const [editStudent, setEditStudent]   = useState(null)
+  const [form, setForm]                 = useState(EMPTY_FORM)
+  const [submitting, setSubmitting]     = useState(false)
+  const [page, setPage]                 = useState(1)
   const [createdPassword, setCreatedPassword] = useState(null)
+  const [formStep, setFormStep]         = useState(1)
   const searchRef = useRef(null)
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
 
@@ -117,13 +130,10 @@ export default function Students() {
 
   const filtered = students.filter(s => {
     const q = search.toLowerCase()
-    const matchSearch =
-      s.name?.toLowerCase().includes(q) ||
-      s.rollNumber?.toLowerCase().includes(q) ||
-      s.email?.toLowerCase().includes(q)
+    const matchSearch = s.name?.toLowerCase().includes(q) || s.rollNumber?.toLowerCase().includes(q) || s.email?.toLowerCase().includes(q)
     const matchStatus =
       statusFilter === 'ALL' ||
-      (statusFilter === 'ACTIVE'   && (s.status === 'ACTIVE'   || !s.status)) ||
+      (statusFilter === 'ACTIVE'   && (s.status === 'ACTIVE' || !s.status)) ||
       (statusFilter === 'INACTIVE' && s.status === 'INACTIVE')
     return matchSearch && matchStatus
   })
@@ -133,15 +143,12 @@ export default function Students() {
   const paginated  = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
   const openAdd = () => {
-    setEditStudent(null)
-    setCreatedPassword(null)
-    setForm(EMPTY_FORM)
-    setShowModal(true)
+    setEditStudent(null); setCreatedPassword(null)
+    setForm(EMPTY_FORM); setFormStep(1); setShowModal(true)
   }
 
   const openEdit = (s) => {
-    setEditStudent(s)
-    setCreatedPassword(null)
+    setEditStudent(s); setCreatedPassword(null)
     setForm({
       name: s.name || '', email: s.email || '', phone: s.phone || '',
       rollNumber: s.rollNumber || '', departmentId: s.departmentId || '',
@@ -157,23 +164,27 @@ export default function Students() {
       emergencyContactName: s.emergencyContactName || '',
       emergencyContactPhone: s.emergencyContactPhone || '',
     })
-    setShowModal(true)
+    setFormStep(1); setShowModal(true)
   }
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
 
+  const handleNext = () => {
+    if (formStep === 1) {
+      if (!form.rollNumber || !form.name) { toast.error('Roll number and name are required'); return }
+      if (!editStudent && !form.email)    { toast.error('Email is required for new students');  return }
+    }
+    setFormStep(s => s + 1)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.rollNumber || !form.name) { toast.error('Roll number and name are required'); return }
-    if (!editStudent && !form.email)    { toast.error('Email is required for new students');  return }
     setSubmitting(true)
     try {
       if (editStudent) {
         await api.put(`/students/${editStudent.id}`, form)
         toast.success('Student updated')
-        setShowModal(false)
-        setForm(EMPTY_FORM)
-        setEditStudent(null)
+        setShowModal(false); setForm(EMPTY_FORM); setEditStudent(null)
         fetchStudents()
       } else {
         const res = await api.post('/students', form)
@@ -184,18 +195,11 @@ export default function Students() {
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save student')
-    } finally {
-      setSubmitting(false)
-    }
+    } finally { setSubmitting(false) }
   }
 
   const exportCSV = () => {
-    const headers = [
-      'Roll Number', 'Name', 'Email', 'Phone', 'Program', 'Sem', 'Section',
-      'Batch', 'Admission Year', 'DOB', 'Gender', 'Blood Group', 'Category',
-      'Father', 'Mother', 'Parent Phone', 'Guardian', 'Guardian Phone',
-      'Emergency Contact', 'Emergency Phone', 'Address', 'Status',
-    ]
+    const headers = ['Roll Number', 'Name', 'Email', 'Phone', 'Program', 'Sem', 'Section', 'Batch', 'Admission Year', 'DOB', 'Gender', 'Blood Group', 'Category', 'Father', 'Mother', 'Parent Phone', 'Guardian', 'Guardian Phone', 'Emergency Contact', 'Emergency Phone', 'Address', 'Status']
     const rows = filtered.map(s => [
       s.rollNumber || '', s.name || '', s.email || '', s.phone || '',
       s.program || '', s.semester || '', s.section || '',
@@ -206,12 +210,10 @@ export default function Students() {
       s.emergencyContactName || '', s.emergencyContactPhone || '',
       s.address || '', s.status || 'ACTIVE',
     ])
-    const csv = [headers, ...rows]
-      .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
-      .join('\n')
+    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
     a.href = url; a.download = 'students.csv'; a.click()
     URL.revokeObjectURL(url)
     toast.success(`Exported ${filtered.length} students`)
@@ -222,8 +224,8 @@ export default function Students() {
     borderRadius: 7, fontSize: 13, fontFamily: 'system-ui, sans-serif',
     color: TEXT, outline: 'none', boxSizing: 'border-box', background: '#fff',
   }
-  const focusBorder  = e => { e.target.style.borderColor = ACCENT }
-  const blurBorder   = e => { e.target.style.borderColor = '#e2e8f0' }
+  const onFocus = e => { e.target.style.borderColor = ACCENT }
+  const onBlur  = e => { e.target.style.borderColor = '#e2e8f0' }
 
   const statusCounts = {
     ALL:      students.length,
@@ -254,14 +256,14 @@ export default function Students() {
         }
       />
 
-      {/* Search + filters */}
+      {/* Search + status filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 220, width: isMobile ? '100%' : undefined }}>
           <MdSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: MUTED, fontSize: 18, pointerEvents: 'none' }} />
           <input ref={searchRef} type="text" placeholder="Search by name, roll number or email…" value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ width: '100%', padding: '10px 36px 10px 38px', border: '1px solid #e2e8f0', borderRadius: 9, fontSize: 13, fontFamily: 'system-ui, sans-serif', color: TEXT, outline: 'none', boxSizing: 'border-box', background: '#fff' }}
-            onFocus={focusBorder} onBlur={blurBorder}
+            onFocus={onFocus} onBlur={onBlur}
           />
           {search && (
             <button onClick={() => { setSearch(''); searchRef.current?.focus() }} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: MUTED, display: 'flex', alignItems: 'center', padding: 2 }}>
@@ -328,9 +330,7 @@ export default function Students() {
                       <td style={{ padding: '12px 16px', color: MUTED }}>{s.email || '—'}</td>
                       <td style={{ padding: '12px 16px', color: MUTED }}>{s.phone || '—'}</td>
                       <td style={{ padding: '12px 16px' }}>
-                        {s.category ? (
-                          <span style={{ padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700, background: '#f1f5f9', color: MUTED }}>{s.category}</span>
-                        ) : '—'}
+                        {s.category ? <span style={{ padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700, background: '#f1f5f9', color: MUTED }}>{s.category}</span> : '—'}
                       </td>
                       <td style={{ padding: '12px 16px' }}>
                         <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: (s.status === 'ACTIVE' || !s.status) ? '#f0fdf4' : '#f8fafc', color: (s.status === 'ACTIVE' || !s.status) ? '#10b981' : MUTED }}>
@@ -378,12 +378,13 @@ export default function Students() {
         </>)}
       </div>
 
-      {/* ── Add / Edit Modal ─────────────────────────────────────────────── */}
+      {/* ── Add / Edit Modal — 3-step wizard ──────────────────────────────── */}
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
           onClick={e => { if (e.target === e.currentTarget) { setShowModal(false); setCreatedPassword(null) } }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 28, width: '100%', maxWidth: isMobile ? '95vw' : 660, maxHeight: '92vh', overflow: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 28, width: '100%', maxWidth: isMobile ? '95vw' : 620, maxHeight: '92vh', overflow: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
 
+            {/* Modal header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#0f172a' }}>
                 {editStudent ? 'Edit Student' : 'Enrol New Student'}
@@ -394,7 +395,7 @@ export default function Students() {
               </button>
             </div>
 
-            {/* Show generated password after create */}
+            {/* Password reveal after create */}
             {createdPassword && (
               <div style={{ marginBottom: 18, padding: '14px 18px', background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: 10 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#166534', marginBottom: 6 }}>
@@ -411,123 +412,150 @@ export default function Students() {
 
             {!createdPassword && (
               <form onSubmit={handleSubmit}>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
+                {/* Step indicator */}
+                <StepBar current={formStep} />
 
-                  {/* ── Identity ── */}
-                  <SectionLabel title="Student Identity" />
-                  <Field label="Full Name" required span={2}>
-                    <input type="text" value={form.name} onChange={set('name')} placeholder="e.g. Arjun Kumar" style={inp} onFocus={focusBorder} onBlur={blurBorder} required />
-                  </Field>
-                  <Field label="Email" required>
-                    <input type="email" value={form.email} onChange={set('email')} placeholder="student@college.edu" style={inp} onFocus={focusBorder} onBlur={blurBorder} required={!editStudent} disabled={!!editStudent} />
-                  </Field>
-                  <Field label="Phone">
-                    <input type="tel" value={form.phone} onChange={set('phone')} placeholder="10-digit mobile" style={inp} onFocus={focusBorder} onBlur={blurBorder} />
-                  </Field>
+                {/* ── Step 1: Identity & Academics ── */}
+                {formStep === 1 && (
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+                    <SectionHeading text="Student Identity" />
+                    <Field label="Full Name" required span={2}>
+                      <input type="text" value={form.name} onChange={set('name')} placeholder="e.g. Arjun Kumar" style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
+                    <Field label="Email" required={!editStudent}>
+                      <input type="email" value={form.email} onChange={set('email')} placeholder="student@college.edu" style={inp} onFocus={onFocus} onBlur={onBlur} disabled={!!editStudent} />
+                    </Field>
+                    <Field label="Phone">
+                      <input type="tel" value={form.phone} onChange={set('phone')} placeholder="10-digit mobile" style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
 
-                  {/* ── Academic ── */}
-                  <SectionLabel title="Academic Details" />
-                  <Field label="Roll Number" required>
-                    <input type="text" value={form.rollNumber} onChange={set('rollNumber')} placeholder="CSE2024001" style={inp} onFocus={focusBorder} onBlur={blurBorder} required />
-                  </Field>
-                  <Field label="Department ID">
-                    <input type="number" value={form.departmentId} onChange={set('departmentId')} placeholder="1 – 5" style={inp} onFocus={focusBorder} onBlur={blurBorder} min={1} />
-                  </Field>
-                  <Field label="Program">
-                    <select value={form.program} onChange={set('program')} style={inp}>
-                      <option value="">Select program</option>
-                      {['B.Tech', 'B.E.', 'M.Tech', 'M.E.', 'MCA', 'MBA', 'B.Sc', 'M.Sc', 'Ph.D'].map(p => <option key={p}>{p}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="Semester">
-                    <select value={form.semester} onChange={set('semester')} style={inp}>
-                      <option value="">Select</option>
-                      {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>Semester {n}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="Section">
-                    <select value={form.section} onChange={set('section')} style={inp}>
-                      <option value="">Select</option>
-                      {['A','B','C','D','E'].map(s => <option key={s}>{s}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="Batch">
-                    <input type="text" value={form.batch} onChange={set('batch')} placeholder="2024-28" style={inp} onFocus={focusBorder} onBlur={blurBorder} />
-                  </Field>
-                  <Field label="Admission Year">
-                    <input type="number" value={form.admissionYear} onChange={set('admissionYear')} placeholder="2024" style={inp} onFocus={focusBorder} onBlur={blurBorder} min={2000} max={2100} />
-                  </Field>
+                    <SectionHeading text="Academic Details" />
+                    <Field label="Roll Number" required>
+                      <input type="text" value={form.rollNumber} onChange={set('rollNumber')} placeholder="CSE2024001" style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
+                    <Field label="Department ID" required>
+                      <input type="number" value={form.departmentId} onChange={set('departmentId')} placeholder="1 – 5" style={inp} onFocus={onFocus} onBlur={onBlur} min={1} />
+                    </Field>
+                    <Field label="Program">
+                      <select value={form.program} onChange={set('program')} style={inp}>
+                        <option value="">Select program</option>
+                        {['B.Tech', 'B.E.', 'M.Tech', 'M.E.', 'MCA', 'MBA', 'B.Sc', 'M.Sc', 'Ph.D'].map(p => <option key={p}>{p}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Semester" required>
+                      <select value={form.semester} onChange={set('semester')} style={inp}>
+                        <option value="">Select</option>
+                        {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>Semester {n}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Section">
+                      <select value={form.section} onChange={set('section')} style={inp}>
+                        <option value="">Select</option>
+                        {['A','B','C','D','E'].map(s => <option key={s}>{s}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Batch">
+                      <input type="text" value={form.batch} onChange={set('batch')} placeholder="2024-28" style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
+                    <Field label="Admission Year">
+                      <input type="number" value={form.admissionYear} onChange={set('admissionYear')} placeholder="2024" style={inp} onFocus={onFocus} onBlur={onBlur} min={2000} max={2100} />
+                    </Field>
+                  </div>
+                )}
 
-                  {/* ── Personal ── */}
-                  <SectionLabel title="Personal Details" />
-                  <Field label="Date of Birth">
-                    <input type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} style={inp} onFocus={focusBorder} onBlur={blurBorder} />
-                  </Field>
-                  <Field label="Gender">
-                    <select value={form.gender} onChange={set('gender')} style={inp}>
-                      <option value="">Select</option>
-                      <option value="MALE">Male</option>
-                      <option value="FEMALE">Female</option>
-                      <option value="OTHER">Other / Prefer not to say</option>
-                    </select>
-                  </Field>
-                  <Field label="Blood Group">
-                    <select value={form.bloodGroup} onChange={set('bloodGroup')} style={inp}>
-                      <option value="">Select</option>
-                      {['A+','A-','B+','B-','O+','O-','AB+','AB-'].map(b => <option key={b}>{b}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="Category">
-                    <select value={form.category} onChange={set('category')} style={inp}>
-                      <option value="">Select</option>
-                      {['GENERAL','OBC','SC','ST','NT','EWS'].map(c => <option key={c}>{c}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="Aadhaar Number" span={2}>
-                    <input type="text" value={form.aadhaarNumber} onChange={set('aadhaarNumber')} placeholder="12-digit number" maxLength={12} style={inp} onFocus={focusBorder} onBlur={blurBorder} />
-                  </Field>
+                {/* ── Step 2: Personal Details ── */}
+                {formStep === 2 && (
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+                    <SectionHeading text="Personal Information" />
+                    <Field label="Date of Birth">
+                      <input type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
+                    <Field label="Gender">
+                      <select value={form.gender} onChange={set('gender')} style={inp}>
+                        <option value="">Select</option>
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other / Prefer not to say</option>
+                      </select>
+                    </Field>
+                    <Field label="Blood Group">
+                      <select value={form.bloodGroup} onChange={set('bloodGroup')} style={inp}>
+                        <option value="">Select</option>
+                        {['A+','A-','B+','B-','O+','O-','AB+','AB-'].map(b => <option key={b}>{b}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Category">
+                      <select value={form.category} onChange={set('category')} style={inp}>
+                        <option value="">Select</option>
+                        {['GENERAL','OBC','SC','ST','NT','EWS'].map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Aadhaar Number" span={2}>
+                      <input type="text" value={form.aadhaarNumber} onChange={set('aadhaarNumber')} placeholder="12-digit number" maxLength={12} style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
 
-                  {/* ── Contact ── */}
-                  <SectionLabel title="Contact" />
-                  <Field label="Address" span={2}>
-                    <textarea value={form.address} onChange={set('address')} placeholder="Current / permanent address" rows={2}
-                      style={{ ...inp, resize: 'vertical', height: 'auto' }} onFocus={focusBorder} onBlur={blurBorder} />
-                  </Field>
+                    <SectionHeading text="Contact" />
+                    <Field label="Address" span={2}>
+                      <textarea value={form.address} onChange={set('address')} placeholder="Current / permanent address" rows={3}
+                        style={{ ...inp, resize: 'vertical', height: 'auto' }} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
+                  </div>
+                )}
 
-                  {/* ── Family ── */}
-                  <SectionLabel title="Family Details" />
-                  <Field label="Father's Name">
-                    <input type="text" value={form.fatherName} onChange={set('fatherName')} style={inp} onFocus={focusBorder} onBlur={blurBorder} />
-                  </Field>
-                  <Field label="Mother's Name">
-                    <input type="text" value={form.motherName} onChange={set('motherName')} style={inp} onFocus={focusBorder} onBlur={blurBorder} />
-                  </Field>
-                  <Field label="Parent Phone">
-                    <input type="tel" value={form.parentPhone} onChange={set('parentPhone')} style={inp} onFocus={focusBorder} onBlur={blurBorder} />
-                  </Field>
-                  <Field label="Guardian Name">
-                    <input type="text" value={form.guardianName} onChange={set('guardianName')} style={inp} onFocus={focusBorder} onBlur={blurBorder} />
-                  </Field>
-                  <Field label="Guardian Phone">
-                    <input type="tel" value={form.guardianPhone} onChange={set('guardianPhone')} style={inp} onFocus={focusBorder} onBlur={blurBorder} />
-                  </Field>
+                {/* ── Step 3: Family & Emergency ── */}
+                {formStep === 3 && (
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+                    <SectionHeading text="Family Details" />
+                    <Field label="Father's Name">
+                      <input type="text" value={form.fatherName} onChange={set('fatherName')} style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
+                    <Field label="Mother's Name">
+                      <input type="text" value={form.motherName} onChange={set('motherName')} style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
+                    <Field label="Parent Phone">
+                      <input type="tel" value={form.parentPhone} onChange={set('parentPhone')} style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
+                    <Field label="Guardian Name">
+                      <input type="text" value={form.guardianName} onChange={set('guardianName')} style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
+                    <Field label="Guardian Phone">
+                      <input type="tel" value={form.guardianPhone} onChange={set('guardianPhone')} style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
 
-                  {/* ── Emergency ── */}
-                  <SectionLabel title="Emergency Contact" />
-                  <Field label="Contact Name">
-                    <input type="text" value={form.emergencyContactName} onChange={set('emergencyContactName')} style={inp} onFocus={focusBorder} onBlur={blurBorder} />
-                  </Field>
-                  <Field label="Contact Phone">
-                    <input type="tel" value={form.emergencyContactPhone} onChange={set('emergencyContactPhone')} style={inp} onFocus={focusBorder} onBlur={blurBorder} />
-                  </Field>
+                    <SectionHeading text="Emergency Contact" />
+                    <Field label="Contact Name">
+                      <input type="text" value={form.emergencyContactName} onChange={set('emergencyContactName')} style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
+                    <Field label="Contact Phone">
+                      <input type="tel" value={form.emergencyContactPhone} onChange={set('emergencyContactPhone')} style={inp} onFocus={onFocus} onBlur={onBlur} />
+                    </Field>
+                  </div>
+                )}
 
-                </div>
-
+                {/* Navigation buttons */}
                 <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
-                  <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '11px', background: '#f1f5f9', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', color: MUTED }}>Cancel</button>
-                  <button type="submit" disabled={submitting} style={{ flex: 2, padding: '11px', background: submitting ? '#a5b4fc' : ACCENT, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer' }}>
-                    {submitting ? 'Saving…' : editStudent ? 'Save Changes' : 'Enrol Student'}
-                  </button>
+                  {formStep > 1 ? (
+                    <button type="button" onClick={() => setFormStep(s => s - 1)}
+                      style={{ flex: 1, padding: '11px', background: '#f1f5f9', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', color: MUTED }}>
+                      ← Back
+                    </button>
+                  ) : (
+                    <button type="button" onClick={() => setShowModal(false)}
+                      style={{ flex: 1, padding: '11px', background: '#f1f5f9', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', color: MUTED }}>
+                      Cancel
+                    </button>
+                  )}
+                  {formStep < 3 ? (
+                    <button type="button" onClick={handleNext}
+                      style={{ flex: 2, padding: '11px', background: ACCENT, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                      Next →
+                    </button>
+                  ) : (
+                    <button type="submit" disabled={submitting}
+                      style={{ flex: 2, padding: '11px', background: submitting ? '#a5b4fc' : ACCENT, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer' }}>
+                      {submitting ? 'Saving…' : editStudent ? 'Save Changes' : 'Enrol Student'}
+                    </button>
+                  )}
                 </div>
               </form>
             )}
@@ -568,54 +596,26 @@ export default function Students() {
           { key: 'address',               label: 'Address',                    required: false },
         ]}
         sampleRows={[
-          {
-            rollNumber: 'CSE2024001', name: 'Arjun Kumar', email: 'arjun@college.edu',
-            phone: '9876543210', departmentId: 1, program: 'B.Tech', semester: 3,
-            section: 'A', batch: '2024-28', admissionYear: 2024,
-            dateOfBirth: '2006-05-15', gender: 'MALE', bloodGroup: 'O+', category: 'GENERAL',
-            aadhaarNumber: '123456789012',
-            fatherName: 'Ramesh Kumar', motherName: 'Sunita Kumar', parentPhone: '9800001234',
-            guardianName: 'Ramesh Kumar', guardianPhone: '9800001234',
-            emergencyContactName: 'Ramesh Kumar', emergencyContactPhone: '9800001234',
-            address: '12 MG Road, Chennai - 600001',
-          },
-          {
-            rollNumber: 'ECE2024001', name: 'Priya Singh', email: 'priya@college.edu',
-            phone: '9123456789', departmentId: 2, program: 'B.Tech', semester: 2,
-            section: 'B', batch: '2024-28', admissionYear: 2024,
-            dateOfBirth: '2005-11-22', gender: 'FEMALE', bloodGroup: 'A+', category: 'OBC',
-            aadhaarNumber: '987654321098',
-            fatherName: 'Vikram Singh', motherName: 'Kavitha Singh', parentPhone: '9700009876',
-            guardianName: 'Vikram Singh', guardianPhone: '9700009876',
-            emergencyContactName: 'Kavitha Singh', emergencyContactPhone: '9700009876',
-            address: '45 Anna Nagar, Chennai - 600040',
-          },
+          { rollNumber: 'CSE2024001', name: 'Arjun Kumar', email: 'arjun@college.edu', phone: '9876543210', departmentId: 1, program: 'B.Tech', semester: 3, section: 'A', batch: '2024-28', admissionYear: 2024, dateOfBirth: '2006-05-15', gender: 'MALE', bloodGroup: 'O+', category: 'GENERAL', aadhaarNumber: '123456789012', fatherName: 'Ramesh Kumar', motherName: 'Sunita Kumar', parentPhone: '9800001234', guardianName: 'Ramesh Kumar', guardianPhone: '9800001234', emergencyContactName: 'Ramesh Kumar', emergencyContactPhone: '9800001234', address: '12 MG Road, Chennai - 600001' },
+          { rollNumber: 'ECE2024001', name: 'Priya Singh', email: 'priya@college.edu', phone: '9123456789', departmentId: 2, program: 'B.Tech', semester: 2, section: 'B', batch: '2024-28', admissionYear: 2024, dateOfBirth: '2005-11-22', gender: 'FEMALE', bloodGroup: 'A+', category: 'OBC', aadhaarNumber: '987654321098', fatherName: 'Vikram Singh', motherName: 'Kavitha Singh', parentPhone: '9700009876', guardianName: 'Vikram Singh', guardianPhone: '9700009876', emergencyContactName: 'Kavitha Singh', emergencyContactPhone: '9700009876', address: '45 Anna Nagar, Chennai - 600040' },
         ]}
         importFn={async (rows) => {
           const payload = rows.map(r => ({
-            rollNumber:            r.rollNumber,
-            name:                  r.name,
-            email:                 r.email,
-            phone:                 r.phone || null,
-            departmentId:          Number(r.departmentId),
-            program:               r.program || null,
-            semester:              Number(r.semester),
-            section:               r.section || null,
-            batch:                 r.batch || null,
-            admissionYear:         r.admissionYear ? Number(r.admissionYear) : null,
-            dateOfBirth:           r.dateOfBirth   || null,
-            gender:                r.gender        || null,
-            bloodGroup:            r.bloodGroup    || null,
-            category:              r.category      || null,
-            aadhaarNumber:         r.aadhaarNumber || null,
-            fatherName:            r.fatherName    || null,
-            motherName:            r.motherName    || null,
-            parentPhone:           r.parentPhone   || null,
-            guardianName:          r.guardianName  || null,
-            guardianPhone:         r.guardianPhone || null,
-            emergencyContactName:  r.emergencyContactName  || null,
+            rollNumber: r.rollNumber, name: r.name, email: r.email,
+            phone: r.phone || null,
+            departmentId: Number(r.departmentId),
+            program: r.program || null, semester: Number(r.semester),
+            section: r.section || null, batch: r.batch || null,
+            admissionYear: r.admissionYear ? Number(r.admissionYear) : null,
+            dateOfBirth: r.dateOfBirth || null, gender: r.gender || null,
+            bloodGroup: r.bloodGroup || null, category: r.category || null,
+            aadhaarNumber: r.aadhaarNumber || null,
+            fatherName: r.fatherName || null, motherName: r.motherName || null,
+            parentPhone: r.parentPhone || null,
+            guardianName: r.guardianName || null, guardianPhone: r.guardianPhone || null,
+            emergencyContactName: r.emergencyContactName || null,
             emergencyContactPhone: r.emergencyContactPhone || null,
-            address:               r.address       || null,
+            address: r.address || null,
           }))
           const res = await api.post('/students/import', payload)
           return res.data.data
