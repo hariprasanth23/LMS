@@ -28,7 +28,7 @@ function useInView(threshold = 0.12) {
 }
 
 // ── Scroll-reveal wrapper ──────────────────────────────────────────────────────
-function Reveal({ children, delay = 0, dir = 'up' }) {
+function Reveal({ children, delay = 0, dir = 'up', wrapStyle = {} }) {
   const [ref, inView] = useInView()
   const from = { up: 'translateY(32px)', left: 'translateX(-32px)', right: 'translateX(32px)', scale: 'scale(0.92)' }[dir] || 'translateY(32px)'
   return (
@@ -38,6 +38,7 @@ function Reveal({ children, delay = 0, dir = 'up' }) {
       filter: inView ? 'blur(0px)' : 'blur(4px)',
       transition: `opacity .72s cubic-bezier(.22,1,.36,1) ${delay}ms, transform .72s cubic-bezier(.22,1,.36,1) ${delay}ms, filter .72s cubic-bezier(.22,1,.36,1) ${delay}ms`,
       willChange: 'opacity, transform, filter',
+      ...wrapStyle,
     }}>
       {children}
     </div>
@@ -192,7 +193,7 @@ const MARQUEE_ITEMS = [
 ]
 
 const FEATURES = [
-  { icon: MdMenuBook,            title: 'Academic Management',  desc: 'Curriculum, timetable, attendance, class messages, biometric info and faculty directory.',             color: '#818cf8', bg: 'rgba(99,102,241,0.12)',  border: 'rgba(99,102,241,0.25)',  span: 2 },
+  { icon: MdMenuBook,            title: 'Academic Management',  desc: 'Curriculum, timetable, attendance, class messages, biometric info and faculty directory.',             color: '#818cf8', bg: 'rgba(99,102,241,0.12)',  border: 'rgba(99,102,241,0.25)',  span: 1 },
   { icon: MdAssignment,          title: 'Examination System',   desc: 'Exam schedules, marks, grades, online exams, arrear and makeup registration.',                        color: '#f87171', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.25)',   span: 1 },
   { icon: MdPayment,             title: 'Finance & Payments',   desc: 'Fee payments, wallet management, receipts, fees intimation, library dues and refunds.',               color: '#34d399', bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.25)',  span: 1 },
   { icon: MdMiscellaneousServices, title: 'Student Services',   desc: 'Transport, hostel, bonafide, library, transcript, scholarships, and eSanad digital certificates.',    color: '#fbbf24', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.25)',  span: 1 },
@@ -747,17 +748,15 @@ export default function LandingPage() {
             </div>
           </Reveal>
 
-          {/* Bento grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: 18 }}>
+          {/* Feature grid — 4 cols, all equal size, stretch rows */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: 18, alignItems: 'stretch' }}>
             {FEATURES.map((feat, i) => {
               const Icon = feat.icon
-              const isWide = feat.span === 2 && !isMobile
               return (
-                <Reveal key={feat.title} delay={i * 40}>
+                <Reveal key={feat.title} delay={i * 40} wrapStyle={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <div
                     className="feature-card"
                     style={{
-                      gridColumn: isWide ? 'span 2' : undefined,
                       background: 'rgba(255,255,255,0.03)',
                       borderRadius: 18,
                       padding: '26px 24px',
@@ -765,28 +764,33 @@ export default function LandingPage() {
                       boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
                       position: 'relative',
                       overflow: 'hidden',
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
                     }}
                     onMouseEnter={e => {
                       e.currentTarget.style.border = `1.5px solid ${feat.border}`
-                      e.currentTarget.style.boxShadow = `0 16px 40px ${feat.color}18`
-                      e.currentTarget.style.transform = 'translateY(-6px)'
+                      e.currentTarget.style.boxShadow = `0 16px 40px ${feat.color}22`
+                      e.currentTarget.style.transform = 'translateY(-7px) scale(1.01)'
+                      e.currentTarget.style.background = `rgba(255,255,255,0.05)`
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.border = '1.5px solid #f1f5f9'
-                      e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)'
+                      e.currentTarget.style.border = '1.5px solid rgba(255,255,255,0.07)'
+                      e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.2)'
                       e.currentTarget.style.transform = 'none'
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
                     }}
                   >
                     {/* Subtle bg gradient */}
-                    <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 80% 20%, ${feat.color}06 0%, transparent 60%)`, pointerEvents: 'none' }} />
+                    <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 75% 15%, ${feat.color}08 0%, transparent 55%)`, pointerEvents: 'none' }} />
                     {feat.badge && (
-                      <div style={{ position: 'absolute', top: 16, right: 16, background: 'linear-gradient(135deg,#ec4899,#8b5cf6)', color: '#fff', fontSize: 9, fontWeight: 800, padding: '3px 9px', borderRadius: 20, letterSpacing: '.06em' }}>{feat.badge}</div>
+                      <div style={{ position: 'absolute', top: 14, right: 14, background: 'linear-gradient(135deg,#ec4899,#8b5cf6)', color: '#fff', fontSize: 9, fontWeight: 800, padding: '3px 9px', borderRadius: 20, letterSpacing: '.06em' }}>{feat.badge}</div>
                     )}
-                    <div style={{ width: 52, height: 52, borderRadius: 14, background: feat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+                    <div style={{ width: 52, height: 52, borderRadius: 14, background: feat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18, flexShrink: 0 }}>
                       <Icon style={{ fontSize: 28, color: feat.color }} />
                     </div>
                     <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 10 }}>{feat.title}</h3>
-                    <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, margin: 0 }}>{feat.desc}</p>
+                    <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, margin: 0, flex: 1 }}>{feat.desc}</p>
                   </div>
                 </Reveal>
               )
