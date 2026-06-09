@@ -30,12 +30,14 @@ function useInView(threshold = 0.12) {
 // ── Scroll-reveal wrapper ──────────────────────────────────────────────────────
 function Reveal({ children, delay = 0, dir = 'up' }) {
   const [ref, inView] = useInView()
-  const from = { up: 'translateY(28px)', left: 'translateX(-28px)', right: 'translateX(28px)', scale: 'scale(0.93)' }[dir] || 'translateY(28px)'
+  const from = { up: 'translateY(32px)', left: 'translateX(-32px)', right: 'translateX(32px)', scale: 'scale(0.92)' }[dir] || 'translateY(32px)'
   return (
     <div ref={ref} style={{
       opacity: inView ? 1 : 0,
       transform: inView ? 'translate(0) scale(1)' : from,
-      transition: `opacity .7s cubic-bezier(.22,1,.36,1) ${delay}ms, transform .7s cubic-bezier(.22,1,.36,1) ${delay}ms`,
+      filter: inView ? 'blur(0px)' : 'blur(4px)',
+      transition: `opacity .72s cubic-bezier(.22,1,.36,1) ${delay}ms, transform .72s cubic-bezier(.22,1,.36,1) ${delay}ms, filter .72s cubic-bezier(.22,1,.36,1) ${delay}ms`,
+      willChange: 'opacity, transform, filter',
     }}>
       {children}
     </div>
@@ -161,14 +163,15 @@ function GlassCard({ children, style = {}, hover = true }) {
       onMouseEnter={() => hover && setHov(true)}
       onMouseLeave={() => hover && setHov(false)}
       style={{
-        background: 'rgba(255,255,255,0.04)',
-        border: `1px solid ${hov ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.08)'}`,
+        background: hov ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.04)',
+        border: `1px solid ${hov ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.08)'}`,
         borderRadius: 20,
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        boxShadow: hov ? '0 24px 48px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.1)' : '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)',
-        transform: hov ? 'translateY(-4px)' : 'none',
-        transition: 'all 0.3s cubic-bezier(.22,1,.36,1)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        boxShadow: hov ? '0 28px 56px rgba(99,102,241,0.22), inset 0 1px 0 rgba(255,255,255,0.12)' : '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)',
+        transform: hov ? 'translateY(-5px) scale(1.01)' : 'none',
+        transition: 'all 0.35s cubic-bezier(.22,1,.36,1)',
+        willChange: 'transform, box-shadow',
         ...style,
       }}
     >
@@ -389,7 +392,10 @@ export default function LandingPage() {
         @keyframes slideLeft      { from { transform: translateX(24px); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
         @keyframes zoomIn         { from { transform: scale(.88); opacity: 0 } to { transform: scale(1); opacity: 1 } }
         @keyframes starTwinkle    { 0%,100% { opacity: 0 } 50% { opacity: .85 } }
-        @keyframes mobileSlideIn  { from { transform: translateX(100%) } to { transform: translateX(0) } }
+        @keyframes mobileSlideIn  { from { transform: translateX(100%); opacity:0 } to { transform: translateX(0); opacity:1 } }
+        @keyframes ripplePulse    { 0% { transform:scale(1); opacity:.6 } 100% { transform:scale(2.6); opacity:0 } }
+        @keyframes badgeEntrance  { from { opacity:0; transform:translateY(-8px) scale(.94) } to { opacity:1; transform:translateY(0) scale(1) } }
+        @keyframes underlineGrow  { from { transform:scaleX(0) } to { transform:scaleX(1) } }
         @keyframes numberCount    { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: translateY(0) } }
         @keyframes borderFlow     { 0%,100% { border-color: rgba(99,102,241,.3) } 50% { border-color: rgba(139,92,246,.7) } }
         @keyframes heroGlow       { 0%,100% { opacity: .18 } 50% { opacity: .35 } }
@@ -423,13 +429,15 @@ export default function LandingPage() {
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99,102,241,0.65); }
         .btn-ghost { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); transition: all .2s ease; cursor: pointer; }
         .btn-ghost:hover { background: rgba(255,255,255,0.12); transform: translateY(-2px); }
-        .feature-card { transition: all .3s cubic-bezier(.22,1,.36,1); cursor: default; }
-        .feature-card:hover { transform: translateY(-6px); }
-        .portal-card { transition: all .35s cubic-bezier(.22,1,.36,1); }
-        .portal-card:hover { transform: translateY(-8px) scale(1.01); }
-        .team-card { transition: all .35s cubic-bezier(.22,1,.36,1); }
-        .team-card:hover { transform: translateY(-8px); }
-        .nav-link { transition: all .15s; cursor: pointer; border: none; font-family: inherit; background: none; }
+        .feature-card { transition: all .32s cubic-bezier(.22,1,.36,1); cursor: default; will-change: transform, box-shadow; }
+        .feature-card:hover { transform: translateY(-7px) scale(1.01); }
+        .portal-card { transition: all .35s cubic-bezier(.22,1,.36,1); will-change: transform, box-shadow; }
+        .portal-card:hover { transform: translateY(-9px) scale(1.02); }
+        .team-card { transition: all .35s cubic-bezier(.22,1,.36,1); will-change: transform, box-shadow; }
+        .team-card:hover { transform: translateY(-9px) scale(1.01); }
+        .nav-link { transition: all .18s; cursor: pointer; border: none; font-family: inherit; background: none; position: relative; }
+        .nav-link::after { content:''; position:absolute; left:14px; right:14px; bottom:3px; height:1.5px; background:linear-gradient(90deg,#6366f1,#a78bfa); border-radius:2px; transform:scaleX(0); transition:transform .22s cubic-bezier(.22,1,.36,1); transform-origin:left; }
+        .nav-link:hover::after { transform:scaleX(1); }
         .chip { display: inline-flex; align-items: center; border-radius: 100px; transition: all .2s; }
         .chip:hover { transform: translateY(-1px); }
         .section-tag { display: inline-flex; align-items: center; gap: 7px; border-radius: 100px; padding: 6px 16px; font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; }
@@ -546,9 +554,13 @@ export default function LandingPage() {
           {/* Left: Copy */}
           <div style={{ flex: 1 }}>
             {/* Live badge */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 100, padding: '7px 18px', marginBottom: 32, animation: 'slideLeft .6s ease' }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 10px #10b981', display: 'inline-block', animation: 'pulse 2s infinite' }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>Student · Staff · Parent · Alumni · Admin</span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 100, padding: '7px 18px', marginBottom: 32, animation: 'badgeEntrance .65s cubic-bezier(.22,1,.36,1) both' }}>
+              <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 10, height: 10 }}>
+                <span style={{ position: 'absolute', width: 10, height: 10, borderRadius: '50%', background: '#10b981', opacity: .6, animation: 'ripplePulse 2s ease-out infinite' }} />
+                <span style={{ position: 'absolute', width: 10, height: 10, borderRadius: '50%', background: '#10b981', opacity: .4, animation: 'ripplePulse 2s ease-out infinite .7s' }} />
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981', display: 'inline-block', position: 'relative', zIndex: 1 }} />
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.88)' }}>Student · Staff · Parent · Alumni · Admin</span>
             </div>
 
             {/* Headline */}
@@ -1499,9 +1511,9 @@ export default function LandingPage() {
       {/* ── 15. Footer ──────────────────────────────────────────────────────── */}
       <footer style={{ background: '#020611', padding: isMobile ? '56px 20px 0' : '80px 48px 0' }}>
         {/* Gradient top border */}
-        <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,rgba(99,102,241,0.5),rgba(139,92,246,0.5),transparent)', marginBottom: 60 }} />
+        <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,rgba(99,102,241,0.6),rgba(139,92,246,0.6),transparent)', marginBottom: 60 }} />
 
-        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2.2fr 1fr 1fr 1.4fr', gap: 52, paddingBottom: 56, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2.2fr 1fr 1fr 1.4fr', gap: 52, paddingBottom: 56, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           {/* Brand */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
@@ -1510,27 +1522,27 @@ export default function LandingPage() {
               </div>
               <div>
                 <div style={{ fontSize: 17, fontWeight: 800, color: '#fff' }}>College<span style={{ color: '#a78bfa' }}>ERP</span></div>
-                <div style={{ fontSize: 11, color: '#334155', fontWeight: 500 }}>v2.0 — Modern Campus Platform</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontWeight: 500 }}>v2.0 — Modern Campus Platform</div>
               </div>
             </div>
-            <p style={{ fontSize: 13, color: '#334155', lineHeight: 1.8, maxWidth: 280, marginBottom: 22 }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.58)', lineHeight: 1.85, maxWidth: 280, marginBottom: 22 }}>
               A comprehensive college management platform for modern educational institutions. Academics, exams, finance, research — all in one place.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
               {['React 18', 'Spring Boot', 'PostgreSQL', 'Docker', 'JWT'].map(tech => (
-                <span key={tech} style={{ background: 'rgba(255,255,255,0.05)', color: '#475569', border: '1px solid rgba(255,255,255,0.07)', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20 }}>{tech}</span>
+                <span key={tech} style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20 }}>{tech}</span>
               ))}
             </div>
           </div>
 
           {/* Quick links */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 20, textTransform: 'uppercase', letterSpacing: '.1em' }}>Quick Links</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: 20, textTransform: 'uppercase', letterSpacing: '.1em' }}>Quick Links</div>
             {[{ label: 'Features', id: 'features' }, { label: 'How It Works', id: 'how-it-works' }, { label: 'Academics', id: 'academics' }, { label: 'LMS', id: 'lms' }, { label: 'HR & Payroll', id: 'hr' }, { label: 'Examinations', id: 'examinations' }, { label: 'Research', id: 'research' }, { label: 'Team', id: 'team' }].map(l => (
-              <div key={l.label} style={{ marginBottom: 12 }}>
-                <button onClick={() => scrollTo(l.id)} style={{ background: 'none', border: 'none', padding: 0, fontSize: 14, color: '#334155', cursor: 'pointer', fontFamily: FONT, transition: 'color .15s' }}
+              <div key={l.label} style={{ marginBottom: 11 }}>
+                <button onClick={() => scrollTo(l.id)} style={{ background: 'none', border: 'none', padding: 0, fontSize: 14, color: 'rgba(255,255,255,0.62)', cursor: 'pointer', fontFamily: FONT, transition: 'color .18s' }}
                   onMouseEnter={e => e.target.style.color = '#a78bfa'}
-                  onMouseLeave={e => e.target.style.color = '#334155'}>
+                  onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.62)'}>
                   {l.label}
                 </button>
               </div>
@@ -1539,13 +1551,13 @@ export default function LandingPage() {
 
           {/* Portals */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 20, textTransform: 'uppercase', letterSpacing: '.1em' }}>Portals</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: 20, textTransform: 'uppercase', letterSpacing: '.1em' }}>Portals</div>
             {PORTALS.map(p => (
-              <div key={p.key} style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
-                <button onClick={() => navigate(`/auth/login?portal=${p.key}`)} style={{ background: 'none', border: 'none', padding: 0, fontSize: 14, color: '#334155', cursor: 'pointer', fontFamily: FONT, transition: 'color .15s' }}
+              <div key={p.key} style={{ marginBottom: 11, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: p.color, flexShrink: 0, boxShadow: `0 0 6px ${p.color}80` }} />
+                <button onClick={() => navigate(`/auth/login?portal=${p.key}`)} style={{ background: 'none', border: 'none', padding: 0, fontSize: 14, color: 'rgba(255,255,255,0.62)', cursor: 'pointer', fontFamily: FONT, transition: 'color .18s' }}
                   onMouseEnter={e => e.target.style.color = p.color}
-                  onMouseLeave={e => e.target.style.color = '#334155'}>
+                  onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.62)'}>
                   {p.label} Portal
                 </button>
               </div>
@@ -1554,32 +1566,32 @@ export default function LandingPage() {
 
           {/* CTA column */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 20, textTransform: 'uppercase', letterSpacing: '.1em' }}>Get Started</div>
-            <p style={{ fontSize: 13, color: '#334155', lineHeight: 1.75, marginBottom: 20 }}>Sign in to your portal to access your personalized dashboard.</p>
-            <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '11px 22px', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 7, width: '100%', justifyContent: 'center' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: 20, textTransform: 'uppercase', letterSpacing: '.1em' }}>Get Started</div>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.58)', lineHeight: 1.8, marginBottom: 20 }}>Sign in to your portal to access your personalized dashboard.</p>
+            <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '12px 22px', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 7, width: '100%', justifyContent: 'center' }}>
               Sign In <MdArrowForward size={15} />
             </button>
-            <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#334155' }}>
-                <MdEmail size={14} style={{ color: '#475569', flexShrink: 0 }} /> contact@collegeerp.in
+            <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 11 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'rgba(255,255,255,0.62)' }}>
+                <MdEmail size={15} style={{ color: '#a78bfa', flexShrink: 0 }} /> contact@collegeerp.in
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#334155' }}>
-                <MdRocketLaunch size={14} style={{ color: '#475569', flexShrink: 0 }} /> Chennai, Tamil Nadu, India
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'rgba(255,255,255,0.62)' }}>
+                <MdRocketLaunch size={15} style={{ color: '#34d399', flexShrink: 0 }} /> Chennai, Tamil Nadu, India
               </div>
             </div>
           </div>
         </div>
 
         {/* Bottom bar */}
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '22px 0', display: 'flex', justifyContent: isMobile ? 'center' : 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, flexDirection: isMobile ? 'column' : 'row', textAlign: isMobile ? 'center' : 'left' }}>
-          <span style={{ fontSize: 13, color: '#1e293b', fontWeight: 400 }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '24px 0', display: 'flex', justifyContent: isMobile ? 'center' : 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, flexDirection: isMobile ? 'column' : 'row', textAlign: isMobile ? 'center' : 'left' }}>
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', fontWeight: 400 }}>
             © 2025 College ERP · Built with ❤️ in Chennai, India
           </span>
-          <div style={{ display: 'flex', gap: 22 }}>
+          <div style={{ display: 'flex', gap: 24 }}>
             {['Privacy Policy', 'Terms of Service', 'Support'].map(l => (
-              <span key={l} style={{ fontSize: 12, color: '#1e293b', cursor: 'pointer', transition: 'color .15s' }}
-                onMouseEnter={e => e.target.style.color = '#64748b'}
-                onMouseLeave={e => e.target.style.color = '#1e293b'}>
+              <span key={l} style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', cursor: 'pointer', transition: 'color .18s' }}
+                onMouseEnter={e => e.target.style.color = 'rgba(255,255,255,0.85)'}
+                onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.45)'}>
                 {l}
               </span>
             ))}
