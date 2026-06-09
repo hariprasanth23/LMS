@@ -17,12 +17,7 @@ const DESIGNATIONS = [
   'Professor', 'Associate Professor', 'Assistant Professor',
   'Lecturer', 'Lab Instructor', 'Admin Staff', 'Support Staff',
 ]
-const EMP_TYPES  = ['FACULTY', 'STAFF', 'ADMIN']
-const DEPARTMENTS = [
-  'Computer Science', 'Mathematics', 'Physics', 'Chemistry',
-  'Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering',
-  'Administration', 'Library', 'Accounts',
-]
+const EMP_TYPES = ['FACULTY', 'STAFF', 'ADMIN']
 const AVATAR_COLORS = [
   ['#eef2ff', ACCENT], ['#f0fdf4', '#10b981'], ['#fffbeb', '#f59e0b'],
   ['#fef2f2', '#ef4444'], ['#f0f9ff', '#0ea5e9'], ['#fdf4ff', '#a855f7'],
@@ -98,6 +93,7 @@ export default function Employees() {
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm]           = useState(EMPTY_FORM)
   const [empStep, setEmpStep]     = useState(1)
+  const [departments, setDepartments] = useState([])
   const [isMobile, setIsMobile]   = useState(window.innerWidth <= 768)
 
   useEffect(() => {
@@ -115,6 +111,9 @@ export default function Employees() {
   }
 
   useEffect(() => { fetchEmployees() }, [])
+  useEffect(() => {
+    api.get('/departments').then(r => setDepartments(r.data.data || [])).catch(() => {})
+  }, [])
 
   const total   = employees.length
   const faculty = employees.filter(e => e.employeeType === 'FACULTY').length
@@ -158,6 +157,13 @@ export default function Employees() {
       toast.error('Emp code, name, and type are required'); return
     }
     setEmpStep(2)
+  }
+
+  // Advance wizard on Enter / implicit submit; only save on the final step
+  const handleFormSubmit = (e) => {
+    e.preventDefault()
+    if (empStep < 2) { handleNext(); return }
+    handleSave(e)
   }
 
   const handleSave = async (e) => {
@@ -238,7 +244,7 @@ export default function Employees() {
           <input type="text" placeholder="Search by name or emp code…" value={search} onChange={e => setSearch(e.target.value)} style={{ ...inp, paddingLeft: 34 }} onFocus={onFocus} onBlur={onBlur} />
         </div>
         {[
-          { label: 'Department', value: filterDept,   set: setFilterDept,   opts: [['', 'All Departments'], ...DEPARTMENTS.map(d => [d, d])] },
+          { label: 'Department', value: filterDept,   set: setFilterDept,   opts: [['', 'All Departments'], ...departments.map(d => [d.name, d.name])] },
           { label: 'Type',       value: filterType,   set: setFilterType,   opts: [['', 'All Types'], ...EMP_TYPES.map(t => [t, t])] },
           { label: 'Status',     value: filterStatus, set: setFilterStatus, opts: [['', 'All Status'], ['ACTIVE', 'Active'], ['INACTIVE', 'Inactive'], ['ON_LEAVE', 'On Leave']] },
           { label: 'Sort By',    value: sortBy,       set: setSortBy,       opts: [['name-asc', 'Name A-Z'], ['name-desc', 'Name Z-A'], ['newest', 'Newest First'], ['dept', 'Department']] },
@@ -377,7 +383,7 @@ export default function Employees() {
 
             <EmpStepBar current={empStep} />
 
-            <form onSubmit={handleSave}>
+            <form onSubmit={handleFormSubmit}>
               {/* ── Step 1: Basic Information ── */}
               {empStep === 1 && (
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
@@ -431,7 +437,9 @@ export default function Employees() {
                     <label style={lbl}>Department</label>
                     <select value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} style={{ ...inp, cursor: 'pointer' }}>
                       <option value="">Select Department</option>
-                      {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                      {departments.map(d => (
+                        <option key={d.id} value={d.name}>{d.name}</option>
+                      ))}
                     </select>
                   </div>
                   <div>

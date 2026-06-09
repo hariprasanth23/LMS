@@ -46,6 +46,7 @@ export default function Courses() {
   const [showImport, setShowImport] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
   const [submitting, setSubmitting] = useState(false)
+  const [departments, setDepartments] = useState([])
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
 
   useEffect(() => {
@@ -80,6 +81,9 @@ export default function Courses() {
   }
 
   useEffect(() => { fetchCourses() }, [])
+  useEffect(() => {
+    api.get('/departments').then(r => setDepartments(r.data.data || [])).catch(() => {})
+  }, [])
 
   const handleCreate = async (e) => {
     e.preventDefault()
@@ -378,10 +382,14 @@ export default function Courses() {
               {/* Row 2: Dept + Semester + Credits + Status */}
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr 1fr', gap: 14, marginBottom: 14 }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 5 }}>Department ID</label>
-                  <input type="number" placeholder="1–5" value={form.departmentId}
-                    onChange={e => setForm({ ...form, departmentId: e.target.value })} style={inputStyle} min={1}
-                    onFocus={e => e.target.style.borderColor = ACCENT} onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 5 }}>Department</label>
+                  <select value={form.departmentId} onChange={e => setForm({ ...form, departmentId: e.target.value })}
+                    style={{ ...inputStyle, cursor: 'pointer' }}>
+                    <option value="">Select Department</option>
+                    {departments.map(d => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 5 }}>Semester</label>

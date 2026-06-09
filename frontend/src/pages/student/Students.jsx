@@ -108,6 +108,7 @@ export default function Students() {
   const [page, setPage]                 = useState(1)
   const [createdPassword, setCreatedPassword] = useState(null)
   const [formStep, setFormStep]         = useState(1)
+  const [departments, setDepartments]   = useState([])
   const searchRef = useRef(null)
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
 
@@ -127,6 +128,9 @@ export default function Students() {
 
   useEffect(() => { fetchStudents() }, [])
   useEffect(() => { setPage(1) }, [search, statusFilter])
+  useEffect(() => {
+    api.get('/departments').then(r => setDepartments(r.data.data || [])).catch(() => {})
+  }, [])
 
   const filtered = students.filter(s => {
     const q = search.toLowerCase()
@@ -175,6 +179,13 @@ export default function Students() {
       if (!editStudent && !form.email)    { toast.error('Email is required for new students');  return }
     }
     setFormStep(s => s + 1)
+  }
+
+  // Advance steps on Enter / implicit submit; only save on the final step
+  const handleFormSubmit = (e) => {
+    e.preventDefault()
+    if (formStep < 3) { handleNext(); return }
+    handleSubmit(e)
   }
 
   const handleSubmit = async (e) => {
@@ -411,7 +422,7 @@ export default function Students() {
             )}
 
             {!createdPassword && (
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleFormSubmit}>
                 {/* Step indicator */}
                 <StepBar current={formStep} />
 
@@ -433,8 +444,13 @@ export default function Students() {
                     <Field label="Roll Number" required>
                       <input type="text" value={form.rollNumber} onChange={set('rollNumber')} placeholder="CSE2024001" style={inp} onFocus={onFocus} onBlur={onBlur} />
                     </Field>
-                    <Field label="Department ID" required>
-                      <input type="number" value={form.departmentId} onChange={set('departmentId')} placeholder="1 – 5" style={inp} onFocus={onFocus} onBlur={onBlur} min={1} />
+                    <Field label="Department" required>
+                      <select value={form.departmentId} onChange={set('departmentId')} style={inp}>
+                        <option value="">Select Department</option>
+                        {departments.map(d => (
+                          <option key={d.id} value={d.id}>{d.name}</option>
+                        ))}
+                      </select>
                     </Field>
                     <Field label="Program">
                       <select value={form.program} onChange={set('program')} style={inp}>
