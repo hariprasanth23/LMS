@@ -192,6 +192,7 @@ function OldQPsSection() {
   const [filterCourse, setFilterCourse] = useState('All')
   const [filterYear, setFilterYear] = useState('All')
   const [filterType, setFilterType] = useState('All')
+  const courseOptions = [...new Set(oldQPs.map(q => q.course))]
 
   const filtered = oldQPs.filter(q =>
     (filterCourse === 'All' || q.course === filterCourse) &&

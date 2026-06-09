@@ -12,6 +12,7 @@ import com.college.student.repository.StudentRepository;
 import com.college.student.service.StudentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,14 +20,29 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.SecureRandom;
+
 import java.time.LocalDate;
 import java.util.*;
 import java.util.ArrayList;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/students")
 @RequiredArgsConstructor
 public class StudentController {
+
+    private static final String CHARS =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+    private static final SecureRandom RNG = new SecureRandom();
+
+    private String generateInitialPassword() {
+        StringBuilder sb = new StringBuilder(12);
+        for (int i = 0; i < 12; i++) sb.append(CHARS.charAt(RNG.nextInt(CHARS.length())));
+        return sb.toString();
+    }
 
     private final StudentService studentService;
     private final StudentRepository studentRepository;
@@ -36,8 +52,11 @@ public class StudentController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY')")
-    public ResponseEntity<ApiResponse<List<Student>>> getAll() {
-        return ResponseEntity.ok(ApiResponse.ok(studentService.findAll()));
+    public ResponseEntity<ApiResponse<List<Student>>> getAll(
+            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "50") int size) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                studentService.findAll(PageRequest.of(page, size, Sort.by("id")))));
     }
 
     @GetMapping("/me")
@@ -78,7 +97,7 @@ public class StudentController {
     @PostMapping("/import")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> importStudents(
-            @RequestBody List<StudentImportRow> rows) {
+            @Valid @RequestBody List<StudentImportRow> rows) {
 
         int success = 0, failure = 0;
         List<Map<String, Object>> results = new ArrayList<>();
@@ -95,9 +114,10 @@ public class StudentController {
                 if (studentRepository.existsByRollNumber(row.getRollNumber())) {
                     throw new IllegalStateException("Roll number already exists: " + row.getRollNumber());
                 }
+                String initialPassword = generateInitialPassword();
                 User user = userRepository.save(User.builder()
                         .name(row.getName()).email(row.getEmail()).phone(row.getPhone())
-                        .password(passwordEncoder.encode("Demo@123"))
+                        .password(passwordEncoder.encode(initialPassword))
                         .role(User.Role.STUDENT).active(true).build());
 
                 StudentRequest req = new StudentRequest();
@@ -115,10 +135,17 @@ public class StudentController {
 
                 result.put("success", true);
                 result.put("message", "Imported successfully");
+                result.put("initialPassword", initialPassword);   // admin must distribute then user resets
                 success++;
-            } catch (Exception e) {
+            } catch (IllegalStateException | IllegalArgumentException e) {
+                log.warn("Student import row {}: {}", i + 2, e.getMessage());
                 result.put("success", false);
                 result.put("message", e.getMessage());
+                failure++;
+            } catch (Exception e) {
+                log.error("Student import row {} unexpected error", i + 2, e);
+                result.put("success", false);
+                result.put("message", "Unexpected error — contact system administrator");
                 failure++;
             }
             results.add(result);

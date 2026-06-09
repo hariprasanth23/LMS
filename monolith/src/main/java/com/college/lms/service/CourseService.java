@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -16,8 +17,8 @@ public class CourseService {
 
     private final CourseRepository courseRepository;
 
-    public List<Course> findAll() {
-        return courseRepository.findAll();
+    public List<Course> findAll(Pageable pageable) {
+        return courseRepository.findAll(pageable).getContent();
     }
 
     public Course findById(UUID id) {

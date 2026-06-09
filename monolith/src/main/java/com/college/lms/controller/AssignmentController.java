@@ -42,7 +42,7 @@ public class AssignmentController {
     @PostMapping("/api/assignments/{id}/submit")
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<ApiResponse<AssignmentSubmission>> submit(@PathVariable UUID id,
-                                                                     @RequestBody SubmissionRequest request,
+                                                                     @Valid @RequestBody SubmissionRequest request,
                                                                      @AuthenticationPrincipal User currentUser) {
         AssignmentSubmission submission = assignmentService.submit(id, currentUser, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Submitted successfully", submission));

@@ -698,7 +698,7 @@ function DigitalAssignmentUpload() {
   useEffect(() => {
     api.get('/courses')
       .then(r => setCourses(r.data.data || []))
-      .catch(() => {})
+      .catch(() => { /* courses load silently fails */ })
       .finally(() => setLoadingCourses(false))
   }, [])
 
@@ -921,6 +921,19 @@ function ApaarIDUpload() {
 }
 
 // ─── Biometric Search ────────────────────────────────────────────────────────
+function statusBg(status) {
+  const map = { 'Check-In': '#dbeafe', 'Check-Out': '#f0fdf4', Present: '#dcfce7', Absent: '#fee2e2' }
+  return map[status] || '#f1f5f9'
+}
+function statusColor(status) {
+  const map = { 'Check-In': '#1d4ed8', 'Check-Out': '#15803d', Present: '#15803d', Absent: '#dc2626' }
+  return map[status] || '#64748b'
+}
+function typeIcon(type) {
+  const map = { 'Check-In': '🟢', 'Check-Out': '🔴', Present: '✅', Absent: '❌' }
+  return map[type] || '📋'
+}
+
 function BiometricSearch() {
   const today = new Date()
   const [viewYear, setViewYear]   = useState(today.getFullYear())

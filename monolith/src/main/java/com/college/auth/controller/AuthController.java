@@ -51,6 +51,25 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok("Login successful", auth));
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(
+            @RequestBody Map<String, String> body,
+            HttpServletResponse response) {
+        String token = body.get("refreshToken");
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("refreshToken is required");
+        }
+        AuthResponse auth = authService.refresh(token);
+        ResponseCookie cookie = ResponseCookie.from("jwt_token", auth.getToken())
+                .httpOnly(true)
+                .path("/")
+                .maxAge(24 * 60 * 60)
+                .sameSite("Strict")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+        return ResponseEntity.ok(ApiResponse.ok("Token refreshed", auth));
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout(HttpServletResponse response) {
         ResponseCookie clear = ResponseCookie.from("jwt_token", "")
@@ -65,16 +84,17 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<Map<String, Object>>> me(@AuthenticationPrincipal User user) {
-        Map<String, Object> info = Map.of(
-                "userId",       user.getId(),
-                "name",         user.getName(),
-                "email",        user.getEmail(),
-                "phone",        user.getPhone() != null ? user.getPhone() : "",
-                "role",         user.getRole(),
-                "active",       user.getActive(),
-                "profilePhoto", user.getProfilePhoto() != null ? user.getProfilePhoto() : "",
-                "createdAt",    user.getCreatedAt()
-        );
+        // Use a mutable map: Map.of() throws NullPointerException on any null value,
+        // and createdAt can be null for programmatically-created test/seed users.
+        Map<String, Object> info = new java.util.LinkedHashMap<>();
+        info.put("userId",       user.getId());
+        info.put("name",         user.getName());
+        info.put("email",        user.getEmail());
+        info.put("phone",        user.getPhone()        != null ? user.getPhone()        : "");
+        info.put("role",         user.getRole());
+        info.put("active",       user.getActive());
+        info.put("profilePhoto", user.getProfilePhoto() != null ? user.getProfilePhoto() : "");
+        info.put("createdAt",    user.getCreatedAt());   // null-safe: LinkedHashMap allows null values
         return ResponseEntity.ok(ApiResponse.ok(info));
     }
 

@@ -9,10 +9,9 @@ import {
   MdStar,
   MdAdminPanelSettings,
   MdVisibility,
-  MdVisibilityOff
+  MdVisibilityOff,
 } from 'react-icons/md'
 
-// Mobile breakpoint hook
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
   useEffect(() => {
@@ -51,15 +50,12 @@ export default function Login() {
 
   useEffect(() => {
     const portalParam = searchParams.get('portal')
-    const validPortals = PORTALS.map((p) => p.key)
-    if (portalParam && validPortals.includes(portalParam)) {
+    if (portalParam && PORTALS.some((p) => p.key === portalParam)) {
       setSelectedPortal(portalParam)
     }
   }, [])
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
   const handlePortalSelect = (key) => {
     setSelectedPortal(key)
@@ -68,18 +64,12 @@ export default function Login() {
   }
 
   const activePortal = PORTALS.find((p) => p.key === selectedPortal)
-  const activeColor = activePortal ? activePortal.color : '#6366f1'
+  const activeColor = activePortal?.color ?? '#6366f1'
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!selectedPortal) {
-      toast.error('Please select a portal type')
-      return
-    }
-    if (!form.identifier || !form.password) {
-      toast.error('Please fill in all fields')
-      return
-    }
+    if (!selectedPortal) { toast.error('Please select a portal type'); return }
+    if (!form.identifier || !form.password) { toast.error('Please fill in all fields'); return }
     setLoading(true)
     try {
       await login(form.identifier, form.password, selectedPortal)
@@ -92,35 +82,6 @@ export default function Login() {
     }
   }
 
-  const ff = 'system-ui, -apple-system, sans-serif'
-
-  const inputStyle = {
-    width: '100%',
-    padding: '11px 14px',
-    border: '1.5px solid #e2e8f0',
-    borderRadius: 8,
-    fontSize: 14,
-    fontFamily: ff,
-    color: '#1e293b',
-    outline: 'none',
-    boxSizing: 'border-box',
-    background: '#fff',
-    transition: 'border-color 0.2s',
-  }
-
-  const labelStyle = {
-    display: 'block',
-    fontSize: 13,
-    fontWeight: 600,
-    color: '#374151',
-    marginBottom: 6,
-    fontFamily: ff,
-  }
-
-  // Portal grid layout:
-  // Row 1: Admin (full width)
-  // Row 2: Student | Staff
-  // Row 3: Parent  | Alumni
   const adminPortal = PORTALS.find((p) => p.key === 'admin')
   const row2 = PORTALS.filter((p) => p.key === 'student' || p.key === 'staff')
   const row3 = PORTALS.filter((p) => p.key === 'parent' || p.key === 'alumni')
@@ -135,56 +96,28 @@ export default function Login() {
         key={key}
         type="button"
         onClick={() => handlePortalSelect(key)}
+        className={`flex items-center gap-2.5 rounded-[10px] border-2 p-2.5 text-left outline-none transition-all duration-150 ${fullWidth ? 'w-full' : ''}`}
         style={{
           background: isSelected ? `${color}10` : '#f8fafc',
-          border: isSelected ? `2px solid ${color}` : '2px solid #e2e8f0',
-          borderRadius: 10,
-          padding: '10px 14px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          transition: 'all 0.15s ease',
-          outline: 'none',
-          width: fullWidth ? '100%' : undefined,
-          textAlign: 'left',
-          fontFamily: ff,
+          borderColor: isSelected ? color : '#e2e8f0',
         }}
       >
-        {/* Icon box */}
-        <div style={{
-          width: 28,
-          height: 28,
-          borderRadius: 6,
-          background: isSelected ? color : `${color}20`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}>
+        <div
+          className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md"
+          style={{ background: isSelected ? color : `${color}20` }}
+        >
           <Icon style={{ fontSize: 16, color: isSelected ? '#fff' : color }} />
         </div>
 
-        {/* Text */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: isSelected ? color : '#1e293b', lineHeight: 1.2 }}>
+        <div className="min-w-0 flex-1">
+          <div className="text-[13px] font-semibold leading-tight" style={{ color: isSelected ? color : '#1e293b' }}>
             {isAdmin ? 'Administrator' : label}
           </div>
-          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{description}</div>
+          <div className="mt-0.5 text-[11px] text-slate-500">{description}</div>
         </div>
 
-        {/* Admin badge */}
         {isAdmin && !isMobile && (
-          <span style={{
-            background: '#fff7ed',
-            color: '#c2410c',
-            border: '1px solid #fed7aa',
-            borderRadius: 20,
-            padding: '2px 8px',
-            fontSize: 10,
-            fontWeight: 700,
-            flexShrink: 0,
-          }}>
+          <span className="flex-shrink-0 rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-bold text-orange-700">
             System Admin
           </span>
         )}
@@ -193,404 +126,215 @@ export default function Login() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      fontFamily: ff,
-    }}>
+    <div className="flex min-h-screen font-sans">
       <style>{`
         @keyframes fadeSlideIn {
           from { opacity: 0; transform: translateY(10px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .login-form-appear {
-          animation: fadeSlideIn 0.25s ease forwards;
-        }
+        .login-form-appear { animation: fadeSlideIn 0.25s ease forwards; }
       `}</style>
 
-      {/* ── LEFT PANEL ── */}
-      <div style={{
-        width: '42%',
-        background: 'linear-gradient(145deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%)',
-        padding: '48px 40px',
-        display: isMobile ? 'none' : 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        color: '#fff',
-        flexShrink: 0,
-      }}>
-
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 40,
-            height: 40,
-            background: '#fff',
-            borderRadius: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            <MdSchool style={{ fontSize: 22, color: '#312e81' }} />
+      {/* Left panel */}
+      {!isMobile && (
+        <div
+          className="flex w-[42%] flex-shrink-0 flex-col justify-between px-10 py-12 text-white"
+          style={{ background: 'linear-gradient(145deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%)' }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[10px] bg-white">
+              <MdSchool style={{ fontSize: 22, color: '#312e81' }} />
+            </div>
+            <div>
+              <div className="text-[22px] font-extrabold leading-tight">College ERP</div>
+              <div className="mt-0.5 text-xs opacity-70">Student Management System</div>
+            </div>
           </div>
+
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.1, fontFamily: ff }}>College ERP</div>
-            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2, fontFamily: ff }}>Student Management System</div>
+            <h2 className="m-0 whitespace-pre-line text-[32px] font-extrabold leading-snug">
+              {'Welcome\nBack'}
+            </h2>
+            <p className="mb-0 mt-3 text-sm leading-relaxed opacity-75">
+              Sign in to access your personalized portal. All your academic tools in one place.
+            </p>
+            <ul className="mt-8 list-none p-0">
+              {FEATURES.map((feat, i) => (
+                <li key={i} className="flex items-center gap-3 border-b border-white/[0.08] py-2 text-[13px] opacity-85">
+                  <span className="inline-flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold">
+                    ✓
+                  </span>
+                  {feat}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {['🔒 SSL Secured', '🛡️ JWT Auth', '⚡ Live Data'].map((badge) => (
+              <span key={badge} className="rounded-full bg-white/10 px-3 py-1.5 text-[11px]">
+                {badge}
+              </span>
+            ))}
           </div>
         </div>
+      )}
 
-        {/* Middle */}
-        <div>
-          <h2 style={{
-            margin: 0,
-            fontSize: 32,
-            fontWeight: 800,
-            lineHeight: 1.3,
-            fontFamily: ff,
-            whiteSpace: 'pre-line',
-          }}>
-            {'Welcome\nBack'}
-          </h2>
-          <p style={{
-            fontSize: 14,
-            opacity: 0.75,
-            marginTop: 12,
-            marginBottom: 0,
-            lineHeight: 1.6,
-            fontFamily: ff,
-          }}>
-            Sign in to access your personalized portal. All your academic tools in one place.
-          </p>
+      {/* Right panel */}
+      <div className={`flex flex-col justify-center overflow-y-auto bg-white ${isMobile ? 'w-full px-5 py-8' : 'w-[58%] px-12 py-12'}`}>
+        <div className="mx-auto w-full max-w-[520px]">
 
-          {/* Feature list */}
-          <ul style={{ listStyle: 'none', margin: '32px 0 0', padding: 0 }}>
-            {FEATURES.map((feat, i) => (
-              <li key={i} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                fontSize: 13,
-                opacity: 0.85,
-                padding: '8px 0',
-                borderBottom: '1px solid rgba(255,255,255,0.08)',
-                fontFamily: ff,
-              }}>
-                <span style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: '50%',
-                  background: '#4f46e5',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}>✓</span>
-                {feat}
-              </li>
-            ))}
-          </ul>
-        </div>
+          <h1 className="mb-1 text-[28px] font-extrabold text-slate-800">Sign In</h1>
+          <p className="mb-7 text-sm text-slate-500">Select your portal and enter credentials</p>
 
-        {/* Security badges */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {['🔒 SSL Secured', '🛡️ JWT Auth', '⚡ Live Data'].map((badge) => (
-            <span key={badge} style={{
-              background: 'rgba(255,255,255,0.1)',
-              borderRadius: 20,
-              padding: '6px 12px',
-              fontSize: 11,
-              fontFamily: ff,
-            }}>
-              {badge}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ── RIGHT PANEL ── */}
-      <div style={{
-        width: isMobile ? '100%' : '58%',
-        background: '#fff',
-        padding: isMobile ? '32px 20px' : '48px 48px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        overflowY: 'auto',
-      }}>
-        <div style={{ maxWidth: 520, width: '100%', margin: '0 auto' }}>
-
-          {/* Heading */}
-          <h1 style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 800, color: '#1e293b', fontFamily: ff }}>
-            Sign In
-          </h1>
-          <p style={{ margin: '0 0 28px', fontSize: 14, color: '#64748b', fontFamily: ff }}>
-            Select your portal and enter credentials
-          </p>
-
-          {/* Portal selector label */}
-          <div style={{
-            fontSize: 12,
-            fontWeight: 700,
-            color: '#374151',
-            letterSpacing: 0.5,
-            textTransform: 'uppercase',
-            marginBottom: 10,
-            fontFamily: ff,
-          }}>
+          <div className="mb-2.5 text-[12px] font-bold uppercase tracking-[0.5px] text-slate-700">
             Select Portal
           </div>
 
-          {/* Row 1: Admin (full width) */}
-          <div style={{ marginBottom: 8 }}>
-            {renderPortalButton(adminPortal, true)}
-          </div>
+          <div className="mb-2">{renderPortalButton(adminPortal, true)}</div>
 
-          {/* Row 2: Student | Staff */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+          <div className="mb-2 grid grid-cols-2 gap-2">
             {row2.map((p) => renderPortalButton(p))}
           </div>
 
-          {/* Row 3: Parent | Alumni */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+          <div className="mb-2 grid grid-cols-2 gap-2">
             {row3.map((p) => renderPortalButton(p))}
           </div>
 
-          {/* ── Sample Credentials Card ── */}
-          <div style={{
-            marginTop: 16,
-            background: 'linear-gradient(135deg, #f0f9ff 0%, #eff6ff 100%)',
-            border: '1.5px solid #bfdbfe',
-            borderRadius: 12,
-            padding: '14px 18px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-            flexWrap: 'wrap',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: 8,
-                background: 'linear-gradient(135deg, #6366f1, #3b82f6)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}>
-                <span style={{ fontSize: 15 }}>🔑</span>
+          {/* Sample credentials */}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border-[1.5px] border-blue-200 bg-gradient-to-r from-sky-50 to-blue-50 px-4 py-3.5">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-blue-500">
+                <span className="text-[15px]">🔑</span>
               </div>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#1e40af', marginBottom: 2, fontFamily: ff }}>
+                <div className="mb-0.5 text-[12px] font-bold text-blue-800">
                   All sample accounts share the same password
                 </div>
-                <div style={{ fontSize: 11, color: '#64748b', fontFamily: ff }}>
-                  Use any email below to sign in
-                </div>
+                <div className="text-[11px] text-slate-500">Use any email below to sign in</div>
               </div>
             </div>
-            <div style={{
-              background: '#fff',
-              border: '1px solid #bfdbfe',
-              borderRadius: 8,
-              padding: '6px 14px',
-              textAlign: 'center',
-              flexShrink: 0,
-            }}>
-              <div style={{ fontSize: 10, color: '#64748b', fontWeight: 600, fontFamily: ff, marginBottom: 1 }}>PASSWORD</div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#1e293b', fontFamily: 'monospace', letterSpacing: 1 }}>
-                Demo@123
-              </div>
+            <div className="flex-shrink-0 rounded-lg border border-blue-200 bg-white px-3.5 py-1.5 text-center">
+              <div className="mb-0.5 text-[10px] font-semibold text-slate-500">PASSWORD</div>
+              <div className="font-mono text-[13px] font-extrabold tracking-wider text-slate-800">Demo@123</div>
             </div>
           </div>
 
-          {/* ── Per-role sample accounts ── */}
-          <div style={{
-            marginTop: 10,
-            background: '#f8fafc',
-            border: '1.5px solid #e2e8f0',
-            borderRadius: 12,
-            padding: '12px 16px',
-          }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10, fontFamily: ff }}>
+          {/* Per-role sample accounts */}
+          <div className="mt-2.5 rounded-xl border-[1.5px] border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.5px] text-slate-400">
               Sample accounts · password: Demo@123
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <div className="flex flex-col gap-1.5">
               {[
-                { role: 'Admin',   email: 'admin@sample.edu',    note: null,      color: '#dc2626', bg: '#fef2f2' },
-                { role: 'Student', email: 'student1@sample.edu', note: '1 – 5',   color: '#3b82f6', bg: '#eff6ff' },
-                { role: 'Faculty', email: 'faculty1@sample.edu', note: '1 – 5',   color: '#8b5cf6', bg: '#f5f3ff' },
+                { role: 'Admin',   email: 'admin@sample.edu',    note: null,    color: '#dc2626', bg: '#fef2f2' },
+                { role: 'Student', email: 'student1@sample.edu', note: '1 – 5', color: '#3b82f6', bg: '#eff6ff' },
+                { role: 'Faculty', email: 'faculty1@sample.edu', note: '1 – 5', color: '#8b5cf6', bg: '#f5f3ff' },
               ].map(({ role, email, note, color, bg }) => (
-                <div key={role} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  background: bg, borderRadius: 8, padding: '7px 12px', gap: 8,
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                    <span style={{
-                      fontSize: 10, fontWeight: 700, color, background: '#fff',
-                      border: `1px solid ${color}30`, borderRadius: 4, padding: '2px 6px',
-                      fontFamily: ff, flexShrink: 0,
-                    }}>{role}</span>
-                    <span style={{ fontSize: 12, color: '#475569', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {email}
+                <div key={role} className="flex items-center justify-between gap-2 rounded-lg px-3 py-1.5" style={{ background: bg }}>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span
+                      className="flex-shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold"
+                      style={{ color, background: '#fff', border: `1px solid ${color}30` }}
+                    >
+                      {role}
                     </span>
+                    <span className="truncate font-mono text-xs text-slate-600">{email}</span>
                     {note && (
-                      <span style={{ fontSize: 10, color: color, fontWeight: 600, fontFamily: ff, flexShrink: 0, opacity: 0.8 }}>
+                      <span className="flex-shrink-0 text-[10px] font-semibold opacity-80" style={{ color }}>
                         ({note})
                       </span>
                     )}
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', fontFamily: 'monospace', flexShrink: 0 }}>Demo@123</span>
+                  <span className="flex-shrink-0 font-mono text-[11px] font-bold text-slate-500">Demo@123</span>
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8', fontFamily: ff }}>
+            <div className="mt-2 text-[11px] text-slate-400">
               e.g. student2@sample.edu, faculty3@sample.edu also work
             </div>
           </div>
 
-          {/* Login form — fades in after portal selected */}
+          {/* Login form */}
           {selectedPortal && (
             <div className="login-form-appear">
-
-              {/* Divider with label */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                margin: '28px 0 20px',
-              }}>
-                <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', whiteSpace: 'nowrap', fontFamily: ff }}>
-                  Enter Credentials
-                </span>
-                <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+              <div className="my-7 flex items-center gap-3">
+                <div className="h-px flex-1 bg-slate-200" />
+                <span className="whitespace-nowrap text-xs font-semibold text-slate-400">Enter Credentials</span>
+                <div className="h-px flex-1 bg-slate-200" />
               </div>
 
               <form onSubmit={handleSubmit}>
-                {/* Identifier */}
-                <div style={{ marginBottom: 16 }}>
-                  <label style={labelStyle}>{activePortal?.idLabel}</label>
+                <div className="mb-4">
+                  <label className="mb-1.5 block text-[13px] font-semibold text-slate-700">
+                    {activePortal?.idLabel}
+                  </label>
                   <input
                     type="text"
                     name="identifier"
                     value={form.identifier}
                     onChange={handleChange}
                     placeholder={`Enter ${activePortal?.idLabel?.toLowerCase()}`}
-                    style={inputStyle}
+                    className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 box-border"
                     onFocus={(e) => (e.target.style.borderColor = activeColor)}
                     onBlur={(e) => (e.target.style.borderColor = '#e2e8f0')}
                   />
                 </div>
 
-                {/* Password */}
-                <div style={{ marginBottom: 16 }}>
-                  <label style={labelStyle}>Password</label>
-                  <div style={{ position: 'relative' }}>
+                <div className="mb-4">
+                  <label className="mb-1.5 block text-[13px] font-semibold text-slate-700">Password</label>
+                  <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       name="password"
                       value={form.password}
                       onChange={handleChange}
                       placeholder="Enter password"
-                      style={{ ...inputStyle, paddingRight: 44 }}
+                      className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white py-2.5 pl-3.5 pr-11 text-sm text-slate-800 outline-none transition-colors duration-200 box-border"
                       onFocus={(e) => (e.target.style.borderColor = activeColor)}
                       onBlur={(e) => (e.target.style.borderColor = '#e2e8f0')}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      style={{
-                        position: 'absolute',
-                        right: 12,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: '#64748b',
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: 0,
-                      }}
+                      className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center border-none bg-transparent p-0 text-slate-500 cursor-pointer"
                     >
                       {showPassword ? <MdVisibilityOff size={18} /> : <MdVisibility size={18} />}
                     </button>
                   </div>
                 </div>
 
-                {/* Remember me + Forgot password */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 22,
-                }}>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 7,
-                    fontSize: 13,
-                    color: '#374151',
-                    cursor: 'pointer',
-                    fontFamily: ff,
-                    userSelect: 'none',
-                  }}>
-                    <input type="checkbox" style={{ accentColor: activeColor, width: 14, height: 14 }} />
+                <div className="mb-5 flex items-center justify-between">
+                  <label className="flex cursor-pointer select-none items-center gap-1.5 text-[13px] text-slate-700">
+                    <input type="checkbox" className="h-3.5 w-3.5" style={{ accentColor: activeColor }} />
                     Remember me
                   </label>
                   <Link
                     to="/auth/forgot-password"
-                    style={{
-                      fontSize: 13,
-                      color: activeColor,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontFamily: ff,
-                      textDecoration: 'none',
-                    }}
+                    className="text-[13px] font-semibold no-underline"
+                    style={{ color: activeColor }}
                   >
                     Forgot Password?
                   </Link>
                 </div>
 
-                {/* Sign In button */}
                 <button
                   type="submit"
                   disabled={loading}
+                  className="w-full rounded-[10px] border-none py-3 text-[15px] font-bold tracking-[0.2px] text-white transition-opacity duration-200"
                   style={{
-                    width: '100%',
-                    padding: '13px',
                     background: loading ? `${activeColor}99` : activeColor,
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 10,
-                    fontSize: 15,
-                    fontWeight: 700,
-                    fontFamily: ff,
                     cursor: loading ? 'not-allowed' : 'pointer',
-                    transition: 'background 0.2s',
-                    letterSpacing: 0.2,
                   }}
                 >
                   {loading ? 'Signing in…' : `Sign In as ${activePortal?.label}`}
                 </button>
 
-                {/* Divider */}
-                <div style={{ height: 1, background: '#e2e8f0', margin: '22px 0 16px' }} />
+                <div className="my-5 h-px bg-slate-200" />
 
-                {/* Register link */}
-                <p style={{
-                  textAlign: 'center',
-                  fontSize: 13,
-                  color: '#64748b',
-                  margin: 0,
-                  fontFamily: ff,
-                }}>
+                <p className="m-0 text-center text-[13px] text-slate-500">
                   Don't have an account?{' '}
-                  <Link
-                    to="/auth/register"
-                    style={{ color: activeColor, fontWeight: 600, textDecoration: 'none' }}
-                  >
+                  <Link to="/auth/register" className="font-semibold no-underline" style={{ color: activeColor }}>
                     Register here
                   </Link>
                 </p>
@@ -598,17 +342,8 @@ export default function Login() {
             </div>
           )}
 
-          {/* Back to Home */}
-          <div style={{ marginTop: 32, textAlign: 'center' }}>
-            <Link
-              to="/"
-              style={{
-                fontSize: 13,
-                color: '#94a3b8',
-                textDecoration: 'none',
-                fontFamily: ff,
-              }}
-            >
+          <div className="mt-8 text-center">
+            <Link to="/" className="text-[13px] text-slate-400 no-underline">
               ← Back to Home
             </Link>
           </div>

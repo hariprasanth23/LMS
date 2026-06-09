@@ -4,63 +4,37 @@ import Sidebar from './Sidebar'
 import Navbar from './Navbar'
 import { MdKeyboardArrowUp } from 'react-icons/md'
 
-const FONT = 'system-ui, -apple-system, sans-serif'
-const ACCENT = '#6366f1'
-
-// ─── Back-to-top button ───────────────────────────────────────────────────────
-
 function BackToTopButton({ scrollContainerRef }) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     const container = scrollContainerRef.current
     if (!container) return
-
-    const handleScroll = () => {
-      setVisible(container.scrollTop > 200)
-    }
-
+    const handleScroll = () => setVisible(container.scrollTop > 200)
     container.addEventListener('scroll', handleScroll, { passive: true })
     return () => container.removeEventListener('scroll', handleScroll)
   }, [scrollContainerRef])
 
-  const scrollToTop = () => {
+  const scrollToTop = () =>
     scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
-  }
 
   return (
     <button
       onClick={scrollToTop}
       title="Back to top"
+      className="fixed bottom-7 right-7 flex h-10 w-10 items-center justify-center rounded-full border-none bg-indigo-500 text-white shadow-lg transition-all duration-200"
       style={{
-        position: 'fixed',
-        bottom: 28,
-        right: 28,
-        width: 40,
-        height: 40,
-        borderRadius: '50%',
-        background: ACCENT,
-        color: '#fff',
-        border: 'none',
-        boxShadow: '0 4px 14px rgba(99,102,241,0.4)',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 999,
-        fontFamily: FONT,
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.8)',
-        transition: 'opacity 0.25s ease, transform 0.25s ease',
-        pointerEvents: visible ? 'auto' : 'none'
+        pointerEvents: visible ? 'auto' : 'none',
+        zIndex: 999,
+        boxShadow: '0 4px 14px rgba(99,102,241,0.4)',
       }}
     >
       <MdKeyboardArrowUp style={{ fontSize: 22 }} />
     </button>
   )
 }
-
-// ─── Animated page content ────────────────────────────────────────────────────
 
 function AnimatedContent({ children }) {
   const location = useLocation()
@@ -83,19 +57,18 @@ function AnimatedContent({ children }) {
   return (
     <div
       onAnimationEnd={handleAnimationEnd}
+      className="flex-1"
       style={{
-        flex: 1,
-        animation: transitionStage === 'fadeIn'
-          ? 'pageFadeIn 0.22s ease forwards'
-          : 'pageFadeOut 0.15s ease forwards'
+        animation:
+          transitionStage === 'fadeIn'
+            ? 'pageFadeIn 0.22s ease forwards'
+            : 'pageFadeOut 0.15s ease forwards',
       }}
     >
       {children}
     </div>
   )
 }
-
-// ─── Layout ───────────────────────────────────────────────────────────────────
 
 export default function Layout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -113,12 +86,7 @@ export default function Layout() {
     const h = () => {
       const mobile = window.innerWidth <= 768
       setIsMobile(mobile)
-      // On resize to desktop, ensure sidebar is open; on resize to mobile, close it
-      if (!mobile) {
-        setSidebarOpen(true)
-      } else {
-        setSidebarOpen(false)
-      }
+      setSidebarOpen(!mobile)
     }
     window.addEventListener('resize', h)
     return () => window.removeEventListener('resize', h)
@@ -132,7 +100,6 @@ export default function Layout() {
 
   return (
     <>
-      {/* Page transition keyframes */}
       <style>{`
         @keyframes pageFadeIn {
           from { opacity: 0; transform: translateY(6px); }
@@ -142,28 +109,13 @@ export default function Layout() {
           from { opacity: 1; transform: translateY(0); }
           to   { opacity: 0; transform: translateY(-4px); }
         }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
       `}</style>
 
-      <div style={{
-        display: 'flex',
-        minHeight: '100vh',
-        background: '#f8fafc',
-        fontFamily: FONT
-      }}>
-        {/* Mobile backdrop overlay */}
+      <div className="flex min-h-screen bg-slate-50 font-sans">
         {isMobile && sidebarOpen && (
           <div
             onClick={() => setSidebarOpen(false)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(0,0,0,0.4)',
-              zIndex: 499
-            }}
+            className="fixed inset-0 z-[499] bg-black/40"
           />
         )}
 
@@ -174,27 +126,15 @@ export default function Layout() {
           onClose={() => setSidebarOpen(false)}
         />
 
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          minWidth: 0,
-          transition: 'margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
-        }}>
+        <div className="flex min-w-0 flex-1 flex-col transition-[margin-left] duration-250 ease-[cubic-bezier(0.4,0,0.2,1)]">
           <Navbar
-            onToggleSidebar={() => setSidebarOpen(prev => !prev)}
+            onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
             isMobile={isMobile}
           />
 
           <main
             ref={mainScrollRef}
-            style={{
-              flex: 1,
-              padding: isMobile ? 16 : 28,
-              overflow: 'auto',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
+            className={`flex flex-1 flex-col overflow-auto ${isMobile ? 'p-4' : 'p-7'}`}
           >
             <AnimatedContent>
               <Outlet />

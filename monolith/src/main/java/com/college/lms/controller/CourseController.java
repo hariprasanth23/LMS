@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -27,8 +29,11 @@ public class CourseController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STUDENT')")
-    public ResponseEntity<ApiResponse<List<Course>>> getAll() {
-        return ResponseEntity.ok(ApiResponse.ok(courseService.findAll()));
+    public ResponseEntity<ApiResponse<List<Course>>> getAll(
+            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "50") int size) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                courseService.findAll(PageRequest.of(page, size, Sort.by("code")))));
     }
 
     @GetMapping("/{id}")

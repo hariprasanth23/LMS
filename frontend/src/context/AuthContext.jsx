@@ -43,10 +43,11 @@ export function AuthProvider({ children }) {
     const response = await api.post('/auth/login', { identifier, password })
     // Backend sets the httpOnly jwt_token cookie via Set-Cookie header.
     // We only store non-sensitive user info locally.
-    const { userId, name, email, role } = response.data.data
+    const { userId, name, email, role, refreshToken } = response.data.data
     const userData = { userId, name, email, role }
 
     localStorage.setItem('college_user', JSON.stringify(userData))
+    if (refreshToken) localStorage.setItem('college_refresh_token', refreshToken)
     if (portal) {
       localStorage.setItem('college_portal', portal)
       setPortalType(portal)
@@ -65,6 +66,7 @@ export function AuthProvider({ children }) {
 
     localStorage.removeItem('college_user')
     localStorage.removeItem('college_portal')
+    localStorage.removeItem('college_refresh_token')
     setUser(null)
     setPortalType(null)
     if (showExpiredMessage) {

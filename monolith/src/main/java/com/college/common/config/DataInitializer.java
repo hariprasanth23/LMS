@@ -89,44 +89,50 @@ public class DataInitializer implements ApplicationRunner {
             log.info("[DataInitializer] Core data already seeded — skipping user/student seed");
         }
 
+        // Look up the demo student once — passed to methods that need it,
+        // eliminating 4 redundant DB queries on every startup.
+        UUID demoStudentId = studentRepository.findByRollNumber("CSE2022001")
+                .map(s -> s.getId())
+                .orElse(null);
+
         // ── Seed LMS data independently (safe to run on existing DBs) ───────────────
         if (courseRepository.count() == 0) {
-            seedLmsData();
+            seedLmsData(demoStudentId);
         } else {
             log.info("[DataInitializer] LMS data already seeded — skipping courses/announcements");
         }
 
         // ── Seed Examination data ────────────────────────────────────────────────────
         if (examScheduleRepository.count() == 0) {
-            seedExaminationData();
+            seedExaminationData(demoStudentId);
         } else {
             log.info("[DataInitializer] Examination data already seeded — skipping");
         }
 
         // ── Seed Online Exam data ────────────────────────────────────────────────────
         if (scheduledOnlineExamRepository.count() == 0) {
-            seedOnlineExamData();
+            seedOnlineExamData(demoStudentId);
         } else {
             log.info("[DataInitializer] Online exam data already seeded — skipping");
         }
 
         // ── Seed Finance data ────────────────────────────────────────────────────────
         if (feeRecordRepository.count() == 0) {
-            seedFinanceData();
+            seedFinanceData(demoStudentId);
         } else {
             log.info("[DataInitializer] Finance data already seeded — skipping");
         }
 
         // ── Seed Services data ───────────────────────────────────────────────────────
         if (libraryBookRepository.count() == 0) {
-            seedServicesData();
+            seedServicesData(demoStudentId);
         } else {
             log.info("[DataInitializer] Services data already seeded — skipping");
         }
 
         // ── Seed Research data ───────────────────────────────────────────────────────
         if (researchProfileRepository.count() == 0) {
-            seedResearchData();
+            seedResearchData(demoStudentId);
         } else {
             log.info("[DataInitializer] Research data already seeded — skipping");
         }
@@ -219,7 +225,7 @@ public class DataInitializer implements ApplicationRunner {
         log.info("  Demo login → demo@college.com / Demo@123");
     }
 
-    private void seedLmsData() {
+    private void seedLmsData(UUID arjunId) {
         log.info("[DataInitializer] Seeding LMS data (courses, enrollments, announcements, attendance)...");
 
         // Look up the faculty user by email to use as instructor; fall back to any admin if missing
@@ -264,9 +270,7 @@ public class DataInitializer implements ApplicationRunner {
         List<Course> courses = List.of(cs6001, cs6002, cs6003, cs6004, cs6005, cs6006);
 
         // ── Enrollments for Arjun Kumar (student@demo.com) ────────────────────────
-        Optional<Student> arjunOpt = studentRepository.findByRollNumber("CSE2022001");
-        if (arjunOpt.isPresent()) {
-            UUID arjunId = arjunOpt.get().getId();
+        if (arjunId != null) {
             for (Course c : courses) {
                 enrollmentRepository.save(Enrollment.builder()
                         .studentId(arjunId).courseId(c.getId()).status("ENROLLED").build());
@@ -360,11 +364,11 @@ public class DataInitializer implements ApplicationRunner {
         log.info("[DataInitializer] ✓ LMS data seeded — courses: 6, announcements: 4, attendance records: 120");
     }
 
-    private void seedOnlineExamData() {
+    private void seedOnlineExamData(UUID arjunId) {
         log.info("[DataInitializer] Seeding online exam data...");
-        studentRepository.findByRollNumber("CSE2022001").ifPresent(arjun ->
-            scheduledOnlineExamRepository.save(ScheduledOnlineExam.builder()
-                    .studentId(arjun.getId())
+        if (arjunId == null) return;
+        scheduledOnlineExamRepository.save(ScheduledOnlineExam.builder()
+                    .studentId(arjunId)
                     .subjectCode("CS6001")
                     .subjectName("Data Warehousing & Mining")
                     .examDate(LocalDate.now().plusDays(15))
@@ -372,20 +376,16 @@ public class DataInitializer implements ApplicationRunner {
                     .durationMinutes(120)
                     .maxMarks(100)
                     .status("Scheduled")
-                    .build())
-        );
+                    .build());
         log.info("[DataInitializer] ✓ Online exam data seeded");
     }
 
-    private void seedExaminationData() {
+    private void seedExaminationData(UUID arjunId) {
         log.info("[DataInitializer] Seeding examination data...");
-
-        Optional<Student> arjunOpt = studentRepository.findByRollNumber("CSE2022001");
-        if (arjunOpt.isEmpty()) {
+        if (arjunId == null) {
             log.warn("[DataInitializer] Demo student not found — skipping examination seed");
             return;
         }
-        UUID arjunId = arjunOpt.get().getId();
         LocalDate examBase = LocalDate.now().plusDays(5);
 
         // ── Exam Schedule (Semester 6) ────────────────────────────────────────────
@@ -503,11 +503,11 @@ public class DataInitializer implements ApplicationRunner {
         log.info("[DataInitializer] ✓ Notifications seeded");
     }
 
-    private void seedResearchData() {
+    private void seedResearchData(UUID arjunId) {
         log.info("[DataInitializer] Seeding research data...");
-        studentRepository.findByRollNumber("CSE2022001").ifPresent(arjun ->
-            researchProfileRepository.save(ResearchProfile.builder()
-                    .studentId(arjun.getId())
+        if (arjunId == null) return;
+        researchProfileRepository.save(ResearchProfile.builder()
+                    .studentId(arjunId)
                     .scholarId("RSC2022001")
                     .programme("Ph.D")
                     .areaOfResearch("Machine Learning & NLP")
@@ -520,16 +520,13 @@ public class DataInitializer implements ApplicationRunner {
                     .patents(0)
                     .courseWorkCredits(12)
                     .totalRequiredCredits(20)
-                    .build())
-        );
+                    .build());
         log.info("[DataInitializer] ✓ Research data seeded");
     }
 
-    private void seedServicesData() {
+    private void seedServicesData(UUID arjunId) {
         log.info("[DataInitializer] Seeding services data...");
-        Optional<Student> arjunOpt = studentRepository.findByRollNumber("CSE2022001");
-        if (arjunOpt.isEmpty()) return;
-        UUID arjunId = arjunOpt.get().getId();
+        if (arjunId == null) return;
 
         // Bonafide applications
         bonafideRepository.save(BonafideApplication.builder()
@@ -564,12 +561,9 @@ public class DataInitializer implements ApplicationRunner {
         log.info("[DataInitializer] ✓ Services data seeded");
     }
 
-    private void seedFinanceData() {
+    private void seedFinanceData(UUID arjunId) {
         log.info("[DataInitializer] Seeding finance data...");
-
-        Optional<Student> arjunOpt = studentRepository.findByRollNumber("CSE2022001");
-        if (arjunOpt.isEmpty()) return;
-        UUID arjunId = arjunOpt.get().getId();
+        if (arjunId == null) return;
         LocalDate dueDate = LocalDate.now().plusMonths(1).withDayOfMonth(1);
 
         // ── Fee records ───────────────────────────────────────────────────────────

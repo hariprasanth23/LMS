@@ -105,6 +105,24 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public AuthResponse refresh(String rawToken) {
+        RefreshToken stored = refreshTokenRepository.findByToken(rawToken)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+
+        if (stored.isExpired()) {
+            refreshTokenRepository.delete(stored);
+            throw new IllegalStateException("Refresh token has expired — please log in again");
+        }
+
+        User user = stored.getUser();
+        // Rotate: delete old token, issue a new pair
+        refreshTokenRepository.delete(stored);
+        log.info("Refreshed tokens for user [id={}, email={}]", user.getId(), user.getEmail());
+        return buildAuthResponse(user);
+    }
+
     private void validatePasswordStrength(String password) {
         if (password == null || !PASSWORD_PATTERN.matcher(password).matches()) {
             throw new IllegalArgumentException(

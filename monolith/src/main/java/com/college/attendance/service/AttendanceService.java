@@ -34,25 +34,23 @@ public class AttendanceService {
     public List<StudentAttendance> markStudentAttendance(MarkStudentAttendanceRequest request, User faculty) {
         List<StudentAttendance> saved = new ArrayList<>();
         for (StudentAttendanceEntry entry : request.getEntries()) {
-            if (studentAttendanceRepository.existsByStudentIdAndCourseIdAndDate(
-                    entry.getStudentId(), request.getCourseId(), request.getDate())) {
-                // Update existing record
-                StudentAttendance existing = studentAttendanceRepository
-                        .findByStudentIdAndCourseIdAndDate(entry.getStudentId(), request.getCourseId(), request.getDate())
-                        .get();
-                existing.setStatus(entry.getStatus());
-                existing.setMarkedBy(faculty.getId());
-                saved.add(studentAttendanceRepository.save(existing));
-            } else {
-                StudentAttendance attendance = StudentAttendance.builder()
-                        .studentId(entry.getStudentId())
-                        .courseId(request.getCourseId())
-                        .date(request.getDate())
-                        .status(entry.getStatus())
-                        .markedBy(faculty.getId())
-                        .build();
-                saved.add(studentAttendanceRepository.save(attendance));
-            }
+            // Single query eliminates the exists-then-find race window
+            StudentAttendance record = studentAttendanceRepository
+                    .findByStudentIdAndCourseIdAndDate(
+                            entry.getStudentId(), request.getCourseId(), request.getDate())
+                    .map(existing -> {
+                        existing.setStatus(entry.getStatus());
+                        existing.setMarkedBy(faculty.getId());
+                        return existing;
+                    })
+                    .orElseGet(() -> StudentAttendance.builder()
+                            .studentId(entry.getStudentId())
+                            .courseId(request.getCourseId())
+                            .date(request.getDate())
+                            .status(entry.getStatus())
+                            .markedBy(faculty.getId())
+                            .build());
+            saved.add(studentAttendanceRepository.save(record));
         }
         return saved;
     }
@@ -101,25 +99,24 @@ public class AttendanceService {
     public EmployeeAttendance markEmployeeAttendance(EmployeeAttendanceRequest request, User currentUser) {
         LocalDate date = request.getDate() != null ? request.getDate() : LocalDate.now();
 
-        if (employeeAttendanceRepository.existsByEmployeeIdAndDate(currentUser.getId(), date)) {
-            // Update checkout / status
-            EmployeeAttendance existing = employeeAttendanceRepository
-                    .findByEmployeeIdAndDate(currentUser.getId(), date).get();
-            if (request.getCheckOut() != null) existing.setCheckOut(request.getCheckOut());
-            if (request.getStatus() != null) existing.setStatus(request.getStatus());
-            if (request.getRemarks() != null) existing.setRemarks(request.getRemarks());
-            return employeeAttendanceRepository.save(existing);
-        }
-
-        EmployeeAttendance attendance = EmployeeAttendance.builder()
-                .employeeId(currentUser.getId())
-                .date(date)
-                .checkIn(request.getCheckIn())
-                .checkOut(request.getCheckOut())
-                .status(request.getStatus() != null ? request.getStatus() : "PRESENT")
-                .remarks(request.getRemarks())
-                .build();
-        return employeeAttendanceRepository.save(attendance);
+        // Single query eliminates the exists-then-find race window
+        EmployeeAttendance record = employeeAttendanceRepository
+                .findByEmployeeIdAndDate(currentUser.getId(), date)
+                .map(existing -> {
+                    if (request.getCheckOut() != null) existing.setCheckOut(request.getCheckOut());
+                    if (request.getStatus()   != null) existing.setStatus(request.getStatus());
+                    if (request.getRemarks()  != null) existing.setRemarks(request.getRemarks());
+                    return existing;
+                })
+                .orElseGet(() -> EmployeeAttendance.builder()
+                        .employeeId(currentUser.getId())
+                        .date(date)
+                        .checkIn(request.getCheckIn())
+                        .checkOut(request.getCheckOut())
+                        .status(request.getStatus() != null ? request.getStatus() : "PRESENT")
+                        .remarks(request.getRemarks())
+                        .build());
+        return employeeAttendanceRepository.save(record);
     }
 
     public List<EmployeeAttendance> getEmployeeAttendance(UUID employeeId) {

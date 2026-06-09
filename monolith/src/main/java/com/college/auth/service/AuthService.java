@@ -16,4 +16,10 @@ public interface AuthService {
      * Authenticate by email OR phone. Returns tokens on success.
      */
     AuthResponse login(LoginRequest request);
+
+    /**
+     * Exchange a valid, unexpired refresh token for a new access + refresh token pair.
+     * The old refresh token is invalidated (rotation).
+     */
+    AuthResponse refresh(String refreshToken);
 }

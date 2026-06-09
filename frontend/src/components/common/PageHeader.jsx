@@ -1,51 +1,19 @@
 import React from 'react'
 
-const TEXT = '#0f172a'
-const MUTED = '#64748b'
-const ACCENT = '#6366f1'
-
 export default function PageHeader({ title, subtitle, badge, action }) {
   return (
-    <div style={{
-      marginBottom: 24,
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      flexWrap: 'wrap',
-      gap: 12,
-      fontFamily: 'system-ui, sans-serif'
-    }}>
+    <div className="mb-6 flex flex-wrap items-start justify-between gap-3 font-sans">
       <div>
         {badge && (
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '3px 10px',
-            background: '#eef2ff',
-            color: ACCENT,
-            borderRadius: 20,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: 0.4,
-            textTransform: 'uppercase',
-            marginBottom: 8
-          }}>
+          <div className="mb-2 inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-indigo-500">
             {badge}
           </div>
         )}
-        <h1 style={{
-          fontSize: 22,
-          fontWeight: 800,
-          color: TEXT,
-          margin: '0 0 6px',
-          letterSpacing: -0.5
-        }}>
+        <h1 className="mb-1.5 text-[22px] font-extrabold tracking-tight text-slate-900">
           {title}
         </h1>
         {subtitle && (
-          <p style={{ margin: 0, fontSize: 14, color: MUTED }}>
-            {subtitle}
-          </p>
+          <p className="m-0 text-sm text-slate-500">{subtitle}</p>
         )}
       </div>
       {action && <div>{action}</div>}

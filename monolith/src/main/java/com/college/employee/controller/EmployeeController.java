@@ -10,20 +10,35 @@ import com.college.employee.repository.EmployeeRepository;
 import com.college.employee.service.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.ArrayList;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/employees")
 @RequiredArgsConstructor
 public class EmployeeController {
+
+    private static final String CHARS =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+    private static final SecureRandom RNG = new SecureRandom();
+
+    private String generateInitialPassword() {
+        StringBuilder sb = new StringBuilder(12);
+        for (int i = 0; i < 12; i++) sb.append(CHARS.charAt(RNG.nextInt(CHARS.length())));
+        return sb.toString();
+    }
 
     private final EmployeeService employeeService;
     private final EmployeeRepository employeeRepository;
@@ -32,8 +47,11 @@ public class EmployeeController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STAFF', 'STUDENT', 'PARENT', 'ALUMNI')")
-    public ResponseEntity<ApiResponse<List<EmployeeResponse>>> listAll() {
-        return ResponseEntity.ok(ApiResponse.ok(employeeService.findAll()));
+    public ResponseEntity<ApiResponse<List<EmployeeResponse>>> listAll(
+            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "50") int size) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                employeeService.findAll(PageRequest.of(page, size, Sort.by("id")))));
     }
 
     @GetMapping("/me")
@@ -82,7 +100,7 @@ public class EmployeeController {
     @PostMapping("/import")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> importEmployees(
-            @RequestBody List<EmployeeImportRow> rows) {
+            @Valid @RequestBody List<EmployeeImportRow> rows) {
 
         int success = 0, failure = 0;
         List<Map<String, Object>> results = new ArrayList<>();
@@ -101,9 +119,10 @@ public class EmployeeController {
                 }
                 User.Role role = "FACULTY".equalsIgnoreCase(row.getEmployeeType())
                         ? User.Role.FACULTY : User.Role.STAFF;
+                String initialPassword = generateInitialPassword();
                 User user = userRepository.save(User.builder()
                         .name(row.getName()).email(row.getEmail()).phone(row.getPhone())
-                        .password(passwordEncoder.encode("Demo@123"))
+                        .password(passwordEncoder.encode(initialPassword))
                         .role(role).active(true).build());
 
                 EmployeeRequest req = new EmployeeRequest();
@@ -122,10 +141,17 @@ public class EmployeeController {
 
                 result.put("success", true);
                 result.put("message", "Imported successfully");
+                result.put("initialPassword", initialPassword);
                 success++;
-            } catch (Exception e) {
+            } catch (IllegalStateException | IllegalArgumentException e) {
+                log.warn("Employee import row {}: {}", i + 2, e.getMessage());
                 result.put("success", false);
                 result.put("message", e.getMessage());
+                failure++;
+            } catch (Exception e) {
+                log.error("Employee import row {} unexpected error", i + 2, e);
+                result.put("success", false);
+                result.put("message", "Unexpected error — contact system administrator");
                 failure++;
             }
             results.add(result);

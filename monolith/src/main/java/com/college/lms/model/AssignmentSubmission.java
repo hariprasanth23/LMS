@@ -17,7 +17,11 @@ import java.util.UUID;
 @Table(
     schema = "lms",
     name = "assignment_submissions",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"assignment_id", "student_id"})
+    uniqueConstraints = @UniqueConstraint(columnNames = {"assignment_id", "student_id"}),
+    indexes = {
+        @jakarta.persistence.Index(name = "idx_asub_assignment_id", columnList = "assignment_id"),
+        @jakarta.persistence.Index(name = "idx_asub_student_id",    columnList = "student_id")
+    }
 )
 public class AssignmentSubmission {
 

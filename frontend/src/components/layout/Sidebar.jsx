@@ -645,7 +645,7 @@ export default function Sidebar({ onCollapsedChange, isMobile, sidebarOpen, onCl
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
       const next = !prev
-      try { localStorage.setItem('sidebar_collapsed', String(next)) } catch {}
+      try { localStorage.setItem('sidebar_collapsed', String(next)) } catch { /* ignore storage errors */ }
       return next
     })
   }

@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -21,8 +22,8 @@ public class StudentService {
     private final DepartmentRepository departmentRepository;
 
     @Transactional(readOnly = true)
-    public List<Student> findAll() {
-        return studentRepository.findAll();
+    public List<Student> findAll(Pageable pageable) {
+        return studentRepository.findAll(pageable).getContent();
     }
 
     @Transactional(readOnly = true)

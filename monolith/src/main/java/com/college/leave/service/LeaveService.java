@@ -129,8 +129,9 @@ public class LeaveService {
 
     private void deductLeaveBalance(LeaveRequest req) {
         int year = req.getFromDate().getYear();
+        // Pessimistic write lock prevents two simultaneous approvals from double-deducting balance
         LeaveBalance balance = leaveBalanceRepository
-                .findByEmployeeIdAndYear(req.getEmployeeId(), year)
+                .findByEmployeeIdAndYearForUpdate(req.getEmployeeId(), year)
                 .orElseGet(() -> LeaveBalance.builder()
                         .employeeId(req.getEmployeeId())
                         .year(year)

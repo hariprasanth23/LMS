@@ -14,7 +14,14 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(schema = "leave_mgmt", name = "leave_requests")
+@Table(
+    schema = "leave_mgmt",
+    name = "leave_requests",
+    indexes = {
+        @jakarta.persistence.Index(name = "idx_lr_employee_id", columnList = "employee_id"),
+        @jakarta.persistence.Index(name = "idx_lr_status",      columnList = "status")
+    }
+)
 public class LeaveRequest {
 
     @Id

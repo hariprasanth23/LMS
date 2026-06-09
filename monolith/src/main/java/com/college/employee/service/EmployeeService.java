@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -23,8 +24,8 @@ public class EmployeeService {
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
-    public List<EmployeeResponse> findAll() {
-        return employeeRepository.findAll()
+    public List<EmployeeResponse> findAll(Pageable pageable) {
+        return employeeRepository.findAll(pageable)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());

@@ -15,7 +15,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(schema = "auth", name = "refresh_tokens")
+@Table(
+    schema = "auth",
+    name = "refresh_tokens",
+    indexes = @jakarta.persistence.Index(name = "idx_rt_user_id", columnList = "user_id")
+)
 public class RefreshToken {
 
     @Id

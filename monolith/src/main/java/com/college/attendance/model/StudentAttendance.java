@@ -18,7 +18,11 @@ import java.util.UUID;
 @Table(
     schema = "attendance",
     name = "student_attendance",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"student_id", "course_id", "date"})
+    uniqueConstraints = @UniqueConstraint(columnNames = {"student_id", "course_id", "date"}),
+    indexes = {
+        @jakarta.persistence.Index(name = "idx_sa_student_id",  columnList = "student_id"),
+        @jakarta.persistence.Index(name = "idx_sa_course_date", columnList = "course_id, date")
+    }
 )
 public class StudentAttendance {
 

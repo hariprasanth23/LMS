@@ -61,7 +61,7 @@ public class AttendanceController {
     @PostMapping("/employee")
     @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY', 'STAFF')")
     public ResponseEntity<ApiResponse<EmployeeAttendance>> markEmployeeAttendance(
-            @RequestBody EmployeeAttendanceRequest request,
+            @Valid @RequestBody EmployeeAttendanceRequest request,
             @AuthenticationPrincipal User currentUser) {
         EmployeeAttendance record = attendanceService.markEmployeeAttendance(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Attendance recorded", record));
