@@ -155,7 +155,8 @@ export default function Students() {
     setEditStudent(s); setCreatedPassword(null)
     setForm({
       name: s.name || '', email: s.email || '', phone: s.phone || '',
-      rollNumber: s.rollNumber || '', departmentId: s.departmentId || '',
+      // API returns s.department.id (nested object), not s.departmentId
+      rollNumber: s.rollNumber || '', departmentId: s.department?.id ?? s.departmentId ?? '',
       program: s.program || '', semester: s.semester || '', section: s.section || '',
       batch: s.batch || '', admissionYear: s.admissionYear || '',
       dateOfBirth: s.dateOfBirth || '', gender: s.gender || '',
@@ -183,15 +184,21 @@ export default function Students() {
 
   const buildPayload = () => ({
     ...form,
-    // Backend expects Integer/null — never send an empty string for number fields
+    // Backend expects Long/Integer — never send empty strings for number fields
     semester:      form.semester      !== '' ? Number(form.semester)      : null,
     admissionYear: form.admissionYear !== '' ? Number(form.admissionYear) : null,
-    departmentId:  form.departmentId  !== '' ? form.departmentId          : null,
+    // departmentId must be a Long — d.id from the dropdown is already numeric
+    departmentId:  form.departmentId  !== '' ? Number(form.departmentId)  : null,
   })
 
   const handleSubmit = async () => {
     if (!form.rollNumber || !form.name) {
       toast.error('Roll number and name are required')
+      setFormStep(1)
+      return
+    }
+    if (!form.departmentId) {
+      toast.error('Please select a department')
       setFormStep(1)
       return
     }
