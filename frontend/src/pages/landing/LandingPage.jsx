@@ -119,6 +119,40 @@ function GradText({ children, from = '#a78bfa', to = '#34d399', style = {} }) {
   )
 }
 
+// ── Ring counter (SVG progress ring + animated number) ─────────────────────────
+function RingCounter({ target, suffix = '', color, size = 110 }) {
+  const [count, setCount] = useState(0)
+  const [ref, inView] = useInView()
+  const started = useRef(false)
+  const r = 42, circumference = 2 * Math.PI * r
+  useEffect(() => {
+    if (!inView || started.current) return
+    started.current = true
+    if (typeof target !== 'number') { setCount(target); return }
+    const steps = 60, dur = 1800; let cur = 0
+    const t = setInterval(() => {
+      cur += target / steps
+      if (cur >= target) { setCount(target); clearInterval(t) } else setCount(Math.floor(cur))
+    }, dur / steps)
+    return () => clearInterval(t)
+  }, [inView, target])
+  const pct = typeof target === 'number' ? Math.min(count / target, 1) : 1
+  const dash = pct * circumference
+  return (
+    <div ref={ref} style={{ position: 'relative', width: size, height: size, margin: '0 auto 14px' }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="5"
+          strokeDasharray={`${dash} ${circumference}`} strokeLinecap="round"
+          style={{ transition: 'stroke-dasharray 1.8s cubic-bezier(.22,1,.36,1)', filter: `drop-shadow(0 0 7px ${color})` }} />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: 24, fontWeight: 900, color: '#fff', letterSpacing: '-1px' }}>{count}{suffix}</span>
+      </div>
+    </div>
+  )
+}
+
 // ── Glass card ─────────────────────────────────────────────────────────────────
 function GlassCard({ children, style = {}, hover = true }) {
   const [hov, setHov] = useState(false)
@@ -216,6 +250,38 @@ const RESEARCH_ITEMS = [
   'Research Document Upload','Guide Scholar Meeting','Weekly Scholar Workload',
 ]
 
+const MARQUEE_ITEMS_ROW2 = [
+  'Employee Management', 'Payroll Automation', 'Leave Approval', 'PhD Registration',
+  'Thesis Submission', 'Smart Notifications', 'Bulk CSV Import', 'JWT Security',
+  'Parent Dashboard', 'Alumni Network', 'Biometric Sync', 'eSanad Certificate',
+  'APAAR ID Upload', 'MOOC Registration', 'Grade Analytics', 'Fee Receipts', 'Role-Based Access',
+]
+
+const TESTIMONIALS = [
+  { quote: 'I can check my attendance, CGPA and upcoming exams all from one place. No more hunting through 5 different portals every morning.', name: 'Arjun Ravi', role: 'B.Tech CSE — Semester 6', portal: 'Student', color: '#60a5fa', initials: 'AR' },
+  { quote: 'Marks entry and assignment grading used to take 3 hours per class. Now it is done in 20 minutes with the faculty dashboard.', name: 'Dr. Priya Shankar', role: 'Associate Professor, ECE', portal: 'Faculty', color: '#c084fc', initials: 'PS' },
+  { quote: 'Processing payroll for 200+ employees manually was a nightmare. The automated payroll module saves our HR team 2 full days every month.', name: 'Ramesh Kumar', role: 'HR Manager, Admin Portal', portal: 'Admin', color: '#f87171', initials: 'RK' },
+  { quote: 'As a parent I used to call the college every week to check attendance. Now I see everything in real-time. It is genuinely reassuring.', name: 'Lakshmi Venkat', role: 'Parent — CSE Department', portal: 'Parent', color: '#fbbf24', initials: 'LV' },
+]
+
+const COMPARISON_ROWS = [
+  { category: 'Attendance Tracking', old: 'Paper register + manual entry', erp: 'Real-time digital sync' },
+  { category: 'Fee Payment', old: 'Bank challan + admin counter queue', erp: 'Instant online payment + auto receipt' },
+  { category: 'Exam Results', old: 'Physical marksheet, 2-week delay', erp: 'Instant digital grades + history' },
+  { category: 'Parent Communication', old: 'Manual phone calls to office', erp: 'Live portal access 24/7' },
+  { category: 'Research Submission', old: 'Email attachments, no tracking', erp: 'Structured digital workflow' },
+  { category: 'HR & Payroll', old: 'Spreadsheets + manual calculation', erp: 'Automated one-click payslips' },
+]
+
+const FAQS = [
+  { q: 'Does every student get their own separate portal?', a: 'Yes. Each of the 5 portals — Student, Faculty, Admin, Parent, Alumni — has its own login, dashboard layout, and feature set. Role-based access is enforced at both the API and UI level using JWT and Spring Security.' },
+  { q: 'How does the fee payment system work?', a: 'Students pay through the integrated finance portal. Payments are logged in real time, receipts are auto-generated as downloadable PDFs, and parents see the updated fee status immediately in their portal.' },
+  { q: 'Can the admin import existing employee data?', a: 'Yes. The HR module supports bulk CSV imports for employee profiles, allowing migration from spreadsheets or legacy systems in minutes with a single upload.' },
+  { q: 'Is student attendance data accessible to parents?', a: 'Yes. The parent portal shows live attendance percentages per subject, shortfall alerts, and semester-wise trends for their ward — no calls to the office needed.' },
+  { q: 'What security measures protect student data?', a: 'All API endpoints are JWT-secured. Sessions auto-expire after 15 minutes of inactivity. Role-based method-level security prevents cross-portal data access. Passwords are bcrypt-hashed.' },
+  { q: 'Is College ERP hosted on-premise or cloud?', a: 'College ERP is cloud-hosted with a fully containerized Docker deployment (frontend, backend, PostgreSQL, nginx). On-premise deployments can be arranged for institutions with dedicated infrastructure.' },
+]
+
 const HOW_IT_WORKS = [
   { step: '01', title: 'Choose Your Portal', desc: 'Select from Student, Faculty, Admin, Parent, or Alumni portal based on your role in the institution.', color: '#6366f1', icon: MdHowToReg },
   { step: '02', title: 'Sign In Securely', desc: 'Authenticate with your institution credentials. JWT-secured sessions with 15-minute inactivity protection.', color: '#8b5cf6', icon: MdShield },
@@ -257,6 +323,26 @@ const TEAM = [
   { name: 'Hari Prasanth', role: 'Co Founder & Full Stack Developer',   initials: 'HP', grad: 'linear-gradient(135deg,#10b981,#06b6d4)', glow: 'rgba(16,185,129,0.4)',   tag: 'Co Founder', tagColor: '#34d399', desc: 'Architecting and building the entire platform — backend, frontend, and everything in between.' },
   { name: 'Pavitaran',     role: 'Co Founder & DevOps Lead',            initials: 'PV', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', glow: 'rgba(245,158,11,0.4)',   tag: 'Co Founder', tagColor: '#fbbf24', desc: 'Ensuring zero downtime and bulletproof infrastructure — keeping College ERP always online.' },
 ]
+
+// ── FAQ accordion ──────────────────────────────────────────────────────────────
+function FAQAccordion({ items }) {
+  const [open, setOpen] = useState(null)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 800, margin: '0 auto' }}>
+      {items.map((item, i) => (
+        <div key={i} style={{ border: `1px solid ${open === i ? 'rgba(139,92,246,0.45)' : 'rgba(255,255,255,0.07)'}`, borderRadius: 14, overflow: 'hidden', transition: 'border-color .2s', background: open === i ? 'rgba(99,102,241,0.07)' : 'rgba(255,255,255,0.03)' }}>
+          <button onClick={() => setOpen(open === i ? null : i)} style={{ width: '100%', padding: '18px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', color: '#fff', fontSize: 15, fontWeight: 600, fontFamily: FONT, cursor: 'pointer', textAlign: 'left', gap: 16 }}>
+            {item.q}
+            <span style={{ flexShrink: 0, fontSize: 22, color: '#a78bfa', transform: open === i ? 'rotate(45deg)' : 'none', transition: 'transform .25s cubic-bezier(.22,1,.36,1)', lineHeight: 1 }}>+</span>
+          </button>
+          <div style={{ maxHeight: open === i ? 200 : 0, overflow: 'hidden', transition: 'max-height .38s cubic-bezier(.22,1,.36,1)' }}>
+            <div style={{ padding: '0 22px 20px', fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.85 }}>{item.a}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 // ── Landing Page ───────────────────────────────────────────────────────────────
 export default function LandingPage() {
@@ -307,6 +393,12 @@ export default function LandingPage() {
         @keyframes numberCount    { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: translateY(0) } }
         @keyframes borderFlow     { 0%,100% { border-color: rgba(99,102,241,.3) } 50% { border-color: rgba(139,92,246,.7) } }
         @keyframes heroGlow       { 0%,100% { opacity: .18 } 50% { opacity: .35 } }
+        @keyframes aurora         { 0% { transform: translate(-50%,-50%) rotate(0deg) scale(1); opacity:.18 } 33% { transform: translate(-50%,-50%) rotate(120deg) scale(1.1); opacity:.26 } 66% { transform: translate(-50%,-50%) rotate(240deg) scale(.95); opacity:.20 } 100% { transform: translate(-50%,-50%) rotate(360deg) scale(1); opacity:.18 } }
+        @keyframes noiseAnim      { 0% { transform:translate(0,0) } 25% { transform:translate(-2%,-3%) } 50% { transform:translate(3%,2%) } 75% { transform:translate(-1%,4%) } 100% { transform:translate(0,0) } }
+        @keyframes shimmerLight   { from { left:-100% } to { left:160% } }
+        @keyframes ringFill       { from { stroke-dasharray: 0 1000 } }
+        .aurora-mesh { background: conic-gradient(from 0deg at 50% 50%, rgba(99,102,241,.28) 0deg, rgba(139,92,246,.18) 60deg, rgba(16,185,129,.13) 120deg, rgba(14,165,233,.12) 180deg, rgba(236,72,153,.1) 240deg, rgba(99,102,241,.22) 300deg, rgba(99,102,241,.28) 360deg); filter: blur(80px); animation: aurora 20s linear infinite; }
+        .noise-layer { position: absolute; inset:-50%; width:200%; height:200%; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); opacity:.028; pointer-events:none; animation: noiseAnim 8s steps(4) infinite; }
 
         .hero-bg {
           background: radial-gradient(ellipse 100% 60% at 20% 40%, rgba(99,102,241,0.22) 0%, transparent 60%),
@@ -324,8 +416,11 @@ export default function LandingPage() {
           box-shadow: 0 4px 24px rgba(99,102,241,0.45);
           transition: all .2s ease;
           border: none; cursor: pointer;
+          position: relative; overflow: hidden;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99,102,241,0.65); filter: brightness(1.08); }
+        .btn-primary::after { content:''; position:absolute; top:0; left:-100%; width:55%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent); transform:skewX(-20deg); }
+        .btn-primary:hover::after { animation: shimmerLight .65s ease forwards; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99,102,241,0.65); }
         .btn-ghost { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); transition: all .2s ease; cursor: pointer; }
         .btn-ghost:hover { background: rgba(255,255,255,0.12); transform: translateY(-2px); }
         .feature-card { transition: all .3s cubic-bezier(.22,1,.36,1); cursor: default; }
@@ -425,8 +520,12 @@ export default function LandingPage() {
 
       {/* ── 3. Hero ─────────────────────────────────────────────────────────── */}
       <section className="hero-bg" style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', paddingTop: navH + 40, paddingBottom: 80, padding: isMobile ? `${navH + 40}px 24px 80px` : `${navH + 40}px 48px 80px` }}>
+        {/* Aurora conic mesh */}
+        <div className="aurora-mesh" style={{ position:'absolute', width:'140%', height:'140%', top:'50%', left:'50%', pointerEvents:'none', zIndex:0 }} />
+        {/* Film grain noise */}
+        <div className="noise-layer" style={{ zIndex:1 }} />
         {/* Grid overlay */}
-        <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
+        <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex:1 }} />
 
         {/* Star particles */}
         <StarField />
@@ -561,69 +660,76 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 4. Marquee ──────────────────────────────────────────────────────── */}
-      <div id="marquee" style={{ background: 'linear-gradient(90deg,#6366f1,#8b5cf6,#6366f1)', backgroundSize: '200% 100%', animation: 'gradFlow 6s ease infinite', padding: '15px 0', overflow: 'hidden', position: 'relative' }}>
-        <div style={{ display: 'flex', width: 'max-content', animation: 'marquee 28s linear infinite' }}>
+      {/* ── 4. Dual-Row Marquee ─────────────────────────────────────────────── */}
+      <div id="marquee" style={{ background: 'linear-gradient(90deg,#4f46e5,#7c3aed,#4f46e5)', backgroundSize: '200% 100%', animation: 'gradFlow 6s ease infinite', padding: '14px 0', overflow: 'hidden', position: 'relative' }}>
+        {/* Fade edges */}
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 120, background: 'linear-gradient(90deg,#4f46e5,transparent)', zIndex: 2, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 120, background: 'linear-gradient(270deg,#4f46e5,transparent)', zIndex: 2, pointerEvents: 'none' }} />
+        {/* Row 1 — left to right */}
+        <div style={{ display: 'flex', width: 'max-content', animation: 'marquee 30s linear infinite', marginBottom: 10 }}>
           {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 28px', whiteSpace: 'nowrap' }}>
-              <MdAutoAwesome style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', flexShrink: 0 }} />
+            <div key={`r1-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 26px', whiteSpace: 'nowrap' }}>
+              <MdAutoAwesome style={{ fontSize: 12, color: 'rgba(255,255,255,.7)', flexShrink: 0 }} />
               <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{item}</span>
+            </div>
+          ))}
+        </div>
+        {/* Row 2 — right to left */}
+        <div style={{ display: 'flex', width: 'max-content', animation: 'marquee 24s linear infinite reverse' }}>
+          {[...MARQUEE_ITEMS_ROW2, ...MARQUEE_ITEMS_ROW2, ...MARQUEE_ITEMS_ROW2].map((item, i) => (
+            <div key={`r2-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 26px', whiteSpace: 'nowrap' }}>
+              <MdStar style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', flexShrink: 0 }} />
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.78)' }}>{item}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* ── 5. Stats ────────────────────────────────────────────────────────── */}
-      <section style={{ background: '#fff', padding: isMobile ? '56px 20px' : '80px 48px' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+      <section style={{ background: 'linear-gradient(135deg,#04081a 0%,#080f2e 100%)', padding: isMobile ? '64px 20px' : '88px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '50%', left: '50%', width: 700, height: 700, borderRadius: '50%', transform: 'translate(-50%,-50%)', background: 'radial-gradient(circle,rgba(99,102,241,0.1) 0%,transparent 60%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
-            <div style={{ textAlign: 'center', marginBottom: 52 }}>
-              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)', marginBottom: 16, margin: '0 auto 16px' }}>
+            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 16, margin: '0 auto 16px' }}>
                 <MdAnalytics size={14} /> Platform by the numbers
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3vw,40px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-.8px' }}>
+              <h2 style={{ fontSize: 'clamp(26px,3vw,40px)', fontWeight: 800, color: '#fff', letterSpacing: '-.8px' }}>
                 Built for modern educational institutions
               </h2>
             </div>
           </Reveal>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: 20 }}>
             {[
-              { icon: MdLayers,     val: 80,  suf: '+', label: 'Features',      color: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' },
-              { icon: MdGroups,     val: 5,   suf: '',  label: 'User Portals',  color: '#8b5cf6', bg: '#f5f3ff', border: '#ddd6fe' },
-              { icon: MdMenuBook,   val: 15,  suf: '',  label: 'Modules',       color: '#10b981', bg: '#ecfdf5', border: '#a7f3d0' },
-              { icon: MdShield,     val: 100, suf: '%', label: 'Secure',        color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
-            ].map((s, i) => {
-              const Icon = s.icon
-              return (
-                <Reveal key={s.label} delay={i * 80}>
-                  <div className="stat-card" style={{ background: s.bg, border: `1.5px solid ${s.border}`, borderRadius: 18, padding: '28px 22px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-                    <div style={{ width: 52, height: 52, borderRadius: 14, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: `0 4px 16px ${s.color}25` }}>
-                      <Icon style={{ fontSize: 26, color: s.color }} />
-                    </div>
-                    <div style={{ fontSize: 40, fontWeight: 900, color: '#0f172a', letterSpacing: '-1.5px', marginBottom: 6 }}>
-                      <Counter target={s.val} suffix={s.suf} />
-                    </div>
-                    <div style={{ fontSize: 14, color: '#64748b', fontWeight: 500 }}>{s.label}</div>
-                  </div>
-                </Reveal>
-              )
-            })}
+              { val: 80,  suf: '+', label: 'Features',     sublabel: 'across all portals', color: '#818cf8' },
+              { val: 5,   suf: '',  label: 'User Portals', sublabel: 'role-based dashboards', color: '#c084fc' },
+              { val: 15,  suf: '',  label: 'Modules',      sublabel: 'fully integrated', color: '#34d399' },
+              { val: 100, suf: '%', label: 'Secure',       sublabel: 'JWT + bcrypt', color: '#fbbf24' },
+            ].map((s, i) => (
+              <Reveal key={s.label} delay={i * 90}>
+                <div className="stat-card" style={{ background: `${s.color}10`, border: `1.5px solid ${s.color}25`, borderRadius: 20, padding: '32px 18px', textAlign: 'center', boxShadow: `0 4px 24px ${s.color}12` }}>
+                  <RingCounter target={s.val} suffix={s.suf} color={s.color} size={110} />
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{s.label}</div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.38)', fontWeight: 500 }}>{s.sublabel}</div>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ── 6. Features Bento Grid ──────────────────────────────────────────── */}
-      <section id="features" style={{ background: '#f8fafc', padding: isMobile ? '64px 20px' : '96px 48px' }}>
+      <section id="features" style={{ background: 'linear-gradient(180deg,#04081a 0%,#060b20 100%)', padding: isMobile ? '64px 20px' : '96px 48px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 56 }}>
-              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)', marginBottom: 18, margin: '0 auto 18px' }}>
-                <MdLayers size={14} /> 50+ Core Features
+              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdLayers size={14} /> 80+ Core Features
               </div>
-              <h2 style={{ fontSize: 'clamp(28px,3.5vw,46px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(28px,3.5vw,46px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
                 Everything your college needs
               </h2>
-              <p style={{ fontSize: 17, color: '#64748b', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
                 From curriculum tracking to research thesis submission — College ERP covers every aspect of campus life.
               </p>
             </div>
@@ -640,11 +746,11 @@ export default function LandingPage() {
                     className="feature-card"
                     style={{
                       gridColumn: isWide ? 'span 2' : undefined,
-                      background: '#fff',
+                      background: 'rgba(255,255,255,0.03)',
                       borderRadius: 18,
                       padding: '26px 24px',
-                      border: `1.5px solid #f1f5f9`,
-                      boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+                      border: `1.5px solid rgba(255,255,255,0.07)`,
+                      boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
                       position: 'relative',
                       overflow: 'hidden',
                     }}
@@ -667,8 +773,8 @@ export default function LandingPage() {
                     <div style={{ width: 52, height: 52, borderRadius: 14, background: feat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
                       <Icon style={{ fontSize: 28, color: feat.color }} />
                     </div>
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>{feat.title}</h3>
-                    <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.65, margin: 0 }}>{feat.desc}</p>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 10 }}>{feat.title}</h3>
+                    <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, margin: 0 }}>{feat.desc}</p>
                   </div>
                 </Reveal>
               )
@@ -720,6 +826,52 @@ export default function LandingPage() {
               <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '14px 36px', borderRadius: 12, fontSize: 15, fontWeight: 700, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 9 }}>
                 Start Now <MdArrowForward size={18} />
               </button>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── Comparison: Traditional vs College ERP ──────────────────────────── */}
+      <section style={{ background: 'linear-gradient(180deg,#060b20 0%,#04081a 100%)', padding: isMobile ? '64px 20px' : '88px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 52 }}>
+              <div className="section-tag" style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399', border: '1px solid rgba(52,211,153,0.22)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdVerified size={14} /> Why College ERP
+              </div>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 14 }}>
+                Traditional vs <GradText from="#a78bfa" to="#34d399">College ERP</GradText>
+              </h2>
+              <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.45)', maxWidth: 460, margin: '0 auto' }}>
+                See exactly what gets replaced when you switch.
+              </p>
+            </div>
+          </Reveal>
+          <Reveal delay={100}>
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, overflow: 'hidden' }}>
+              {/* Header row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: 'rgba(255,255,255,0.04)', padding: isMobile ? '14px 16px' : '16px 28px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Category</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#f87171', textTransform: 'uppercase', letterSpacing: '.08em' }}>Traditional</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#34d399', textTransform: 'uppercase', letterSpacing: '.08em' }}>College ERP</div>
+              </div>
+              {COMPARISON_ROWS.map((row, i) => (
+                <div key={row.category} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: isMobile ? '14px 16px' : '18px 28px', borderBottom: i < COMPARISON_ROWS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', alignItems: 'center', gap: 12 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{row.category}</div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                      <span style={{ fontSize: 10, color: '#f87171', fontWeight: 800 }}>✕</span>
+                    </div>
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>{row.old}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                      <MdCheck style={{ fontSize: 11, color: '#34d399' }} />
+                    </div>
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5, fontWeight: 500 }}>{row.erp}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </Reveal>
         </div>
@@ -894,17 +1046,18 @@ export default function LandingPage() {
       </section>
 
       {/* ── 9. Examinations ─────────────────────────────────────────────────── */}
-      <section id="examinations" style={{ background: 'linear-gradient(135deg,#fdf2f8 0%,#fef2f2 100%)', padding: isMobile ? '64px 20px' : '96px 48px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+      <section id="examinations" style={{ background: 'linear-gradient(135deg,#06091e 0%,#0d1235 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-8%', right: '-4%', width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle,rgba(239,68,68,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 56 }}>
-              <div className="section-tag" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)', marginBottom: 18, margin: '0 auto 18px' }}>
+              <div className="section-tag" style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdAssignment size={14} /> Examination System
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
                 Complete Examination Management
               </h2>
-              <p style={{ fontSize: 17, color: '#64748b', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
                 Regular, arrear, online and make-up exams — with full transparency on marks, grades and re-evaluation.
               </p>
             </div>
@@ -913,7 +1066,7 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2,1fr)', gap: 18 }}>
             {EXAM_GROUPS.map((group, gi) => (
               <Reveal key={group.title} delay={gi * 80}>
-                <div className="exam-card" style={{ background: '#fff', borderRadius: 16, padding: 24, border: `1.5px solid ${group.color}20`, borderTop: `4px solid ${group.color}`, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+                <div className="exam-card" style={{ background: `${group.color}08`, borderRadius: 16, padding: 24, border: `1.5px solid ${group.color}25`, borderTop: `3px solid ${group.color}` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
                     <span style={{ fontSize: 15, fontWeight: 700, color: group.color }}>{group.title}</span>
                     <span style={{ background: `${group.color}15`, color: group.color, fontSize: 10, fontWeight: 700, padding: '2px 9px', borderRadius: 20 }}>{group.items.length} modules</span>
@@ -924,7 +1077,7 @@ export default function LandingPage() {
                         <div style={{ width: 18, height: 18, borderRadius: '50%', background: `${group.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <MdCheck style={{ fontSize: 11, color: group.color }} />
                         </div>
-                        <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{item}</span>
+                        <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', fontWeight: 500 }}>{item}</span>
                       </div>
                     ))}
                   </div>
@@ -936,17 +1089,18 @@ export default function LandingPage() {
       </section>
 
       {/* ── 10. Finance ─────────────────────────────────────────────────────── */}
-      <section style={{ background: '#fff', padding: isMobile ? '64px 20px' : '96px 48px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+      <section style={{ background: 'linear-gradient(135deg,#04081a 0%,#060d24 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle,rgba(16,185,129,0.12) 0%,transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 56 }}>
-              <div className="section-tag" style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)', marginBottom: 18, margin: '0 auto 18px' }}>
+              <div className="section-tag" style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdPayment size={14} /> Finance & Payments
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
                 Transparent Fee Management
               </h2>
-              <p style={{ fontSize: 17, color: '#64748b', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
                 Complete financial visibility — from intimation to payments, wallet top-ups, and refund processing.
               </p>
             </div>
@@ -956,14 +1110,14 @@ export default function LandingPage() {
               const Icon = item.icon
               return (
                 <Reveal key={item.label} delay={i * 60}>
-                  <div className="finance-card" style={{ background: '#fafafa', borderRadius: 16, padding: '22px 20px', border: '1.5px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', cursor: 'default' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = `${item.color}08`; e.currentTarget.style.border = `1.5px solid ${item.color}30`; e.currentTarget.style.transform = 'translateY(-4px)' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#fafafa'; e.currentTarget.style.border = '1.5px solid #f1f5f9'; e.currentTarget.style.transform = 'none' }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 12, background: `${item.color}12`, border: `1.5px solid ${item.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+                  <div className="finance-card" style={{ background: `${item.color}0c`, borderRadius: 16, padding: '22px 20px', border: `1.5px solid ${item.color}20`, cursor: 'default' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = `${item.color}18`; e.currentTarget.style.border = `1.5px solid ${item.color}45`; e.currentTarget.style.transform = 'translateY(-4px)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = `${item.color}0c`; e.currentTarget.style.border = `1.5px solid ${item.color}20`; e.currentTarget.style.transform = 'none' }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 12, background: `${item.color}18`, border: `1.5px solid ${item.color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
                       <Icon style={{ fontSize: 24, color: item.color }} />
                     </div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>{item.label}</div>
-                    <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.6 }}>{item.desc}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>{item.label}</div>
+                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.48)', lineHeight: 1.6 }}>{item.desc}</div>
                   </div>
                 </Reveal>
               )
@@ -1069,17 +1223,18 @@ export default function LandingPage() {
       </section>
 
       {/* ── Notifications ───────────────────────────────────────────────────── */}
-      <section id="notifications" style={{ background: '#fff', padding: isMobile ? '64px 20px' : '96px 48px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+      <section id="notifications" style={{ background: 'linear-gradient(135deg,#04081a 0%,#08102e 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', bottom: '-5%', right: '-5%', width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle,rgba(99,102,241,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 56 }}>
-              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)', marginBottom: 18, margin: '0 auto 18px' }}>
+              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdNotificationsActive size={14} /> Smart Notifications
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: 16 }}>
-                Stay informed. <span style={{ color: '#6366f1' }}>Always.</span>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+                Stay informed. <GradText from="#a78bfa" to="#34d399">Always.</GradText>
               </h2>
-              <p style={{ fontSize: 17, color: '#64748b', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
                 The right information reaches the right person at the right time — automatically, across every portal and role.
               </p>
             </div>
@@ -1090,13 +1245,13 @@ export default function LandingPage() {
               return (
                 <Reveal key={feat.title} delay={i * 80}>
                   <div style={{ background: '#fafafa', border: `1.5px solid #f1f5f9`, borderRadius: 18, padding: '26px 22px', transition: 'all .3s cubic-bezier(.22,1,.36,1)', cursor: 'default', height: '100%' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = `${feat.color}06`; e.currentTarget.style.border = `1.5px solid ${feat.color}30`; e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = `0 16px 36px ${feat.color}12` }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#fafafa'; e.currentTarget.style.border = '1.5px solid #f1f5f9'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}>
-                    <div style={{ width: 54, height: 54, borderRadius: 15, background: `${feat.color}12`, border: `1.5px solid ${feat.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+                    onMouseEnter={e => { e.currentTarget.style.background = `${feat.color}12`; e.currentTarget.style.border = `1.5px solid ${feat.color}45`; e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = `0 16px 36px ${feat.color}18` }}
+                    onMouseLeave={e => { e.currentTarget.style.background = `${feat.color}06`; e.currentTarget.style.border = `1.5px solid ${feat.color}20`; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}>
+                    <div style={{ width: 54, height: 54, borderRadius: 15, background: `${feat.color}18`, border: `1.5px solid ${feat.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
                       <Icon style={{ fontSize: 28, color: feat.color }} />
                     </div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>{feat.title}</div>
-                    <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.7 }}>{feat.desc}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 10 }}>{feat.title}</div>
+                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}>{feat.desc}</div>
                   </div>
                 </Reveal>
               )
@@ -1198,17 +1353,17 @@ export default function LandingPage() {
       </section>
 
       {/* ── 13. Meet the Team ───────────────────────────────────────────────── */}
-      <section id="team" style={{ background: '#f8fafc', padding: isMobile ? '64px 20px' : '96px 48px' }}>
+      <section id="team" style={{ background: 'linear-gradient(135deg,#04081a 0%,#080f2e 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 60 }}>
-              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.18)', marginBottom: 18, margin: '0 auto 18px' }}>
+              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdGroups size={14} /> The Builders
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
                 Meet the Team
               </h2>
-              <p style={{ fontSize: 17, color: '#64748b', maxWidth: 480, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 480, margin: '0 auto', lineHeight: 1.7 }}>
                 The passionate people who designed, built, and launched College ERP.
               </p>
             </div>
@@ -1217,7 +1372,7 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 28, maxWidth: 980, margin: '0 auto' }}>
             {TEAM.map((m, i) => (
               <Reveal key={m.name} delay={i * 100}>
-                <div className="team-card" style={{ background: '#fff', borderRadius: 22, padding: '36px 30px', textAlign: 'center', border: '1.5px solid #f1f5f9', boxShadow: '0 4px 24px rgba(0,0,0,0.05)', position: 'relative', overflow: 'hidden', cursor: 'default' }}
+                <div className="team-card" style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 22, padding: '36px 30px', textAlign: 'center', border: '1.5px solid rgba(255,255,255,0.08)', boxShadow: '0 4px 32px rgba(0,0,0,0.3)', position: 'relative', overflow: 'hidden', cursor: 'default' }}
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = `0 24px 48px ${m.glow}` }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.05)' }}>
                   {/* Gradient bg accent */}
@@ -1230,14 +1385,73 @@ export default function LandingPage() {
                   <span style={{ display: 'inline-block', background: `${m.tagColor}12`, color: m.tagColor, border: `1px solid ${m.tagColor}25`, fontSize: 10, fontWeight: 800, padding: '3px 12px', borderRadius: 20, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 14 }}>
                     {m.tag}
                   </span>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>{m.name}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 6 }}>{m.name}</div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: m.tagColor, marginBottom: 18 }}>{m.role}</div>
-                  <div style={{ height: 1, background: '#f1f5f9', marginBottom: 18 }} />
-                  <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.7, margin: 0 }}>{m.desc}</p>
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 18 }} />
+                  <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, margin: 0 }}>{m.desc}</p>
                 </div>
               </Reveal>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── Testimonials ────────────────────────────────────────────────────── */}
+      <section style={{ background: 'linear-gradient(180deg,#04081a 0%,#060c22 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '50%', left: '50%', width: 800, height: 400, borderRadius: '50%', transform: 'translate(-50%,-50%)', background: 'radial-gradient(ellipse,rgba(99,102,241,0.08) 0%,transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+              <div className="section-tag" style={{ background: 'rgba(139,92,246,0.12)', color: '#c084fc', border: '1px solid rgba(139,92,246,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdStar size={14} /> User Stories
+              </div>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 14 }}>
+                Loved by every role
+              </h2>
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.45)', maxWidth: 460, margin: '0 auto', lineHeight: 1.7 }}>
+                From students to administrators — see what real users say about College ERP.
+              </p>
+            </div>
+          </Reveal>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2,1fr)', gap: 20 }}>
+            {TESTIMONIALS.map((t, i) => (
+              <Reveal key={t.name} delay={i * 80}>
+                <GlassCard style={{ padding: '32px 28px' }}>
+                  <div style={{ fontSize: 56, fontWeight: 900, color: 'rgba(167,139,250,0.18)', lineHeight: .8, marginBottom: 16, fontFamily: 'Georgia, serif' }}>&ldquo;</div>
+                  <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.72)', lineHeight: 1.8, marginBottom: 24, marginTop: 0 }}>{t.quote}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: `${t.color}25`, border: `2px solid ${t.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: t.color, flexShrink: 0 }}>{t.initials}</div>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{t.name}</div>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>{t.role}</div>
+                    </div>
+                    <span style={{ marginLeft: 'auto', background: `${t.color}15`, color: t.color, border: `1px solid ${t.color}30`, borderRadius: 20, padding: '3px 12px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{t.portal}</span>
+                  </div>
+                </GlassCard>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ─────────────────────────────────────────────────────────────── */}
+      <section style={{ background: '#04081a', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .35 }} />
+        <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 52 }}>
+              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdFeedback size={14} /> Got Questions
+              </div>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 14 }}>
+                Frequently Asked Questions
+              </h2>
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.45)', maxWidth: 460, margin: '0 auto' }}>
+                Everything you need to know about College ERP.
+              </p>
+            </div>
+          </Reveal>
+          <FAQAccordion items={FAQS} />
         </div>
       </section>
 
