@@ -514,6 +514,7 @@ export default function Navbar({ onToggleSidebar, isMobile }) {
   return (
     <header style={{
       height: 64,
+      minHeight: 64,
       background: '#fff',
       borderBottom: '1px solid #e2e8f0',
       display: 'flex',

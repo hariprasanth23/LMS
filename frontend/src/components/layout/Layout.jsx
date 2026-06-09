@@ -111,7 +111,8 @@ export default function Layout() {
         }
       `}</style>
 
-      <div className="flex min-h-screen bg-slate-50 font-sans">
+      {/* h-screen + overflow-hidden: sidebar and navbar are fixed; only main scrolls */}
+      <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
         {isMobile && sidebarOpen && (
           <div
             onClick={() => setSidebarOpen(false)}
@@ -126,7 +127,8 @@ export default function Layout() {
           onClose={() => setSidebarOpen(false)}
         />
 
-        <div className="flex min-w-0 flex-1 flex-col transition-[margin-left] duration-250 ease-[cubic-bezier(0.4,0,0.2,1)]">
+        {/* Right column: navbar (fixed height) + scrollable content */}
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <Navbar
             onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
             isMobile={isMobile}
@@ -134,7 +136,7 @@ export default function Layout() {
 
           <main
             ref={mainScrollRef}
-            className={`flex flex-1 flex-col overflow-auto ${isMobile ? 'p-4' : 'p-7'}`}
+            className={`flex flex-1 flex-col overflow-y-auto overflow-x-hidden ${isMobile ? 'p-4' : 'p-7'}`}
           >
             <AnimatedContent>
               <Outlet />

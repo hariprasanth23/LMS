@@ -770,7 +770,7 @@ export default function Sidebar({ onCollapsedChange, isMobile, sidebarOpen, onCl
     <SidebarContext.Provider value={{ collapsed: effectiveCollapsed }}>
       <aside style={{
         width: effectiveCollapsed ? 64 : 260,
-        minHeight: '100vh',
+        height: '100%',          // fills the h-screen flex parent on desktop
         background: '#fff',
         borderRight: '1px solid #e2e8f0',
         display: 'flex',
@@ -783,7 +783,6 @@ export default function Sidebar({ onCollapsedChange, isMobile, sidebarOpen, onCl
         position: isMobile ? 'fixed' : 'relative',
         top: isMobile ? 0 : undefined,
         left: isMobile ? (sidebarOpen ? 0 : -260) : undefined,
-        height: isMobile ? '100vh' : undefined,
         zIndex: isMobile ? 500 : undefined,
         boxShadow: isMobile && sidebarOpen ? '4px 0 24px rgba(0,0,0,0.15)' : undefined,
       }}>
