@@ -1185,17 +1185,18 @@ export default function LandingPage() {
       </section>
 
       {/* ── 11. Services ────────────────────────────────────────────────────── */}
-      <section style={{ background: '#f8fafc', padding: isMobile ? '64px 20px' : '96px 48px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+      <section style={{ background: 'linear-gradient(135deg,#04081a 0%,#070d28 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-8%', left: '50%', width: 600, height: 400, borderRadius: '50%', transform: 'translateX(-50%)', background: 'radial-gradient(ellipse,rgba(245,158,11,0.08) 0%,transparent 65%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 56 }}>
-              <div className="section-tag" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)', marginBottom: 18, margin: '0 auto 18px' }}>
+              <div className="section-tag" style={{ background: 'rgba(245,158,11,0.12)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdMiscellaneousServices size={14} /> Student Services
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
                 Everything a Student Needs
               </h2>
-              <p style={{ fontSize: 17, color: '#64748b', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
                 One-stop access to registrations, certificates, profile management, library, and more — zero paperwork.
               </p>
             </div>
@@ -1203,16 +1204,16 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${isMobile ? '100%' : '260px'},1fr))`, gap: 18 }}>
             {SERVICES_GROUPS.map((group, gi) => (
               <Reveal key={group.title} delay={gi * 70}>
-                <div className="service-card" style={{ background: '#fff', borderRadius: 18, padding: 24, border: `1.5px solid ${group.color}18`, borderTop: `4px solid ${group.color}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', cursor: 'default' }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = `0 16px 36px ${group.color}15` }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)' }}>
+                <div className="service-card" style={{ background: `${group.color}0a`, borderRadius: 18, padding: 24, border: `1.5px solid ${group.color}22`, borderTop: `3px solid ${group.color}`, cursor: 'default' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.background = `${group.color}16`; e.currentTarget.style.borderColor = `${group.color}45`; e.currentTarget.style.boxShadow = `0 16px 36px ${group.color}15` }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.background = `${group.color}0a`; e.currentTarget.style.borderColor = `${group.color}22`; e.currentTarget.style.boxShadow = 'none' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{group.title}</span>
-                    <span style={{ background: `${group.color}12`, color: group.color, fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>{group.items.length} items</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>{group.title}</span>
+                    <span style={{ background: `${group.color}18`, color: group.color, fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>{group.items.length} items</span>
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {group.items.map(item => (
-                      <span key={item} style={{ background: `${group.color}10`, color: group.color, border: `1px solid ${group.color}18`, borderRadius: 20, padding: '4px 11px', fontSize: 12, fontWeight: 500 }}>{item}</span>
+                      <span key={item} style={{ background: `${group.color}12`, color: group.color, border: `1px solid ${group.color}25`, borderRadius: 20, padding: '4px 11px', fontSize: 12, fontWeight: 500 }}>{item}</span>
                     ))}
                   </div>
                 </div>
@@ -1244,9 +1245,9 @@ export default function LandingPage() {
               const Icon = feat.icon
               return (
                 <Reveal key={feat.title} delay={i * 80}>
-                  <div style={{ background: '#fafafa', border: `1.5px solid #f1f5f9`, borderRadius: 18, padding: '26px 22px', transition: 'all .3s cubic-bezier(.22,1,.36,1)', cursor: 'default', height: '100%' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = `${feat.color}12`; e.currentTarget.style.border = `1.5px solid ${feat.color}45`; e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = `0 16px 36px ${feat.color}18` }}
-                    onMouseLeave={e => { e.currentTarget.style.background = `${feat.color}06`; e.currentTarget.style.border = `1.5px solid ${feat.color}20`; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}>
+                  <div style={{ background: `${feat.color}08`, border: `1.5px solid ${feat.color}20`, borderRadius: 18, padding: '26px 22px', transition: 'all .3s cubic-bezier(.22,1,.36,1)', cursor: 'default', height: '100%' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = `${feat.color}18`; e.currentTarget.style.border = `1.5px solid ${feat.color}50`; e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = `0 16px 36px ${feat.color}20` }}
+                    onMouseLeave={e => { e.currentTarget.style.background = `${feat.color}08`; e.currentTarget.style.border = `1.5px solid ${feat.color}20`; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}>
                     <div style={{ width: 54, height: 54, borderRadius: 15, background: `${feat.color}18`, border: `1.5px solid ${feat.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
                       <Icon style={{ fontSize: 28, color: feat.color }} />
                     </div>
@@ -1259,8 +1260,8 @@ export default function LandingPage() {
           </div>
           {/* Live notification preview */}
           <Reveal delay={250}>
-            <div style={{ marginTop: 40, background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: isMobile ? '20px' : '28px 36px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 18 }}>Live Notification Feed</div>
+            <div style={{ marginTop: 40, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: isMobile ? '20px' : '28px 36px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 18 }}>Live Notification Feed</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {[
                   { icon: MdAssignment, color: '#6366f1', text: 'Digital Assignment due in 2 hours — Data Structures (CS3201)', time: 'Just now', role: 'Student' },
@@ -1270,16 +1271,16 @@ export default function LandingPage() {
                 ].map((notif, i) => {
                   const Icon = notif.icon
                   return (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', borderRadius: 12, padding: '12px 16px', border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                      <div style={{ width: 38, height: 38, borderRadius: 10, background: `${notif.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '12px 16px', border: '1px solid rgba(255,255,255,0.07)' }}>
+                      <div style={{ width: 38, height: 38, borderRadius: 10, background: `${notif.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <Icon style={{ fontSize: 20, color: notif.color }} />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{notif.text}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{notif.text}</div>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
                         <span style={{ fontSize: 10, fontWeight: 700, color: notif.color, background: `${notif.color}12`, padding: '2px 8px', borderRadius: 20 }}>{notif.role}</span>
-                        <span style={{ fontSize: 11, color: '#94a3b8' }}>{notif.time}</span>
+                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{notif.time}</span>
                       </div>
                     </div>
                   )
