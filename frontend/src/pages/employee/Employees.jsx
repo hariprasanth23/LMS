@@ -159,15 +159,7 @@ export default function Employees() {
     setEmpStep(2)
   }
 
-  // Advance wizard on Enter / implicit submit; only save on the final step
-  const handleFormSubmit = (e) => {
-    e.preventDefault()
-    if (empStep < 2) { handleNext(); return }
-    handleSave(e)
-  }
-
-  const handleSave = async (e) => {
-    e.preventDefault()
+  const handleSave = async () => {
     setSubmitting(true)
     try {
       if (editEmp) {
@@ -383,7 +375,7 @@ export default function Employees() {
 
             <EmpStepBar current={empStep} />
 
-            <form onSubmit={handleFormSubmit}>
+            <div>
               {/* ── Step 1: Basic Information ── */}
               {empStep === 1 && (
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
@@ -482,13 +474,13 @@ export default function Employees() {
                     Next →
                   </button>
                 ) : (
-                  <button type="submit" disabled={submitting}
-                    style={{ flex: 1, padding: '10px', background: submitting ? '#a5b4fc' : ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                  <button type="button" onClick={handleSave} disabled={submitting}
+                    style={{ flex: 1, padding: '10px', background: submitting ? '#a5b4fc' : ACCENT, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer' }}>
                     {submitting ? 'Saving…' : editEmp ? 'Update' : 'Create'}
                   </button>
                 )}
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}

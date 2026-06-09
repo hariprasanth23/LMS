@@ -181,15 +181,7 @@ export default function Students() {
     setFormStep(s => s + 1)
   }
 
-  // Advance steps on Enter / implicit submit; only save on the final step
-  const handleFormSubmit = (e) => {
-    e.preventDefault()
-    if (formStep < 3) { handleNext(); return }
-    handleSubmit(e)
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     setSubmitting(true)
     try {
       if (editStudent) {
@@ -422,7 +414,7 @@ export default function Students() {
             )}
 
             {!createdPassword && (
-              <form onSubmit={handleFormSubmit}>
+              <div>
                 {/* Step indicator */}
                 <StepBar current={formStep} />
 
@@ -567,13 +559,13 @@ export default function Students() {
                       Next →
                     </button>
                   ) : (
-                    <button type="submit" disabled={submitting}
+                    <button type="button" onClick={handleSubmit} disabled={submitting}
                       style={{ flex: 2, padding: '11px', background: submitting ? '#a5b4fc' : ACCENT, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer' }}>
                       {submitting ? 'Saving…' : editStudent ? 'Save Changes' : 'Enrol Student'}
                     </button>
                   )}
                 </div>
-              </form>
+              </div>
             )}
           </div>
         </div>
