@@ -73,16 +73,83 @@ public class StudentController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Student>> create(@Valid @RequestBody StudentRequest request) {
-        Student created = studentService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Student created", created));
+    public ResponseEntity<ApiResponse<Map<String, Object>>> create(
+            @RequestBody Map<String, Object> body) {
+        // The frontend sends name + email + phone + all student fields in one payload.
+        // We create the User account first, then the Student profile.
+        String name  = nullToEmpty(body, "name");
+        String email = nullToEmpty(body, "email").toLowerCase().strip();
+        String phone = nullToEmpty(body, "phone");
+
+        if (name.isBlank())  throw new IllegalArgumentException("Full name is required");
+        if (email.isBlank()) throw new IllegalArgumentException("Email is required");
+        if (userRepository.existsByEmail(email))
+            throw new IllegalStateException("Email already registered: " + email);
+
+        String initialPassword = generateInitialPassword();
+        User user = userRepository.save(User.builder()
+                .name(name).email(email).phone(phone.isBlank() ? null : phone)
+                .password(passwordEncoder.encode(initialPassword))
+                .role(User.Role.STUDENT).active(true).build());
+
+        StudentRequest req = buildRequestFromMap(body);
+        req.setUserId(user.getId());
+        Student created = studentService.create(req);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("student", created);
+        result.put("initialPassword", initialPassword);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok("Student created", result));
+    }
+
+    private String nullToEmpty(Map<String, Object> body, String key) {
+        Object v = body.get(key);
+        return v == null ? "" : v.toString();
+    }
+
+    private StudentRequest buildRequestFromMap(Map<String, Object> body) {
+        StudentRequest req = new StudentRequest();
+        req.setRollNumber(nullToEmpty(body, "rollNumber"));
+        if (body.get("departmentId") != null)
+            req.setDepartmentId(Long.valueOf(body.get("departmentId").toString()));
+        req.setProgram(nullToEmpty(body, "program"));
+        if (body.get("semester") != null)
+            req.setSemester(Integer.valueOf(body.get("semester").toString()));
+        req.setSection(nullToEmpty(body, "section"));
+        req.setBatch(nullToEmpty(body, "batch"));
+        if (body.get("admissionYear") != null)
+            req.setAdmissionYear(Integer.valueOf(body.get("admissionYear").toString()));
+        if (body.get("dateOfBirth") != null)
+            req.setDateOfBirth(java.time.LocalDate.parse(body.get("dateOfBirth").toString()));
+        req.setGender(nullToEmpty(body, "gender"));
+        req.setBloodGroup(nullToEmpty(body, "bloodGroup"));
+        req.setCategory(nullToEmpty(body, "category"));
+        req.setAadhaarNumber(nullToEmpty(body, "aadhaarNumber"));
+        req.setAddress(nullToEmpty(body, "address"));
+        req.setFatherName(nullToEmpty(body, "fatherName"));
+        req.setMotherName(nullToEmpty(body, "motherName"));
+        req.setParentPhone(nullToEmpty(body, "parentPhone"));
+        req.setGuardianName(nullToEmpty(body, "guardianName"));
+        req.setGuardianPhone(nullToEmpty(body, "guardianPhone"));
+        req.setEmergencyContactName(nullToEmpty(body, "emergencyContactName"));
+        req.setEmergencyContactPhone(nullToEmpty(body, "emergencyContactPhone"));
+        req.setStatus("ACTIVE");
+        req.setJoinDate(java.time.LocalDate.now());
+        return req;
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Student>> update(@PathVariable UUID id,
-                                                       @Valid @RequestBody StudentRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok("Student updated", studentService.update(id, request)));
+                                                       @RequestBody Map<String, Object> body) {
+        // Preserve the existing userId — the admin cannot change which User is linked
+        com.college.student.model.Student existing = studentService.findById(id);
+        StudentRequest req = buildRequestFromMap(body);
+        req.setUserId(existing.getUserId());
+        if (body.containsKey("status") && body.get("status") != null)
+            req.setStatus(body.get("status").toString());
+        return ResponseEntity.ok(ApiResponse.ok("Student updated", studentService.update(id, req)));
     }
 
     @DeleteMapping("/{id}")
@@ -124,13 +191,26 @@ public class StudentController {
                 req.setUserId(user.getId());
                 req.setRollNumber(row.getRollNumber());
                 req.setDepartmentId(row.getDepartmentId());
+                req.setProgram(row.getProgram());
                 req.setSemester(row.getSemester());
+                req.setSection(row.getSection());
                 req.setBatch(row.getBatch());
+                req.setAdmissionYear(row.getAdmissionYear());
                 req.setJoinDate(row.getJoinDate() != null ? row.getJoinDate() : LocalDate.now());
                 req.setStatus(row.getStatus() != null ? row.getStatus() : "ACTIVE");
+                req.setDateOfBirth(row.getDateOfBirth());
+                req.setGender(row.getGender());
+                req.setBloodGroup(row.getBloodGroup());
+                req.setCategory(row.getCategory());
+                req.setAadhaarNumber(row.getAadhaarNumber());
+                req.setAddress(row.getAddress());
+                req.setFatherName(row.getFatherName());
+                req.setMotherName(row.getMotherName());
+                req.setParentPhone(row.getParentPhone());
                 req.setGuardianName(row.getGuardianName());
                 req.setGuardianPhone(row.getGuardianPhone());
-                req.setAddress(row.getAddress());
+                req.setEmergencyContactName(row.getEmergencyContactName());
+                req.setEmergencyContactPhone(row.getEmergencyContactPhone());
                 studentService.create(req);
 
                 result.put("success", true);

@@ -1,11 +1,6 @@
 package com.college.student.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -13,8 +8,10 @@ import java.time.LocalDate;
 @Data
 public class StudentImportRow {
 
+    // ── Required for account creation ─────────────────────────────────────────
+
     @NotBlank(message = "Name is required")
-    @Size(max = 150, message = "Name must not exceed 150 characters")
+    @Size(max = 150)
     private String name;
 
     @NotBlank(message = "Email is required")
@@ -25,6 +22,8 @@ public class StudentImportRow {
     @Size(max = 20)
     private String phone;
 
+    // ── Academic Identity ─────────────────────────────────────────────────────
+
     @NotBlank(message = "Roll number is required")
     @Size(max = 20)
     private String rollNumber;
@@ -32,24 +31,70 @@ public class StudentImportRow {
     @NotNull(message = "Department ID is required")
     private Long departmentId;
 
+    @Size(max = 50)
+    private String program;
+
     @NotNull(message = "Semester is required")
     @Min(value = 1, message = "Semester must be between 1 and 8")
     @Max(value = 8, message = "Semester must be between 1 and 8")
     private Integer semester;
 
+    @Size(max = 10)
+    private String section;
+
     @Size(max = 20)
     private String batch;
+
+    @Min(2000) @Max(2100)
+    private Integer admissionYear;
 
     private LocalDate joinDate;
 
     @Size(max = 20)
     private String status;
 
-    @Size(max = 150)
+    // ── Personal ──────────────────────────────────────────────────────────────
+
+    private LocalDate dateOfBirth;
+
+    @Pattern(regexp = "MALE|FEMALE|OTHER", message = "Gender must be MALE, FEMALE, or OTHER")
+    private String gender;
+
+    @Pattern(regexp = "A\\+|A-|B\\+|B-|O\\+|O-|AB\\+|AB-", message = "Invalid blood group")
+    private String bloodGroup;
+
+    @Pattern(regexp = "GENERAL|OBC|SC|ST|NT|EWS", message = "Invalid category")
+    private String category;
+
+    @Pattern(regexp = "\\d{12}", message = "Aadhaar number must be 12 digits")
+    private String aadhaarNumber;
+
+    // ── Contact ───────────────────────────────────────────────────────────────
+
+    private String address;
+
+    // ── Family ───────────────────────────────────────────────────────────────
+
+    @Size(max = 100)
+    private String fatherName;
+
+    @Size(max = 100)
+    private String motherName;
+
+    @Size(max = 20)
+    private String parentPhone;
+
+    @Size(max = 100)
     private String guardianName;
 
     @Size(max = 20)
     private String guardianPhone;
 
-    private String address;
+    // ── Emergency ─────────────────────────────────────────────────────────────
+
+    @Size(max = 100)
+    private String emergencyContactName;
+
+    @Size(max = 20)
+    private String emergencyContactPhone;
 }

@@ -7,12 +7,13 @@ import com.college.student.model.Student;
 import com.college.student.repository.DepartmentRepository;
 import com.college.student.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -46,24 +47,20 @@ public class StudentService {
     @Transactional
     public Student create(StudentRequest request) {
         if (studentRepository.existsByRollNumber(request.getRollNumber())) {
-            throw new IllegalStateException("Student with roll number '" + request.getRollNumber() + "' already exists");
+            throw new IllegalStateException(
+                    "Student with roll number '" + request.getRollNumber() + "' already exists");
         }
         Department department = departmentRepository.findById(request.getDepartmentId())
-                .orElseThrow(() -> new IllegalArgumentException("Department not found with id: " + request.getDepartmentId()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Department not found with id: " + request.getDepartmentId()));
 
-        Student student = Student.builder()
+        return studentRepository.save(applyFields(Student.builder()
                 .userId(request.getUserId())
                 .rollNumber(request.getRollNumber())
                 .department(department)
-                .semester(request.getSemester())
-                .batch(request.getBatch())
-                .joinDate(request.getJoinDate())
                 .status(request.getStatus() != null ? request.getStatus() : "ACTIVE")
-                .guardianName(request.getGuardianName())
-                .guardianPhone(request.getGuardianPhone())
-                .address(request.getAddress())
-                .build();
-        return studentRepository.save(student);
+                .joinDate(request.getJoinDate() != null ? request.getJoinDate() : LocalDate.now())
+                .build(), request));
     }
 
     @Transactional
@@ -71,27 +68,46 @@ public class StudentService {
         Student student = findById(id);
         if (!student.getRollNumber().equals(request.getRollNumber())
                 && studentRepository.existsByRollNumber(request.getRollNumber())) {
-            throw new IllegalStateException("Student with roll number '" + request.getRollNumber() + "' already exists");
+            throw new IllegalStateException(
+                    "Student with roll number '" + request.getRollNumber() + "' already exists");
         }
         Department department = departmentRepository.findById(request.getDepartmentId())
-                .orElseThrow(() -> new IllegalArgumentException("Department not found with id: " + request.getDepartmentId()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Department not found with id: " + request.getDepartmentId()));
 
-        student.setUserId(request.getUserId());
         student.setRollNumber(request.getRollNumber());
         student.setDepartment(department);
-        student.setSemester(request.getSemester());
-        student.setBatch(request.getBatch());
-        student.setJoinDate(request.getJoinDate());
         if (request.getStatus() != null) student.setStatus(request.getStatus());
-        student.setGuardianName(request.getGuardianName());
-        student.setGuardianPhone(request.getGuardianPhone());
-        student.setAddress(request.getAddress());
-        return studentRepository.save(student);
+        if (request.getJoinDate() != null) student.setJoinDate(request.getJoinDate());
+
+        return studentRepository.save(applyFields(student, request));
     }
 
     @Transactional
     public void delete(UUID id) {
-        Student student = findById(id);
-        studentRepository.delete(student);
+        studentRepository.delete(findById(id));
+    }
+
+    /** Applies all optional fields from a request onto an already-initialised Student instance. */
+    private Student applyFields(Student s, StudentRequest r) {
+        s.setProgram(r.getProgram());
+        s.setSemester(r.getSemester());
+        s.setSection(r.getSection());
+        s.setBatch(r.getBatch());
+        s.setAdmissionYear(r.getAdmissionYear());
+        s.setDateOfBirth(r.getDateOfBirth());
+        s.setGender(r.getGender());
+        s.setBloodGroup(r.getBloodGroup());
+        s.setCategory(r.getCategory());
+        s.setAadhaarNumber(r.getAadhaarNumber());
+        s.setAddress(r.getAddress());
+        s.setFatherName(r.getFatherName());
+        s.setMotherName(r.getMotherName());
+        s.setParentPhone(r.getParentPhone());
+        s.setGuardianName(r.getGuardianName());
+        s.setGuardianPhone(r.getGuardianPhone());
+        s.setEmergencyContactName(r.getEmergencyContactName());
+        s.setEmergencyContactPhone(r.getEmergencyContactPhone());
+        return s;
     }
 }
