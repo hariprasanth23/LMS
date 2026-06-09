@@ -5,584 +5,548 @@ import {
   MdMenuBook, MdAssignment, MdPayment, MdMiscellaneousServices,
   MdScience, MdFeedback, MdArrowForward, MdCheck, MdShield,
   MdSpeed, MdPublic, MdAccessTime, MdLayers, MdAnalytics,
-  MdDashboard
+  MdDashboard, MdSecurity, MdAutoAwesome, MdRocketLaunch,
+  MdVerified, MdGroups, MdEmail,
+  MdWork, MdNotificationsActive, MdCalendarToday,
+  MdMenu, MdClose, MdComputer, MdHowToReg, MdBusinessCenter,
+  MdCastForEducation, MdMonetizationOn,
 } from 'react-icons/md'
 
-// ─── Counter Component (copied from mymoneyman) ───────────────────────────────
+// ── Intersection observer hook ─────────────────────────────────────────────────
+function useInView(threshold = 0.12) {
+  const ref = useRef(null)
+  const [inView, setInView] = useState(false)
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect() } },
+      { threshold }
+    )
+    if (ref.current) obs.observe(ref.current)
+    return () => obs.disconnect()
+  }, [threshold])
+  return [ref, inView]
+}
+
+// ── Scroll-reveal wrapper ──────────────────────────────────────────────────────
+function Reveal({ children, delay = 0, dir = 'up' }) {
+  const [ref, inView] = useInView()
+  const from = { up: 'translateY(28px)', left: 'translateX(-28px)', right: 'translateX(28px)', scale: 'scale(0.93)' }[dir] || 'translateY(28px)'
+  return (
+    <div ref={ref} style={{
+      opacity: inView ? 1 : 0,
+      transform: inView ? 'translate(0) scale(1)' : from,
+      transition: `opacity .7s cubic-bezier(.22,1,.36,1) ${delay}ms, transform .7s cubic-bezier(.22,1,.36,1) ${delay}ms`,
+    }}>
+      {children}
+    </div>
+  )
+}
+
+// ── Animated counter ───────────────────────────────────────────────────────────
 function Counter({ target, suffix = '' }) {
   const [count, setCount] = useState(0)
-  const ref = useRef(null)
+  const [ref, inView] = useInView()
   const started = useRef(false)
   useEffect(() => {
+    if (!inView || started.current) return
+    started.current = true
     if (typeof target !== 'number') { setCount(target); return }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !started.current) {
-        started.current = true
-        const duration = 1800, steps = 60, increment = target / steps
-        let current = 0
-        const timer = setInterval(() => {
-          current += increment
-          if (current >= target) { setCount(target); clearInterval(timer) }
-          else setCount(Math.floor(current))
-        }, duration / steps)
-      }
-    }, { threshold: 0.5 })
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [target])
+    const steps = 60, dur = 1800
+    let cur = 0
+    const t = setInterval(() => {
+      cur += target / steps
+      if (cur >= target) { setCount(target); clearInterval(t) }
+      else setCount(Math.floor(cur))
+    }, dur / steps)
+    return () => clearInterval(t)
+  }, [inView, target])
   return <span ref={ref}>{typeof target === 'number' ? count : target}{suffix}</span>
 }
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
+// ── Typewriter ─────────────────────────────────────────────────────────────────
+const TW_WORDS = ['Students', 'Faculty', 'Admins', 'Researchers', 'Parents']
+function Typewriter() {
+  const [idx, setIdx] = useState(0)
+  const [visible, setVisible] = useState(true)
+  useEffect(() => {
+    const t = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => { setIdx(i => (i + 1) % TW_WORDS.length); setVisible(true) }, 320)
+    }, 2600)
+    return () => clearInterval(t)
+  }, [])
+  return (
+    <span style={{
+      background: 'linear-gradient(135deg, #a78bfa, #34d399)',
+      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+      opacity: visible ? 1 : 0,
+      transform: visible ? 'translateY(0)' : 'translateY(10px)',
+      transition: 'opacity 0.32s cubic-bezier(.22,1,.36,1), transform 0.32s cubic-bezier(.22,1,.36,1)',
+      display: 'inline-block',
+    }}>{TW_WORDS[idx]}</span>
+  )
+}
+
+// ── Star field ─────────────────────────────────────────────────────────────────
+const STARS = Array.from({ length: 70 }, (_, i) => ({
+  id: i, x: Math.random() * 100, y: Math.random() * 100,
+  size: Math.random() * 1.8 + 0.6,
+  delay: Math.random() * 6, dur: Math.random() * 3 + 2,
+}))
+function StarField() {
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+      {STARS.map(s => (
+        <div key={s.id} style={{
+          position: 'absolute', left: `${s.x}%`, top: `${s.y}%`,
+          width: s.size, height: s.size, borderRadius: '50%',
+          background: s.id % 3 === 0 ? '#a78bfa' : s.id % 3 === 1 ? '#34d399' : '#fff',
+          opacity: 0, animation: `starTwinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
+        }} />
+      ))}
+    </div>
+  )
+}
+
+// ── Gradient text ──────────────────────────────────────────────────────────────
+function GradText({ children, from = '#a78bfa', to = '#34d399', style = {} }) {
+  return (
+    <span style={{
+      background: `linear-gradient(135deg, ${from}, ${to})`,
+      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text', ...style,
+    }}>{children}</span>
+  )
+}
+
+// ── Glass card ─────────────────────────────────────────────────────────────────
+function GlassCard({ children, style = {}, hover = true }) {
+  const [hov, setHov] = useState(false)
+  return (
+    <div
+      onMouseEnter={() => hover && setHov(true)}
+      onMouseLeave={() => hover && setHov(false)}
+      style={{
+        background: 'rgba(255,255,255,0.04)',
+        border: `1px solid ${hov ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.08)'}`,
+        borderRadius: 20,
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        boxShadow: hov ? '0 24px 48px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.1)' : '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)',
+        transform: hov ? 'translateY(-4px)' : 'none',
+        transition: 'all 0.3s cubic-bezier(.22,1,.36,1)',
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+// ── Data ───────────────────────────────────────────────────────────────────────
+const FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
 
 const MARQUEE_ITEMS = [
   'My Curriculum', 'Time Table', 'Class Attendance', 'Exam Schedule',
   'Online Payments', 'Research Portal', 'Course Registration', 'Bonafide Certificate',
   'APAAR ID Upload', 'Digital Assignment', 'Faculty Info', 'eSanad Request',
   'Marks & Grades', 'MOOC Registration', 'Feedback System', 'HOD and Dean Info',
-  'Project Portal', 'Library Services'
-]
-
-const STATS_DATA = [
-  { icon: MdMenuBook, value: 6, label: 'Main Menus', suffix: '+' },
-  { icon: MdLayers, value: 50, label: 'Features', suffix: '+' },
-  { icon: MdPeople, value: 5, label: 'User Portals', suffix: '' },
-  { icon: MdAnalytics, value: 100, label: '% Secure', suffix: '' },
+  'Project Portal', 'Library Services',
 ]
 
 const FEATURES = [
-  { icon: MdMenuBook, title: 'Academic Management', desc: 'Curriculum, timetable, attendance, class messages, biometric info and faculty directory.', color: '#6366f1', bg: '#eef2ff' },
-  { icon: MdAssignment, title: 'Examination System', desc: 'Exam schedules, marks, grades, grade history, online exams, arrear and makeup registration.', color: '#ef4444', bg: '#fef2f2' },
-  { icon: MdPayment, title: 'Finance & Payments', desc: 'Fee payments, wallet management, receipts, fees intimation, library dues and refunds.', color: '#10b981', bg: '#f0fdf4' },
-  { icon: MdMiscellaneousServices, title: 'Student Services', desc: 'Transport, hostel, bonafide, library, transcript, scholarships, and eSanad digital certificates.', color: '#f59e0b', bg: '#fffbeb' },
-  { icon: MdScience, title: 'Research Portal', desc: 'PhD registration, course work, thesis submission, guide meetings, and weekly workload tracking.', color: '#8b5cf6', bg: '#f5f3ff' },
-  { icon: MdFeedback, title: 'Feedback System', desc: 'Course feedback forms, 24x7 continuous feedback, and instructor ratings.', color: '#14b8a6', bg: '#f0fdfa' },
-  { icon: MdSchool, title: 'Course Registration', desc: 'Wishlist, course withdrawal, EXC, MOOC, industrial internship, and SET conference registration.', color: '#3b82f6', bg: '#eff6ff' },
-  { icon: MdPeople, title: 'Profile & Info', desc: 'Student profile, credentials, dayboarder info, bank details, scholarships and acknowledgements.', color: '#ec4899', bg: '#fdf2f8', badge: 'NEW' },
-  { icon: MdBadge, title: 'Project Portal', desc: 'Faculty open projects, project proposals, progress reviews and project mark viewing.', color: '#a855f7', bg: '#faf5ff' },
-  { icon: MdShield, title: 'Account Security', desc: 'Two-factor backup codes, password management and login ID updates.', color: '#0ea5e9', bg: '#f0f9ff' },
-  { icon: MdAnalytics, title: 'Online Examinations', desc: 'Comprehensive online exams, question preview, exam timer and system requirements check.', color: '#f97316', bg: '#fff7ed', badge: 'NEW' },
-  { icon: MdPublic, title: 'APAAR & eSanad', desc: 'Upload APAAR ID for Academic Bank of Credits, and request eSanad digital certificates.', color: '#6366f1', bg: '#eef2ff', badge: 'NEW' },
-]
-
-const ACADEMICS_GENERAL_ITEMS = [
-  'My Curriculum', 'HOD and Dean Info', 'Faculty Info', 'Biometric Info',
-  'Class Messages', 'Regulation', 'Minor/Honour', 'Time Table',
-  'Class Attendance', 'Course Page Consolidated', 'Digital Assignment Upload',
-  'QCM View', 'Outcome SET Conference', 'Co-Extra Curricular',
-  'Academics Calendar', 'Course Registration Allocation', 'Project Course',
-  'Project Mark View', 'Apaar ID Upload'
-]
-
-const EXAM_GENERAL = [
-  'Exam Schedule', 'Marks', 'Grades', 'Grade History',
-  'Regular Paper See/Rev', 'Additional Learning', 'MOOC File Upload',
-  'Project File Upload', 'ECA File Upload', 'EPT Schedule',
-  'Re-Exam Application', 'Code of Conduct'
-]
-
-const EXAM_ARREAR = ['Registration', 'Registration Details', 'Exam Schedule', 'Grade View', 'Paper See/Rev']
-const EXAM_ONLINE = ['Comprehensive Exam', 'Question Preview', 'Exam Information']
-const EXAM_MAKEUP = ['Registration', 'ME Exam Schedule']
-
-const FINANCE_ITEMS = [
-  { icon: MdPayment, label: 'Payments', color: '#10b981', bg: '#f0fdf4', desc: 'Pay tuition, hostel and other fees online securely.' },
-  { icon: MdPayment, label: 'Wallet Amount Add', color: '#059669', bg: '#ecfdf5', desc: 'Top up your ERP wallet for quick payments.' },
-  { icon: MdAssignment, label: 'Payment Receipts', color: '#0284c7', bg: '#f0f9ff', desc: 'Download and view all payment history.' },
-  { icon: MdAssignment, label: 'Fees Intimation', color: '#6366f1', bg: '#eef2ff', desc: 'Get notified about upcoming fee dues.' },
-  { icon: MdPayment, label: 'Online Transfer', color: '#7c3aed', bg: '#f5f3ff', desc: 'Transfer funds between accounts seamlessly.' },
-  { icon: MdMenuBook, label: 'Library Due', color: '#d97706', bg: '#fffbeb', desc: 'Check and pay library dues and fines.' },
-  { icon: MdAssignment, label: 'Refund Request', color: '#dc2626', bg: '#fef2f2', desc: 'Apply for fee refunds with digital approval.' },
-]
-
-const SERVICES_GROUPS = [
-  {
-    title: 'General', color: '#f59e0b', bg: '#fffbeb',
-    items: ['Facility Registration', 'Transport Registration', 'PAT Registration', 'Transcript Request', 'Financial Assistance/Scholarship', 'Achievements', 'Programme Migration', 'Late Hour Request', 'Final Year Registration', 'Certificate Upload', 'eSanad Request']
-  },
-  {
-    title: 'My Info', color: '#3b82f6', bg: '#eff6ff',
-    items: ['Profile', 'Credentials', 'Dayboarder Info', 'Acknowledgement View', 'Student Bank Info', 'My Scholarships']
-  },
-  {
-    title: 'My Account', color: '#8b5cf6', bg: '#f5f3ff',
-    items: ['Backup Codes', 'Change Password', 'Update Login ID']
-  },
-  {
-    title: 'Bonafide', color: '#ec4899', bg: '#fdf2f8',
-    items: ['Apply Bonafide']
-  },
-  {
-    title: 'Library', color: '#14b8a6', bg: '#f0fdfa',
-    items: ['Online Book Recommendation']
-  },
-  {
-    title: 'Info Corner', color: '#6366f1', bg: '#eef2ff',
-    items: ['Health Center Feedback', 'FAQ']
-  }
-]
-
-const RESEARCH_ITEMS = [
-  'Research Regulations', 'My Research Profile', 'Course Work Registration',
-  'Registration Status', 'Meeting Info', 'Attendance View',
-  'Research Letters', 'Electronic Thesis Submission', 'Research Document Upload',
-  'Guide Scholar Meeting', 'Weekly Scholar Workload'
+  { icon: MdMenuBook,            title: 'Academic Management',  desc: 'Curriculum, timetable, attendance, class messages, biometric info and faculty directory.',             color: '#818cf8', bg: 'rgba(99,102,241,0.12)',  border: 'rgba(99,102,241,0.25)',  span: 2 },
+  { icon: MdAssignment,          title: 'Examination System',   desc: 'Exam schedules, marks, grades, online exams, arrear and makeup registration.',                        color: '#f87171', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.25)',   span: 1 },
+  { icon: MdPayment,             title: 'Finance & Payments',   desc: 'Fee payments, wallet management, receipts, fees intimation, library dues and refunds.',               color: '#34d399', bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.25)',  span: 1 },
+  { icon: MdMiscellaneousServices, title: 'Student Services',   desc: 'Transport, hostel, bonafide, library, transcript, scholarships, and eSanad digital certificates.',    color: '#fbbf24', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.25)',  span: 1 },
+  { icon: MdScience,             title: 'Research Portal',      desc: 'PhD registration, course work, thesis submission, guide meetings, and weekly workload tracking.',      color: '#c084fc', bg: 'rgba(168,85,247,0.12)',  border: 'rgba(168,85,247,0.25)',  span: 1 },
+  { icon: MdFeedback,            title: 'Feedback System',      desc: 'Course feedback forms, 24×7 continuous feedback, and instructor ratings.',                            color: '#22d3ee', bg: 'rgba(14,165,233,0.12)',  border: 'rgba(14,165,233,0.25)',  span: 1 },
+  { icon: MdSchool,              title: 'Course Registration',  desc: 'Wishlist, course withdrawal, EXC, MOOC, industrial internship, and SET conference registration.',     color: '#60a5fa', bg: 'rgba(59,130,246,0.12)',  border: 'rgba(59,130,246,0.25)',  span: 1 },
+  { icon: MdPeople,              title: 'Profile & Info',       desc: 'Student profile, credentials, dayboarder info, bank details, scholarships and acknowledgements.',     color: '#f472b6', bg: 'rgba(236,72,153,0.12)',  border: 'rgba(236,72,153,0.25)',  span: 1, badge: 'NEW' },
+  { icon: MdBadge,               title: 'Project Portal',       desc: 'Faculty open projects, project proposals, progress reviews and project mark viewing.',                 color: '#a78bfa', bg: 'rgba(139,92,246,0.12)',  border: 'rgba(139,92,246,0.25)',  span: 1 },
+  { icon: MdSecurity,            title: 'Account Security',     desc: 'Two-factor backup codes, password management and login ID updates.',                                  color: '#38bdf8', bg: 'rgba(14,165,233,0.12)',  border: 'rgba(14,165,233,0.25)',  span: 1 },
+  { icon: MdAnalytics,           title: 'Online Examinations',  desc: 'Comprehensive online exams, question preview, exam timer and system requirements check.',             color: '#fb923c', bg: 'rgba(249,115,22,0.12)',  border: 'rgba(249,115,22,0.25)',  span: 1, badge: 'NEW' },
+  { icon: MdVerified,            title: 'APAAR & eSanad',       desc: 'Upload APAAR ID for Academic Bank of Credits, and request eSanad digital certificates.',             color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  border: 'rgba(74,222,128,0.25)',  span: 1, badge: 'NEW' },
 ]
 
 const PORTALS = [
-  { key: 'admin', label: 'Admin', color: '#dc2626', icon: MdAdminPanelSettings, description: 'Full system administration' },
-  { key: 'student', label: 'Student', color: '#3b82f6', icon: MdSchool, description: 'Academic portal' },
-  { key: 'staff', label: 'Staff', color: '#8b5cf6', icon: MdBadge, description: 'Teaching tools' },
-  { key: 'parent', label: 'Parent', color: '#f59e0b', icon: MdPeople, description: 'Track ward progress' },
-  { key: 'alumni', label: 'Alumni', color: '#14b8a6', icon: MdStar, description: 'Alumni network' },
+  { key: 'admin',   label: 'Admin',   icon: MdAdminPanelSettings, color: '#f87171', bg: 'rgba(239,68,68,0.15)',   desc: 'Full system administration, employee management, payroll, departments & bulk imports.' },
+  { key: 'student', label: 'Student', icon: MdSchool,             color: '#60a5fa', bg: 'rgba(59,130,246,0.15)',  desc: 'Academic portal — courses, attendance, exams, fees, research & personal profile.' },
+  { key: 'staff',   label: 'Staff',   icon: MdBadge,              color: '#c084fc', bg: 'rgba(168,85,247,0.15)',  desc: 'Teaching tools — course management, assignments, marks entry & student feedback.' },
+  { key: 'parent',  label: 'Parent',  icon: MdPeople,             color: '#fbbf24', bg: 'rgba(245,158,11,0.15)',  desc: 'Track ward progress — attendance, performance, fee status & announcements.' },
+  { key: 'alumni',  label: 'Alumni',  icon: MdStar,               color: '#34d399', bg: 'rgba(16,185,129,0.15)', desc: 'Alumni network — updates, achievements, reconnect with the institution.' },
 ]
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+const ACADEMICS_GENERAL_ITEMS = [
+  'My Curriculum','HOD and Dean Info','Faculty Info','Biometric Info','Class Messages',
+  'Regulation','Minor/Honour','Time Table','Class Attendance','Course Page Consolidated',
+  'Digital Assignment Upload','QCM View','Outcome SET Conference','Co-Extra Curricular',
+  'Academics Calendar','Course Registration Allocation','Project Course','Project Mark View','Apaar ID Upload',
+]
 
+const EXAM_GROUPS = [
+  { title: 'General',   color: '#f87171', items: ['Exam Schedule','Marks','Grades','Grade History','Regular Paper See/Rev','Additional Learning','MOOC File Upload','Project File Upload','ECA File Upload','EPT Schedule','Re-Exam Application','Code of Conduct'] },
+  { title: 'Arrear',    color: '#fb923c', items: ['Registration','Registration Details','Exam Schedule','Grade View','Paper See/Rev'] },
+  { title: 'Online',    color: '#c084fc', items: ['Comprehensive Exam','Question Preview','Exam Information'] },
+  { title: 'Makeup',    color: '#22d3ee', items: ['Registration','ME Exam Schedule'] },
+]
+
+const FINANCE_ITEMS = [
+  { label: 'Fee Payments',     icon: MdPayment,    color: '#34d399', desc: 'Pay tuition, hostel and other fees online securely.' },
+  { label: 'Wallet Top-Up',    icon: MdPayment,    color: '#059669', desc: 'Top up your ERP wallet for quick campus payments.' },
+  { label: 'Payment Receipts', icon: MdAssignment, color: '#38bdf8', desc: 'Download and view complete payment history.' },
+  { label: 'Fees Intimation',  icon: MdAssignment, color: '#818cf8', desc: 'Get notified about upcoming fee dues.' },
+  { label: 'Online Transfer',  icon: MdPayment,    color: '#a78bfa', desc: 'Transfer funds between accounts seamlessly.' },
+  { label: 'Library Due',      icon: MdMenuBook,   color: '#fbbf24', desc: 'Check and pay library dues and fines.' },
+  { label: 'Refund Request',   icon: MdAssignment, color: '#f87171', desc: 'Apply for fee refunds with digital approval.' },
+]
+
+const SERVICES_GROUPS = [
+  { title: 'General',    color: '#fbbf24', items: ['Facility Registration','Transport Registration','PAT Registration','Transcript Request','Financial Assistance','Achievements','Programme Migration','Late Hour Request','Final Year Registration','Certificate Upload','eSanad Request'] },
+  { title: 'My Info',    color: '#60a5fa', items: ['Profile','Credentials','Dayboarder Info','Acknowledgement View','Student Bank Info','My Scholarships'] },
+  { title: 'My Account', color: '#c084fc', items: ['Backup Codes','Change Password','Update Login ID'] },
+  { title: 'Bonafide',   color: '#f472b6', items: ['Apply Bonafide'] },
+  { title: 'Library',    color: '#22d3ee', items: ['Online Book Recommendation'] },
+  { title: 'Info Corner',color: '#818cf8', items: ['Health Center Feedback','FAQ'] },
+]
+
+const RESEARCH_ITEMS = [
+  'Research Regulations','My Research Profile','Course Work Registration','Registration Status',
+  'Meeting Info','Attendance View','Research Letters','Electronic Thesis Submission',
+  'Research Document Upload','Guide Scholar Meeting','Weekly Scholar Workload',
+]
+
+const HOW_IT_WORKS = [
+  { step: '01', title: 'Choose Your Portal', desc: 'Select from Student, Faculty, Admin, Parent, or Alumni portal based on your role in the institution.', color: '#6366f1', icon: MdHowToReg },
+  { step: '02', title: 'Sign In Securely', desc: 'Authenticate with your institution credentials. JWT-secured sessions with 15-minute inactivity protection.', color: '#8b5cf6', icon: MdShield },
+  { step: '03', title: 'Access Your Dashboard', desc: 'Your personalized dashboard shows attendance, grades, fees, assignments and all role-specific data at a glance.', color: '#10b981', icon: MdDashboard },
+  { step: '04', title: 'Manage Everything', desc: 'From academics to research, finance to payroll — every campus workflow in one unified, zero-friction platform.', color: '#f59e0b', icon: MdRocketLaunch },
+]
+
+const LMS_FEATURES = [
+  { title: 'Course Library', desc: 'Browse, enroll in and track all courses with rich digital content, lecture notes and faculty resources.', color: '#60a5fa', bg: 'rgba(59,130,246,0.12)', icon: MdMenuBook },
+  { title: 'Digital Assignments', desc: 'Submit assignments digitally, view deadlines, and receive real-time graded feedback from faculty.', color: '#f87171', bg: 'rgba(239,68,68,0.12)', icon: MdAssignment },
+  { title: 'Live Course Pages', desc: 'Access course-specific materials, announcements, and faculty-published resources for each subject.', color: '#34d399', bg: 'rgba(16,185,129,0.12)', icon: MdCastForEducation },
+  { title: 'Progress Tracking', desc: 'Monitor completion rate, grades and GPA trends across all enrolled courses from one place.', color: '#fbbf24', bg: 'rgba(245,158,11,0.12)', icon: MdAnalytics },
+]
+
+const HR_MODULES = [
+  {
+    title: 'Employee Management', color: '#818cf8', bg: 'rgba(99,102,241,0.10)', icon: MdWork,
+    items: ['Employee Profiles', 'Department Assignment', 'Designation Tracking', 'Employment History', 'Bulk CSV Import', 'Biometric Integration'],
+  },
+  {
+    title: 'Leave Management', color: '#34d399', bg: 'rgba(16,185,129,0.10)', icon: MdCalendarToday,
+    items: ['Leave Applications', 'Leave Balance', 'Approval Workflow', 'Leave Types', 'Leave Calendar', 'Auto Notifications'],
+  },
+  {
+    title: 'Payroll System', color: '#fbbf24', bg: 'rgba(245,158,11,0.10)', icon: MdMonetizationOn,
+    items: ['Salary Calculation', 'Pay Slip Generation', 'Allowances & Deductions', 'Tax Computation', 'Payroll Reports', 'Bank Integration'],
+  },
+]
+
+const NOTIFICATION_FEATURES = [
+  { title: 'Academic Alerts', desc: 'Assignment deadlines, exam schedules, attendance shortfalls and grade updates — delivered instantly to the right user.', color: '#6366f1', icon: MdNotificationsActive },
+  { title: 'Fee Reminders', desc: 'Automated payment due dates, overdue notices, and instant receipt confirmations via the portal.', color: '#10b981', icon: MdPayment },
+  { title: 'Announcements', desc: 'Institution-wide and department-specific announcements from admin and faculty, visible on every dashboard.', color: '#f59e0b', icon: MdEmail },
+  { title: 'Real-Time Sync', desc: 'Live data sync across all portals — whatever the admin updates, students and parents see immediately.', color: '#ec4899', icon: MdSpeed },
+]
+
+const TEAM = [
+  { name: 'Manoj Kumar',   role: 'Founder & Marketing Team Lead',       initials: 'MK', grad: 'linear-gradient(135deg,#6366f1,#8b5cf6)', glow: 'rgba(99,102,241,0.4)',   tag: 'Founder',    tagColor: '#818cf8', desc: 'Driving vision, strategy, and growth of College ERP — from concept to every campus.' },
+  { name: 'Hari Prasanth', role: 'Co Founder & Full Stack Developer',   initials: 'HP', grad: 'linear-gradient(135deg,#10b981,#06b6d4)', glow: 'rgba(16,185,129,0.4)',   tag: 'Co Founder', tagColor: '#34d399', desc: 'Architecting and building the entire platform — backend, frontend, and everything in between.' },
+  { name: 'Pavitaran',     role: 'Co Founder & DevOps Lead',            initials: 'PV', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', glow: 'rgba(245,158,11,0.4)',   tag: 'Co Founder', tagColor: '#fbbf24', desc: 'Ensuring zero downtime and bulletproof infrastructure — keeping College ERP always online.' },
+]
+
+// ── Landing Page ───────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
-  const [showAnnouncement, setShowAnnouncement] = useState(true)
-  const [hoveredFeature, setHoveredFeature] = useState(null)
-  const [hoveredPortal, setHoveredPortal] = useState(null)
+  const [announcement, setAnnouncement] = useState(true)
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
-  const [isSmall, setIsSmall] = useState(window.innerWidth <= 640)
-  const [hoveredNav, setHoveredNav] = useState(null)
-  const [hoveredCTA, setHoveredCTA] = useState(null)
-  const [hoveredStat, setHoveredStat] = useState(null)
-  const [hoveredFinance, setHoveredFinance] = useState(null)
+  const [hovNav, setHovNav] = useState(null)
+  const [hovPortal, setHovPortal] = useState(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10)
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  useEffect(() => {
-    const onResize = () => {
-      setIsMobile(window.innerWidth <= 768)
-      setIsSmall(window.innerWidth <= 640)
-    }
     window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onResize) }
   }, [])
 
-  const scrollTo = (id) => {
-    const el = document.getElementById(id)
-    if (el) el.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  const announcementH = showAnnouncement ? 36 : 0
-
-
-  const FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+  const scrollTo = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+  const navH = 64 + (announcement ? 36 : 0)
 
   return (
-    <div style={{ fontFamily: FONT, color: '#1e293b', margin: 0, padding: 0, overflowX: 'hidden', background: '#0f172a' }}>
+    <div style={{ fontFamily: FONT, margin: 0, padding: 0, overflowX: 'hidden', background: '#04081a', color: '#f1f5f9' }}>
 
-      {/* ── Keyframes ──────────────────────────────────────────────────────── */}
+      {/* ── CSS ───────────────────────────────────────────────────────────────── */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-        @keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-33.333%) } }
-        @keyframes bounce { 0%,100% { transform: translateX(-50%) translateY(0) } 50% { transform: translateX(-50%) translateY(6px) } }
-        @keyframes pulse-glow { 0%,100% { opacity: 1 } 50% { opacity: 0.5 } }
-        @keyframes float { 0%,100% { transform: translateY(0px) } 50% { transform: translateY(-8px) } }
-        * { box-sizing: border-box; }
-        body, html { margin: 0; padding: 0; background: #0f172a; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { background: #04081a; }
+
+        @keyframes marquee        { from { transform: translateX(0) }          to { transform: translateX(-33.333%) } }
+        @keyframes float          { 0%,100% { transform: translateY(0) }       50% { transform: translateY(-14px) } }
+        @keyframes floatSlow      { 0%,100% { transform: translateY(0) }       50% { transform: translateY(-8px) } }
+        @keyframes pulse          { 0%,100% { opacity: .6 }                    50% { opacity: 1 } }
+        @keyframes glow           { 0%,100% { opacity: .3 }                    50% { opacity: .7 } }
+        @keyframes spin           { from { transform: rotate(0deg) }           to { transform: rotate(360deg) } }
+        @keyframes spinSlow       { from { transform: rotate(0deg) }           to { transform: rotate(360deg) } }
+        @keyframes bounce         { 0%,100% { transform: translateX(-50%) translateY(0) }  50% { transform: translateX(-50%) translateY(8px) } }
+        @keyframes shimmer        { from { background-position: -400% 0 }      to { background-position: 400% 0 } }
+        @keyframes gradFlow       { 0%,100% { background-position:0% 50% }    50% { background-position:100% 50% } }
+        @keyframes twinkle        { 0%,100% { opacity: 0 }                     50% { opacity: 1 } }
+        @keyframes ripple         { 0% { transform: scale(.8); opacity: 1 }   100% { transform: scale(2.2); opacity: 0 } }
+        @keyframes slideLeft      { from { transform: translateX(24px); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
+        @keyframes zoomIn         { from { transform: scale(.88); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+        @keyframes starTwinkle    { 0%,100% { opacity: 0 } 50% { opacity: .85 } }
+        @keyframes mobileSlideIn  { from { transform: translateX(100%) } to { transform: translateX(0) } }
+        @keyframes numberCount    { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes borderFlow     { 0%,100% { border-color: rgba(99,102,241,.3) } 50% { border-color: rgba(139,92,246,.7) } }
+        @keyframes heroGlow       { 0%,100% { opacity: .18 } 50% { opacity: .35 } }
+
+        .hero-bg {
+          background: radial-gradient(ellipse 100% 60% at 20% 40%, rgba(99,102,241,0.22) 0%, transparent 60%),
+                      radial-gradient(ellipse 80% 50% at 80% 80%, rgba(139,92,246,0.18) 0%, transparent 60%),
+                      radial-gradient(ellipse 60% 40% at 60% 10%, rgba(16,185,129,0.10) 0%, transparent 60%),
+                      #04081a;
+        }
+        .grid-overlay {
+          background-image: linear-gradient(rgba(99,102,241,0.05) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(99,102,241,0.05) 1px, transparent 1px);
+          background-size: 48px 48px;
+        }
+        .btn-primary {
+          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          box-shadow: 0 4px 24px rgba(99,102,241,0.45);
+          transition: all .2s ease;
+          border: none; cursor: pointer;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99,102,241,0.65); filter: brightness(1.08); }
+        .btn-ghost { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); transition: all .2s ease; cursor: pointer; }
+        .btn-ghost:hover { background: rgba(255,255,255,0.12); transform: translateY(-2px); }
+        .feature-card { transition: all .3s cubic-bezier(.22,1,.36,1); cursor: default; }
+        .feature-card:hover { transform: translateY(-6px); }
+        .portal-card { transition: all .35s cubic-bezier(.22,1,.36,1); }
+        .portal-card:hover { transform: translateY(-8px) scale(1.01); }
+        .team-card { transition: all .35s cubic-bezier(.22,1,.36,1); }
+        .team-card:hover { transform: translateY(-8px); }
+        .nav-link { transition: all .15s; cursor: pointer; border: none; font-family: inherit; background: none; }
+        .chip { display: inline-flex; align-items: center; border-radius: 100px; transition: all .2s; }
+        .chip:hover { transform: translateY(-1px); }
+        .section-tag { display: inline-flex; align-items: center; gap: 7px; border-radius: 100px; padding: 6px 16px; font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; }
+        .stat-card { transition: all .3s cubic-bezier(.22,1,.36,1); }
+        .stat-card:hover { transform: translateY(-4px); }
+        .service-card { transition: all .25s ease; }
+        .service-card:hover { transform: translateY(-3px); }
+        .exam-card { transition: all .25s ease; }
+        .exam-card:hover { transform: translateY(-3px); }
+        .finance-card { transition: all .25s ease; }
+        .finance-card:hover { transform: translateY(-4px); }
       `}</style>
 
-      {/* ── 1. Announcement Bar ────────────────────────────────────────────── */}
-      {showAnnouncement && (
-        <div style={{
-          background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
-          height: 36,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          position: 'relative', zIndex: 1100
-        }}>
-          <span style={{ color: '#fff', fontSize: 13, textAlign: 'center', padding: '0 40px', fontFamily: FONT }}>
-            🎓 College ERP v2.0 — Research Portal, APAAR ID &amp; eSanad now live
+      {/* ── 1. Announcement bar ─────────────────────────────────────────────── */}
+      {announcement && (
+        <div style={{ background: 'linear-gradient(90deg,#6366f1,#8b5cf6,#6366f1)', backgroundSize: '200% 100%', animation: 'gradFlow 4s ease infinite', height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 1100 }}>
+          <span style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>
+            🎓 College ERP v2.0 — Research Portal, APAAR ID &amp; eSanad now live &nbsp;
+            <span style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 4, padding: '1px 8px', fontSize: 11, fontWeight: 700 }}>NEW</span>
           </span>
-          <button
-            onClick={() => setShowAnnouncement(false)}
-            style={{
-              position: 'absolute', right: 14, background: 'none', border: 'none',
-              color: 'rgba(255,255,255,0.8)', cursor: 'pointer', fontSize: 18, lineHeight: 1,
-              padding: '4px 6px', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}
-          >×</button>
+          <button onClick={() => setAnnouncement(false)} style={{ position: 'absolute', right: 14, background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: '4px 6px' }}>×</button>
         </div>
       )}
 
-      {/* ── 2. Fixed Navbar ────────────────────────────────────────────────── */}
-      <nav style={{
-        position: 'fixed', top: announcementH, left: 0, right: 0, height: 64, zIndex: 1000,
-        background: scrolled ? 'rgba(255,255,255,0.97)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(16px)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'blur(16px)' : 'none',
-        boxShadow: scrolled ? '0 2px 24px rgba(0,0,0,0.08)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : 'none',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: isMobile ? '0 20px' : '0 48px',
-        transition: 'background 0.3s, box-shadow 0.3s, top 0.3s'
-      }}>
+      {/* ── 2. Sticky navbar ────────────────────────────────────────────────── */}
+      <nav style={{ position: 'fixed', top: announcement ? 36 : 0, left: 0, right: 0, height: 64, zIndex: 1000, background: scrolled ? 'rgba(4,8,26,0.94)' : 'transparent', backdropFilter: scrolled ? 'blur(24px)' : 'none', borderBottom: scrolled ? '1px solid rgba(255,255,255,0.07)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '0 20px' : '0 48px', transition: 'all .3s' }}>
         {/* Logo */}
-        <div
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}
-        >
-          <div style={{
-            width: 36, height: 36, borderRadius: 10,
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(99,102,241,0.4)'
-          }}>
+        <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(99,102,241,0.5)' }}>
             <MdSchool style={{ color: '#fff', fontSize: 22 }} />
           </div>
-          <span style={{ fontSize: 20, fontWeight: 700, color: scrolled ? '#1e293b' : '#fff', letterSpacing: '-0.3px' }}>
-            College ERP
-          </span>
+          <span style={{ fontSize: 19, fontWeight: 800, color: '#fff', letterSpacing: '-.4px' }}>College<span style={{ color: '#a78bfa' }}>ERP</span></span>
         </div>
 
-        {/* Center Nav */}
+        {/* Nav links (desktop) */}
         {!isMobile && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <div style={{ display: 'flex', gap: 2 }}>
             {[
-              { label: 'Features', id: 'features' },
-              { label: 'Portals', id: 'portals' },
-              { label: 'Academics', id: 'academics' },
-            ].map(link => (
-              <button
-                key={link.id}
-                onMouseEnter={() => setHoveredNav(link.id)}
-                onMouseLeave={() => setHoveredNav(null)}
-                onClick={() => scrollTo(link.id)}
-                style={{
-                  fontSize: 14, fontWeight: 500, cursor: 'pointer',
-                  padding: '8px 14px', borderRadius: 8,
-                  background: hoveredNav === link.id
-                    ? (scrolled ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.1)')
-                    : 'transparent',
-                  color: hoveredNav === link.id
-                    ? (scrolled ? '#6366f1' : '#fff')
-                    : (scrolled ? '#475569' : 'rgba(255,255,255,0.8)'),
-                  border: 'none', fontFamily: FONT,
-                  transition: 'all 0.15s'
-                }}
-              >
-                {link.label}
+              { label: 'Features', id: 'features' }, { label: 'How It Works', id: 'how-it-works' },
+              { label: 'Portals', id: 'portals' }, { label: 'Academics', id: 'academics' },
+              { label: 'LMS', id: 'lms' }, { label: 'HR', id: 'hr' }, { label: 'Team', id: 'team' },
+            ].map(l => (
+              <button key={l.id} className="nav-link" onMouseEnter={() => setHovNav(l.id)} onMouseLeave={() => setHovNav(null)} onClick={() => scrollTo(l.id)}
+                style={{ padding: '8px 13px', borderRadius: 9, fontSize: 13, fontWeight: 500, color: hovNav === l.id ? '#a78bfa' : 'rgba(255,255,255,0.75)', background: hovNav === l.id ? 'rgba(99,102,241,0.1)' : 'transparent' }}>
+                {l.label}
               </button>
             ))}
           </div>
         )}
 
-        {/* Right Buttons */}
+        {/* CTAs */}
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <button
-            onMouseEnter={() => setHoveredCTA('signin')}
-            onMouseLeave={() => setHoveredCTA(null)}
-            onClick={() => navigate('/auth/login')}
-            style={{
-              padding: '9px 20px', border: '1.5px solid',
-              borderColor: scrolled ? '#6366f1' : 'rgba(255,255,255,0.35)',
-              borderRadius: 9, fontSize: 14, fontWeight: 600,
-              background: hoveredCTA === 'signin'
-                ? (scrolled ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.12)')
-                : 'transparent',
-              color: scrolled ? '#6366f1' : '#fff',
-              cursor: 'pointer', fontFamily: FONT, transition: 'all 0.15s'
-            }}
-          >
-            Sign In
-          </button>
+          {!isMobile && <button className="btn-ghost" onClick={() => navigate('/auth/login')} style={{ padding: '8px 18px', borderRadius: 9, fontSize: 13, fontWeight: 600, color: '#fff' }}>Sign In</button>}
           {!isMobile && (
-            <button
-              onMouseEnter={() => setHoveredCTA('start')}
-              onMouseLeave={() => setHoveredCTA(null)}
-              onClick={() => navigate('/auth/login')}
-              style={{
-                padding: '9px 22px',
-                background: hoveredCTA === 'start'
-                  ? 'linear-gradient(135deg, #4f46e5, #7c3aed)'
-                  : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                border: 'none', borderRadius: 9, fontSize: 14, fontWeight: 600,
-                color: '#fff', cursor: 'pointer', fontFamily: FONT,
-                boxShadow: hoveredCTA === 'start'
-                  ? '0 6px 28px rgba(99,102,241,0.65)'
-                  : '0 4px 18px rgba(99,102,241,0.45)',
-                transform: hoveredCTA === 'start' ? 'translateY(-1px)' : 'none',
-                transition: 'all 0.15s'
-              }}
-            >
-              Get Started
+            <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '8px 20px', borderRadius: 9, fontSize: 13, fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
+              Get Started <MdArrowForward size={15} />
+            </button>
+          )}
+          {isMobile && (
+            <button onClick={() => setMobileMenuOpen(o => !o)} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 9, padding: '8px', display: 'flex', alignItems: 'center', color: '#fff', cursor: 'pointer' }}>
+              {mobileMenuOpen ? <MdClose size={22} /> : <MdMenu size={22} />}
             </button>
           )}
         </div>
       </nav>
 
-      {/* ── 3. Hero Section ────────────────────────────────────────────────── */}
-      <section style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #0f172a 100%)',
-        position: 'relative', overflow: 'hidden',
-        display: 'flex', alignItems: 'center',
-        paddingTop: 64 + announcementH, paddingBottom: 80,
-        padding: isMobile ? `${64 + announcementH}px 24px 80px` : `${64 + announcementH}px 48px 80px`
-      }}>
-        {/* Grid overlay */}
-        <div style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          backgroundImage: 'linear-gradient(rgba(99,102,241,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.06) 1px, transparent 1px)',
-          backgroundSize: '60px 60px'
-        }} />
-        {/* Glow blobs */}
-        <div style={{
-          position: 'absolute', top: '15%', left: '-8%', width: 500, height: 500,
-          borderRadius: '50%', pointerEvents: 'none',
-          background: 'radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 70%)'
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '10%', right: '-5%', width: 400, height: 400,
-          borderRadius: '50%', pointerEvents: 'none',
-          background: 'radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)'
-        }} />
-        <div style={{
-          position: 'absolute', top: '55%', left: '45%', width: 300, height: 300,
-          borderRadius: '50%', pointerEvents: 'none',
-          background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)'
-        }} />
+      {/* ── Mobile menu drawer ─────────────────────────────────────────────── */}
+      {isMobile && mobileMenuOpen && (
+        <div style={{ position: 'fixed', top: (announcement ? 36 : 0) + 64, right: 0, bottom: 0, width: '80%', maxWidth: 320, zIndex: 999, background: 'rgba(8,12,36,0.98)', backdropFilter: 'blur(24px)', borderLeft: '1px solid rgba(255,255,255,0.08)', padding: '32px 24px', animation: 'mobileSlideIn .28s cubic-bezier(.22,1,.36,1)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {[
+            { label: 'Features', id: 'features' }, { label: 'How It Works', id: 'how-it-works' },
+            { label: 'Portals', id: 'portals' }, { label: 'Academics', id: 'academics' },
+            { label: 'LMS', id: 'lms' }, { label: 'HR & Payroll', id: 'hr' },
+            { label: 'Examinations', id: 'examinations' }, { label: 'Research', id: 'research' }, { label: 'Team', id: 'team' },
+          ].map(l => (
+            <button key={l.id} onClick={() => { scrollTo(l.id); setMobileMenuOpen(false) }} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 11, padding: '13px 18px', fontSize: 15, fontWeight: 600, color: 'rgba(255,255,255,0.85)', cursor: 'pointer', textAlign: 'left', fontFamily: FONT, transition: 'all .15s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.15)'; e.currentTarget.style.color = '#a78bfa' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)' }}>
+              {l.label}
+            </button>
+          ))}
+          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <button className="btn-ghost" onClick={() => navigate('/auth/login')} style={{ padding: '12px', borderRadius: 10, fontSize: 14, fontWeight: 600, color: '#fff' }}>Sign In</button>
+            <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '12px', borderRadius: 10, fontSize: 14, fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>Get Started <MdArrowForward size={16} /></button>
+          </div>
+        </div>
+      )}
 
-        <div style={{
-          maxWidth: 1280, margin: '0 auto', width: '100%',
-          display: 'flex', alignItems: 'center', gap: isMobile ? 40 : 72,
-          flexDirection: isMobile ? 'column' : 'row'
-        }}>
-          {/* Left Column */}
-          <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>
+      {/* ── 3. Hero ─────────────────────────────────────────────────────────── */}
+      <section className="hero-bg" style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', paddingTop: navH + 40, paddingBottom: 80, padding: isMobile ? `${navH + 40}px 24px 80px` : `${navH + 40}px 48px 80px` }}>
+        {/* Grid overlay */}
+        <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
+
+        {/* Star particles */}
+        <StarField />
+
+        {/* Animated glow orbs */}
+        <div style={{ position: 'absolute', top: '10%', left: '5%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 70%)', animation: 'heroGlow 5s ease-in-out infinite', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '5%', right: '5%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)', animation: 'heroGlow 7s ease-in-out infinite 2s', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '50%', left: '45%', width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)', animation: 'heroGlow 6s ease-in-out infinite 1s', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '70%', left: '15%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(236,72,153,0.08) 0%, transparent 70%)', animation: 'heroGlow 8s ease-in-out infinite 3s', pointerEvents: 'none' }} />
+
+        {/* Decorative rotating rings */}
+        <div style={{ position: 'absolute', top: '15%', right: '10%', width: 300, height: 300, borderRadius: '50%', border: '1px solid rgba(99,102,241,0.14)', animation: 'spinSlow 30s linear infinite', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '12%', right: '7%', width: 360, height: 360, borderRadius: '50%', border: '1px dashed rgba(139,92,246,0.09)', animation: 'spinSlow 45s linear infinite reverse', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '8%', right: '4%', width: 430, height: 430, borderRadius: '50%', border: '1px solid rgba(52,211,153,0.05)', animation: 'spinSlow 60s linear infinite', pointerEvents: 'none' }} />
+
+        <div style={{ maxWidth: 1280, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', gap: isMobile ? 48 : 80, flexDirection: isMobile ? 'column' : 'row', position: 'relative', zIndex: 1 }}>
+
+          {/* Left: Copy */}
+          <div style={{ flex: 1 }}>
             {/* Live badge */}
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)',
-              borderRadius: 100, padding: '6px 16px', marginBottom: 32
-            }}>
-              <span style={{
-                width: 7, height: 7, borderRadius: '50%', background: '#10b981',
-                boxShadow: '0 0 8px #10b981', animation: 'pulse-glow 2s ease-in-out infinite',
-                display: 'inline-block', flexShrink: 0
-              }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.82)' }}>
-                Student · Staff · Parent · Alumni · Admin
-              </span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 100, padding: '7px 18px', marginBottom: 32, animation: 'slideLeft .6s ease' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 10px #10b981', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>Student · Staff · Parent · Alumni · Admin</span>
             </div>
 
-            <h1 style={{
-              fontSize: 'clamp(40px, 5.5vw, 68px)', fontWeight: 800,
-              color: '#fff', lineHeight: 1.08, letterSpacing: '-2px',
-              margin: '0 0 24px', fontFamily: FONT
-            }}>
-              Your Complete<br />
-              <span style={{
-                background: 'linear-gradient(90deg, #6366f1, #a78bfa, #10b981)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'
-              }}>
-                College Management
-              </span>
-              <br />Platform
+            {/* Headline */}
+            <h1 style={{ fontSize: isMobile ? 'clamp(34px,10vw,52px)' : 'clamp(44px,5vw,72px)', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-2px', color: '#fff', marginBottom: 24, animation: 'zoomIn .7s ease .1s both' }}>
+              The Campus Platform<br />
+              <span style={{ fontSize: isMobile ? 'clamp(28px,8vw,42px)' : 'clamp(36px,4vw,58px)', fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: '-1px' }}>built for </span>
+              <Typewriter />
             </h1>
 
-            <p style={{
-              fontSize: 18, color: 'rgba(255,255,255,0.62)', lineHeight: 1.7,
-              maxWidth: 520, margin: '0 0 36px', fontFamily: FONT
-            }}>
-              One unified platform for Students, Staff, Parents, Alumni and Administrators.
-              Academics, examinations, finance, research — everything in one place.
+            {/* Sub */}
+            <p style={{ fontSize: isMobile ? 16 : 19, color: 'rgba(255,255,255,0.58)', lineHeight: 1.75, maxWidth: 520, marginBottom: 40, fontWeight: 400, animation: 'zoomIn .7s ease .2s both' }}>
+              One unified platform for every role in your institution —
+              from academics and research to payroll and alumni. 50+ features, zero friction.
             </p>
 
-            {/* CTA Buttons */}
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 36, flexDirection: isMobile ? 'column' : 'row' }}>
-              <button
-                onMouseEnter={() => setHoveredCTA('hero-start')}
-                onMouseLeave={() => setHoveredCTA(null)}
-                onClick={() => navigate('/auth/login')}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
-                  padding: '14px 30px', borderRadius: 12, border: 'none',
-                  background: hoveredCTA === 'hero-start'
-                    ? 'linear-gradient(135deg, #4f46e5, #7c3aed)'
-                    : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
-                  fontFamily: FONT,
-                  boxShadow: hoveredCTA === 'hero-start'
-                    ? '0 8px 32px rgba(99,102,241,0.7)'
-                    : '0 4px 24px rgba(99,102,241,0.55)',
-                  transform: hoveredCTA === 'hero-start' ? 'translateY(-2px)' : 'none',
-                  transition: 'all 0.18s'
-                }}
-              >
-                Get Started Free <MdArrowForward style={{ fontSize: 18 }} />
+            {/* CTAs */}
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 48, animation: 'zoomIn .7s ease .3s both', flexDirection: isMobile ? 'column' : 'row' }}>
+              <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '15px 32px', borderRadius: 12, fontSize: 16, fontWeight: 700, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                Get Started Free <MdArrowForward size={18} />
               </button>
-              <button
-                onMouseEnter={() => setHoveredCTA('hero-exp')}
-                onMouseLeave={() => setHoveredCTA(null)}
-                onClick={() => scrollTo('features')}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
-                  padding: '14px 28px', borderRadius: 12,
-                  background: hoveredCTA === 'hero-exp' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.06)',
-                  border: '1.5px solid rgba(255,255,255,0.2)',
-                  color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
-                  fontFamily: FONT,
-                  transform: hoveredCTA === 'hero-exp' ? 'translateY(-2px)' : 'none',
-                  boxShadow: hoveredCTA === 'hero-exp' ? '0 8px 24px rgba(0,0,0,0.25)' : 'none',
-                  transition: 'all 0.18s'
-                }}
-              >
-                <MdSpeed style={{ fontSize: 18 }} /> Explore Features
+              <button className="btn-ghost" onClick={() => scrollTo('features')} style={{ padding: '15px 28px', borderRadius: 12, fontSize: 16, fontWeight: 700, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <MdSpeed size={18} /> Explore Features
               </button>
             </div>
 
-            {/* Trust badges */}
-            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-              {[
-                { icon: MdShield, label: 'Secured' },
-                { icon: MdCheck, label: 'Role-Based Access' },
-                { icon: MdPublic, label: 'Always Online' },
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 500
-                }}>
-                  <Icon style={{ fontSize: 15, color: 'rgba(99,102,241,0.9)' }} />
-                  {label}
+            {/* Trust row */}
+            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', animation: 'zoomIn .7s ease .4s both' }}>
+              {[{ icon: MdShield, text: 'Enterprise Secure' }, { icon: MdCheck, text: 'Role-Based Access' }, { icon: MdPublic, text: '24/7 Online' }].map(({ icon: Icon, text }) => (
+                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
+                  <Icon style={{ fontSize: 15, color: '#a78bfa' }} />{text}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Right Column — Glassmorphism Student Portal Widget */}
+          {/* Right: Dashboard widget */}
           {!isMobile && (
-            <div style={{ flex: '0 0 420px', position: 'relative', zIndex: 1 }}>
-              {/* Main widget */}
-              <div style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 20, padding: 24,
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                boxShadow: '0 32px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
-                animation: 'float 6s ease-in-out infinite'
-              }}>
+            <div style={{ flex: '0 0 420px', position: 'relative', animation: 'float 7s ease-in-out infinite' }}>
+              <GlassCard style={{ padding: 24 }} hover={false}>
                 {/* Widget header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                   <div>
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 500, marginBottom: 2 }}>
-                      Student Portal
-                    </div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Sem 6 — CSE</div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontWeight: 500, marginBottom: 2 }}>Student Portal</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Sem 6 &mdash; CSE &apos;A&apos;</div>
                   </div>
-                  <div style={{
-                    width: 38, height: 38, borderRadius: 10,
-                    background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <MdDashboard style={{ fontSize: 20, color: '#a78bfa' }} />
                   </div>
                 </div>
 
-                {/* 3-col mini stats */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
-                  {[
-                    { label: 'Attendance', value: '87.5%', color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
-                    { label: 'CGPA', value: '8.74', color: '#a78bfa', bg: 'rgba(99,102,241,0.12)' },
-                    { label: 'Pending', value: '3', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-                  ].map(stat => (
-                    <div key={stat.label} style={{
-                      background: stat.bg, borderRadius: 12, padding: '12px 10px', textAlign: 'center'
-                    }}>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: stat.color, lineHeight: 1 }}>{stat.value}</div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 4, fontWeight: 500 }}>{stat.label}</div>
+                {/* Stat chips */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
+                  {[{ l: 'Attendance', v: '87.5%', c: '#34d399', bg: 'rgba(16,185,129,.12)' }, { l: 'CGPA', v: '8.74', c: '#a78bfa', bg: 'rgba(99,102,241,.12)' }, { l: 'Pending', v: '3', c: '#fbbf24', bg: 'rgba(245,158,11,.12)' }].map(s => (
+                    <div key={s.l} style={{ background: s.bg, borderRadius: 12, padding: '12px 10px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 19, fontWeight: 800, color: s.c, lineHeight: 1 }}>{s.v}</div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 4, fontWeight: 500 }}>{s.l}</div>
                     </div>
                   ))}
                 </div>
 
-                {/* Mini bar chart — semester performance */}
+                {/* Semester GPA bars */}
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 10, fontWeight: 600, letterSpacing: '0.05em' }}>
-                    SEMESTER GPA
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 56 }}>
-                    {[7.8, 8.1, 8.5, 8.3, 8.6, 8.74].map((val, i) => {
-                      const pct = ((val - 7) / (10 - 7)) * 100
-                      const isLast = i === 5
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 10, fontWeight: 700, letterSpacing: '.08em' }}>SEMESTER GPA</div>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 52 }}>
+                    {[7.8, 8.1, 8.5, 8.3, 8.6, 8.74].map((v, i) => {
+                      const h = Math.round(((v - 7) / 3) * 100 * 0.44 + 10)
                       return (
                         <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                          <div style={{
-                            width: '100%', borderRadius: '4px 4px 0 0',
-                            height: `${Math.round(pct * 0.48 + 12)}px`,
-                            background: isLast
-                              ? 'linear-gradient(180deg, #a78bfa, #6366f1)'
-                              : 'rgba(99,102,241,0.3)',
-                            transition: 'height 0.3s'
-                          }} />
-                          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>S{i + 1}</div>
+                          <div style={{ width: '100%', borderRadius: '4px 4px 0 0', height: h, background: i === 5 ? 'linear-gradient(180deg,#a78bfa,#6366f1)' : 'rgba(99,102,241,0.28)' }} />
+                          <div style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontWeight: 600 }}>S{i + 1}</div>
                         </div>
                       )
                     })}
                   </div>
                 </div>
 
-                {/* Recent items */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {[
-                    { title: 'Digital Assignment Upload', cat: 'Academics', tag: 'Due Today', tagColor: '#f59e0b' },
-                    { title: 'End Semester Exam', cat: 'Examinations', tag: 'Jun 20', tagColor: '#ef4444' },
-                    { title: 'Fee Payment', cat: 'Finance', tag: '₹47,500', tagColor: '#10b981' },
-                  ].map(item => (
-                    <div key={item.title} style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      background: 'rgba(255,255,255,0.04)', borderRadius: 10,
-                      padding: '9px 12px', border: '1px solid rgba(255,255,255,0.06)'
-                    }}>
+                {/* Activity */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                  {[{ t: 'Digital Assignment Upload', c: 'Academics', tag: 'Due Today', tc: '#fbbf24' }, { t: 'End Semester Exam', c: 'Examinations', tag: 'Jun 20', tc: '#f87171' }, { t: 'Fee Payment', c: 'Finance', tag: '₹47,500', tc: '#34d399' }].map(item => (
+                    <div key={item.t} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '9px 12px', border: '1px solid rgba(255,255,255,0.05)' }}>
                       <div>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.82)', marginBottom: 2 }}>
-                          {item.title}
-                        </div>
-                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.38)', fontWeight: 500 }}>{item.cat}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.82)', marginBottom: 2 }}>{item.t}</div>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.35)', fontWeight: 500 }}>{item.c}</div>
                       </div>
-                      <span style={{
-                        fontSize: 10, fontWeight: 700, color: item.tagColor,
-                        background: `${item.tagColor}18`, border: `1px solid ${item.tagColor}30`,
-                        padding: '3px 8px', borderRadius: 20, whiteSpace: 'nowrap'
-                      }}>{item.tag}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: item.tc, background: `${item.tc}18`, border: `1px solid ${item.tc}30`, padding: '3px 8px', borderRadius: 20 }}>{item.tag}</span>
                     </div>
                   ))}
                 </div>
-              </div>
+              </GlassCard>
 
-              {/* Floating badge — top right */}
-              <div style={{
-                position: 'absolute', top: -18, right: -18,
-                background: 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(5,150,105,0.9))',
-                border: '1px solid rgba(16,185,129,0.4)',
-                borderRadius: 100, padding: '7px 14px',
-                display: 'flex', alignItems: 'center', gap: 6,
-                boxShadow: '0 4px 16px rgba(16,185,129,0.4)',
-                backdropFilter: 'blur(10px)'
-              }}>
+              {/* Floating badges */}
+              <div style={{ position: 'absolute', top: -18, right: -18, background: 'linear-gradient(135deg,rgba(16,185,129,.9),rgba(5,150,105,.9))', border: '1px solid rgba(16,185,129,.4)', borderRadius: 100, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 20px rgba(16,185,129,.4)', animation: 'floatSlow 5s ease-in-out infinite .5s' }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff', display: 'inline-block' }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>CGPA +0.4 this sem</span>
               </div>
-
-              {/* Floating badge — bottom left */}
-              <div style={{
-                position: 'absolute', bottom: -18, left: -18,
-                background: 'rgba(99,102,241,0.85)',
-                border: '1px solid rgba(99,102,241,0.4)',
-                borderRadius: 100, padding: '7px 14px',
-                display: 'flex', alignItems: 'center', gap: 6,
-                boxShadow: '0 4px 16px rgba(99,102,241,0.4)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <MdMenuBook style={{ fontSize: 14, color: '#fff' }} />
+              <div style={{ position: 'absolute', bottom: -18, left: -18, background: 'rgba(99,102,241,.85)', border: '1px solid rgba(99,102,241,.4)', borderRadius: 100, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 20px rgba(99,102,241,.4)', animation: 'floatSlow 6s ease-in-out infinite 1s' }}>
+                <MdMenuBook style={{ fontSize: 13, color: '#fff' }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>50+ Features</span>
               </div>
             </div>
@@ -590,1014 +554,769 @@ export default function LandingPage() {
         </div>
 
         {/* Scroll indicator */}
-        <div style={{
-          position: 'absolute', bottom: 32, left: '50%',
-          animation: 'bounce 2s ease-in-out infinite',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-          cursor: 'pointer', opacity: 0.5
-        }} onClick={() => scrollTo('marquee')}>
-          <div style={{
-            width: 24, height: 38, border: '2px solid rgba(255,255,255,0.3)',
-            borderRadius: 12, display: 'flex', justifyContent: 'center', paddingTop: 6
-          }}>
-            <div style={{ width: 3, height: 8, borderRadius: 2, background: 'rgba(255,255,255,0.6)' }} />
+        <div style={{ position: 'absolute', bottom: 32, left: '50%', animation: 'bounce 2.2s ease-in-out infinite', opacity: .45, cursor: 'pointer' }} onClick={() => scrollTo('marquee')}>
+          <div style={{ width: 24, height: 38, border: '2px solid rgba(255,255,255,.3)', borderRadius: 12, display: 'flex', justifyContent: 'center', paddingTop: 6 }}>
+            <div style={{ width: 3, height: 8, borderRadius: 2, background: 'rgba(255,255,255,.6)' }} />
           </div>
         </div>
       </section>
 
-      {/* ── 4. Marquee Ticker ──────────────────────────────────────────────── */}
-      <div id="marquee" style={{
-        background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #6366f1)',
-        padding: '14px 0', overflow: 'hidden', position: 'relative'
-      }}>
-        <div style={{
-          display: 'flex', width: 'max-content',
-          animation: 'marquee 30s linear infinite'
-        }}>
+      {/* ── 4. Marquee ──────────────────────────────────────────────────────── */}
+      <div id="marquee" style={{ background: 'linear-gradient(90deg,#6366f1,#8b5cf6,#6366f1)', backgroundSize: '200% 100%', animation: 'gradFlow 6s ease infinite', padding: '15px 0', overflow: 'hidden', position: 'relative' }}>
+        <div style={{ display: 'flex', width: 'max-content', animation: 'marquee 28s linear infinite' }}>
           {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '0 24px', whiteSpace: 'nowrap'
-            }}>
-              <MdSpeed style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', flexShrink: 0 }} />
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 28px', whiteSpace: 'nowrap' }}>
+              <MdAutoAwesome style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', flexShrink: 0 }} />
               <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{item}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── 5. Stats Bar ───────────────────────────────────────────────────── */}
-      <section style={{ background: '#fff', padding: isSmall ? '48px 20px' : '72px 48px' }}>
-        <div style={{
-          maxWidth: 1100, margin: '0 auto',
-          display: 'grid', gridTemplateColumns: isSmall ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 24
-        }}>
-          {STATS_DATA.map((stat, i) => {
-            const Icon = stat.icon
-            return (
-              <div
-                key={stat.label}
-                onMouseEnter={() => setHoveredStat(i)}
-                onMouseLeave={() => setHoveredStat(null)}
-                style={{
-                  background: '#fafafa', borderRadius: 16, padding: '28px 24px',
-                  textAlign: 'center',
-                  border: '1px solid',
-                  borderColor: hoveredStat === i ? 'rgba(99,102,241,0.25)' : '#f1f5f9',
-                  boxShadow: hoveredStat === i
-                    ? '0 12px 40px rgba(99,102,241,0.15)'
-                    : '0 2px 8px rgba(0,0,0,0.04)',
-                  transform: hoveredStat === i ? 'translateY(-4px)' : 'none',
-                  transition: 'all 0.22s ease', cursor: 'default'
-                }}
-              >
-                <div style={{
-                  width: 52, height: 52, borderRadius: 14,
-                  background: 'linear-gradient(135deg, #eef2ff, #e0e7ff)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  margin: '0 auto 16px'
-                }}>
-                  <Icon style={{ fontSize: 26, color: '#6366f1' }} />
-                </div>
-                <div style={{
-                  fontSize: 40, fontWeight: 800, color: '#1e293b', lineHeight: 1,
-                  marginBottom: 8, letterSpacing: '-1.5px'
-                }}>
-                  <Counter target={stat.value} suffix={stat.suffix} />
-                </div>
-                <div style={{ fontSize: 14, color: '#64748b', fontWeight: 500 }}>{stat.label}</div>
+      {/* ── 5. Stats ────────────────────────────────────────────────────────── */}
+      <section style={{ background: '#fff', padding: isMobile ? '56px 20px' : '80px 48px' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 52 }}>
+              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)', marginBottom: 16, margin: '0 auto 16px' }}>
+                <MdAnalytics size={14} /> Platform by the numbers
               </div>
-            )
-          })}
+              <h2 style={{ fontSize: 'clamp(26px,3vw,40px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-.8px' }}>
+                Built for modern educational institutions
+              </h2>
+            </div>
+          </Reveal>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: 20 }}>
+            {[
+              { icon: MdLayers,     val: 80,  suf: '+', label: 'Features',      color: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' },
+              { icon: MdGroups,     val: 5,   suf: '',  label: 'User Portals',  color: '#8b5cf6', bg: '#f5f3ff', border: '#ddd6fe' },
+              { icon: MdMenuBook,   val: 15,  suf: '',  label: 'Modules',       color: '#10b981', bg: '#ecfdf5', border: '#a7f3d0' },
+              { icon: MdShield,     val: 100, suf: '%', label: 'Secure',        color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
+            ].map((s, i) => {
+              const Icon = s.icon
+              return (
+                <Reveal key={s.label} delay={i * 80}>
+                  <div className="stat-card" style={{ background: s.bg, border: `1.5px solid ${s.border}`, borderRadius: 18, padding: '28px 22px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                    <div style={{ width: 52, height: 52, borderRadius: 14, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: `0 4px 16px ${s.color}25` }}>
+                      <Icon style={{ fontSize: 26, color: s.color }} />
+                    </div>
+                    <div style={{ fontSize: 40, fontWeight: 900, color: '#0f172a', letterSpacing: '-1.5px', marginBottom: 6 }}>
+                      <Counter target={s.val} suffix={s.suf} />
+                    </div>
+                    <div style={{ fontSize: 14, color: '#64748b', fontWeight: 500 }}>{s.label}</div>
+                  </div>
+                </Reveal>
+              )
+            })}
+          </div>
         </div>
       </section>
 
-      {/* ── 6. Features Grid ───────────────────────────────────────────────── */}
-      <section id="features" style={{ background: '#f8fafc', padding: isMobile ? '60px 20px' : '88px 48px' }}>
+      {/* ── 6. Features Bento Grid ──────────────────────────────────────────── */}
+      <section id="features" style={{ background: '#f8fafc', padding: isMobile ? '64px 20px' : '96px 48px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          {/* Header */}
-          <div style={{ textAlign: 'center', marginBottom: 60 }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)',
-              borderRadius: 100, padding: '6px 16px', marginBottom: 20
-            }}>
-              <MdLayers style={{ fontSize: 14, color: '#6366f1' }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#6366f1' }}>50+ Core Features</span>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdLayers size={14} /> 50+ Core Features
+              </div>
+              <h2 style={{ fontSize: 'clamp(28px,3.5vw,46px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: 16 }}>
+                Everything your college needs
+              </h2>
+              <p style={{ fontSize: 17, color: '#64748b', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
+                From curriculum tracking to research thesis submission — College ERP covers every aspect of campus life.
+              </p>
             </div>
-            <h2 style={{
-              fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: '#1e293b',
-              margin: '0 0 16px', letterSpacing: '-1px', fontFamily: FONT
-            }}>
-              Everything you need to manage your college
-            </h2>
-            <p style={{
-              fontSize: 17, color: '#64748b', maxWidth: 600, margin: '0 auto', lineHeight: 1.7
-            }}>
-              From curriculum tracking to research thesis submission — College ERP covers every aspect.
-            </p>
-          </div>
+          </Reveal>
 
-          {/* Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 24
-          }}>
+          {/* Bento grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: 18 }}>
             {FEATURES.map((feat, i) => {
               const Icon = feat.icon
-              const hov = hoveredFeature === i
+              const isWide = feat.span === 2 && !isMobile
               return (
-                <div
-                  key={feat.title}
-                  onMouseEnter={() => setHoveredFeature(i)}
-                  onMouseLeave={() => setHoveredFeature(null)}
-                  style={{
-                    background: '#fff', borderRadius: 18, padding: '28px 26px',
-                    border: `1.5px solid ${hov ? feat.color + '50' : '#f1f5f9'}`,
-                    boxShadow: hov ? `0 16px 48px ${feat.color}22` : '0 2px 12px rgba(0,0,0,0.04)',
-                    transform: hov ? 'translateY(-4px)' : 'none',
-                    transition: 'all 0.22s ease', cursor: 'default', position: 'relative'
-                  }}
-                >
-                  {feat.badge && (
-                    <div style={{
-                      position: 'absolute', top: 18, right: 18,
-                      background: 'linear-gradient(135deg, #ec4899, #8b5cf6)',
-                      color: '#fff', fontSize: 9, fontWeight: 800, letterSpacing: '0.08em',
-                      padding: '3px 9px', borderRadius: 20, textTransform: 'uppercase'
-                    }}>{feat.badge}</div>
-                  )}
-                  <div style={{
-                    width: 52, height: 52, borderRadius: 14, background: feat.bg,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18
-                  }}>
-                    <Icon style={{ fontSize: 28, color: feat.color }} />
-                  </div>
-                  <h3 style={{
-                    fontSize: 17, fontWeight: 700, color: '#1e293b',
-                    margin: '0 0 10px', fontFamily: FONT
-                  }}>{feat.title}</h3>
-                  <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.65, margin: 0 }}>{feat.desc}</p>
-                  {hov && (
-                    <div style={{
-                      marginTop: 16, fontSize: 13, fontWeight: 600,
-                      color: feat.color, display: 'flex', alignItems: 'center', gap: 4
-                    }}>
-                      Learn more <MdArrowForward style={{ fontSize: 14 }} />
+                <Reveal key={feat.title} delay={i * 40}>
+                  <div
+                    className="feature-card"
+                    style={{
+                      gridColumn: isWide ? 'span 2' : undefined,
+                      background: '#fff',
+                      borderRadius: 18,
+                      padding: '26px 24px',
+                      border: `1.5px solid #f1f5f9`,
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.border = `1.5px solid ${feat.border}`
+                      e.currentTarget.style.boxShadow = `0 16px 40px ${feat.color}18`
+                      e.currentTarget.style.transform = 'translateY(-6px)'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.border = '1.5px solid #f1f5f9'
+                      e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)'
+                      e.currentTarget.style.transform = 'none'
+                    }}
+                  >
+                    {/* Subtle bg gradient */}
+                    <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 80% 20%, ${feat.color}06 0%, transparent 60%)`, pointerEvents: 'none' }} />
+                    {feat.badge && (
+                      <div style={{ position: 'absolute', top: 16, right: 16, background: 'linear-gradient(135deg,#ec4899,#8b5cf6)', color: '#fff', fontSize: 9, fontWeight: 800, padding: '3px 9px', borderRadius: 20, letterSpacing: '.06em' }}>{feat.badge}</div>
+                    )}
+                    <div style={{ width: 52, height: 52, borderRadius: 14, background: feat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+                      <Icon style={{ fontSize: 28, color: feat.color }} />
                     </div>
-                  )}
-                </div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>{feat.title}</h3>
+                    <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.65, margin: 0 }}>{feat.desc}</p>
+                  </div>
+                </Reveal>
               )
             })}
           </div>
         </div>
       </section>
 
-      {/* ── 7. Academics Deep Section ──────────────────────────────────────── */}
-      <section id="academics" style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-        padding: isMobile ? '60px 20px' : '96px 48px', position: 'relative', overflow: 'hidden'
-      }}>
-        {/* Glow blobs */}
-        <div style={{
-          position: 'absolute', top: '-10%', right: '-5%', width: 450, height: 450,
-          borderRadius: '50%', pointerEvents: 'none',
-          background: 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)'
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '-5%', left: '-5%', width: 350, height: 350,
-          borderRadius: '50%', pointerEvents: 'none',
-          background: 'radial-gradient(circle, rgba(139,92,246,0.14) 0%, transparent 70%)'
-        }} />
-
-        <div style={{
-          maxWidth: 1280, margin: '0 auto',
-          display: 'flex', gap: 72, alignItems: 'flex-start',
-          flexDirection: isMobile ? 'column' : 'row', position: 'relative', zIndex: 1
-        }}>
-          {/* Left */}
-          <div style={{ flex: '1 1 340px' }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)',
-              borderRadius: 100, padding: '6px 14px', marginBottom: 24
-            }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#10b981' }}>📚 ACADEMICS</span>
+      {/* ── How It Works ────────────────────────────────────────────────────── */}
+      <section id="how-it-works" style={{ background: 'linear-gradient(135deg,#04081a 0%,#080f2e 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .4 }} />
+        <div style={{ position: 'absolute', top: '50%', left: '50%', width: 600, height: 600, borderRadius: '50%', transform: 'translate(-50%,-50%)', background: 'radial-gradient(circle,rgba(139,92,246,0.1) 0%,transparent 60%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 60 }}>
+              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdHowToReg size={14} /> Simple Onboarding
+              </div>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,46px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+                Get started in <GradText from="#a78bfa" to="#34d399">4 simple steps</GradText>
+              </h2>
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,.48)', maxWidth: 500, margin: '0 auto', lineHeight: 1.7 }}>
+                From first login to full campus management — it only takes minutes.
+              </p>
             </div>
+          </Reveal>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4,1fr)', gap: isMobile ? 20 : 0, position: 'relative' }}>
+            {!isMobile && (
+              <div style={{ position: 'absolute', top: 44, left: '12.5%', right: '12.5%', height: 1, background: 'linear-gradient(90deg,transparent,rgba(99,102,241,0.5),rgba(139,92,246,0.5),rgba(16,185,129,0.5),rgba(245,158,11,0.5),transparent)', zIndex: 0 }} />
+            )}
+            {HOW_IT_WORKS.map((step, i) => {
+              const Icon = step.icon
+              return (
+                <Reveal key={step.step} delay={i * 100}>
+                  <div style={{ padding: isMobile ? '0' : '0 20px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+                    <div style={{ width: 88, height: 88, borderRadius: '50%', background: `${step.color}15`, border: `2px solid ${step.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 22px', position: 'relative', boxShadow: `0 0 32px ${step.color}20` }}>
+                      <Icon style={{ fontSize: 36, color: step.color }} />
+                      <div style={{ position: 'absolute', top: -10, right: -10, width: 28, height: 28, borderRadius: '50%', background: step.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, color: '#fff' }}>{step.step}</div>
+                    </div>
+                    <div style={{ fontSize: 17, fontWeight: 800, color: '#fff', marginBottom: 10 }}>{step.title}</div>
+                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', lineHeight: 1.7, maxWidth: 220, margin: '0 auto' }}>{step.desc}</div>
+                  </div>
+                </Reveal>
+              )
+            })}
+          </div>
+          <Reveal delay={400}>
+            <div style={{ textAlign: 'center', marginTop: 52 }}>
+              <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '14px 36px', borderRadius: 12, fontSize: 15, fontWeight: 700, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 9 }}>
+                Start Now <MdArrowForward size={18} />
+              </button>
+            </div>
+          </Reveal>
+        </div>
+      </section>
 
-            <h2 style={{
-              fontSize: 'clamp(28px, 3vw, 44px)', fontWeight: 800, color: '#fff',
-              margin: '0 0 18px', lineHeight: 1.15, letterSpacing: '-1px', fontFamily: FONT
-            }}>
-              Complete Academic Management —<br />All in One Place
-            </h2>
-            <p style={{
-              fontSize: 16, color: 'rgba(255,255,255,0.55)', lineHeight: 1.75,
-              maxWidth: 460, margin: '0 0 36px'
-            }}>
-              From curriculum planning to project submissions, digital assignments to APAAR ID — every academic function managed in a single, intuitive portal.
-            </p>
+      {/* ── 7. Portal Section ───────────────────────────────────────────────── */}
+      <section id="portals" style={{ background: 'linear-gradient(135deg,#04081a 0%,#0d1537 50%,#04081a 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .5 }} />
+        <div style={{ position: 'absolute', top: '30%', left: '50%', width: 700, height: 700, borderRadius: '50%', transform: 'translateX(-50%)', background: 'radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 60%)', pointerEvents: 'none' }} />
 
-            {/* Chips */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {ACADEMICS_GENERAL_ITEMS.slice(0, 14).map(item => (
-                <span key={item} style={{
-                  background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)',
-                  borderRadius: 100, padding: '5px 14px', fontSize: 13,
-                  fontWeight: 600, color: '#a5b4fc'
-                }}>
-                  {item}
-                </span>
+        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdGroups size={14} /> 5 Dedicated Portals
+              </div>
+              <h2 style={{ fontSize: 'clamp(28px,3.5vw,48px)', fontWeight: 800, color: '#fff', letterSpacing: '-1.5px', marginBottom: 16 }}>
+                Choose Your Portal
+              </h2>
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,.5)', maxWidth: 500, margin: '0 auto' }}>
+                Each portal is purpose-built for your specific role in the institution.
+              </p>
+            </div>
+          </Reveal>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(5,1fr)', gap: 18 }}>
+            {PORTALS.map((p, i) => {
+              const Icon = p.icon
+              const hov = hovPortal === p.key
+              return (
+                <Reveal key={p.key} delay={i * 80}>
+                  <div
+                    className="portal-card"
+                    onMouseEnter={() => setHovPortal(p.key)}
+                    onMouseLeave={() => setHovPortal(null)}
+                    style={{
+                      background: hov ? p.bg : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${hov ? p.color + '50' : 'rgba(255,255,255,0.08)'}`,
+                      borderRadius: 18,
+                      padding: '28px 20px',
+                      display: 'flex', flexDirection: 'column', gap: 16,
+                      boxShadow: hov ? `0 24px 48px ${p.color}20` : 'none',
+                    }}
+                  >
+                    <div style={{ width: 52, height: 52, borderRadius: 14, background: `${p.color}20`, border: `1px solid ${p.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon style={{ fontSize: 28, color: p.color }} />
+                    </div>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>{p.label}</div>
+                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', lineHeight: 1.65, flex: 1 }}>{p.desc}</div>
+                    <button onClick={() => navigate(`/auth/login?portal=${p.key}`)} style={{ padding: '10px', background: p.color, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: `0 4px 16px ${p.color}45`, transition: 'opacity .15s' }}
+                      onMouseEnter={e => e.currentTarget.style.opacity = '.85'}
+                      onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                      Login <MdArrowForward size={14} />
+                    </button>
+                  </div>
+                </Reveal>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 8. Academics ────────────────────────────────────────────────────── */}
+      <section id="academics" style={{ background: 'linear-gradient(135deg,#04081a 0%,#0d1537 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: 450, height: 450, borderRadius: '50%', background: 'radial-gradient(circle,rgba(99,102,241,0.15) 0%,transparent 70%)', pointerEvents: 'none' }} />
+
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', gap: 72, alignItems: 'flex-start', flexDirection: isMobile ? 'column' : 'row', position: 'relative', zIndex: 1 }}>
+          <Reveal dir="left" style={{ flex: '1 1 340px' }}>
+            <div style={{ flex: '1 1 340px' }}>
+              <div className="section-tag" style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)', marginBottom: 24 }}>
+                📚 Academics
+              </div>
+              <h2 style={{ fontSize: 'clamp(26px,3vw,44px)', fontWeight: 800, color: '#fff', marginBottom: 18, lineHeight: 1.15, letterSpacing: '-1px' }}>
+                Complete Academic<br />Management — All in One
+              </h2>
+              <p style={{ fontSize: 16, color: 'rgba(255,255,255,.55)', lineHeight: 1.8, maxWidth: 440, marginBottom: 36 }}>
+                From curriculum planning to project submissions, digital assignments to APAAR ID — every academic function managed in a single, intuitive portal.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {ACADEMICS_GENERAL_ITEMS.slice(0, 15).map(item => (
+                  <span key={item} className="chip" style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', padding: '5px 14px', fontSize: 12, fontWeight: 600, color: '#a5b4fc' }}>{item}</span>
+                ))}
+                <span className="chip" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px 14px', fontSize: 12, color: 'rgba(255,255,255,.35)', fontWeight: 500 }}>+{ACADEMICS_GENERAL_ITEMS.length - 15} more</span>
+              </div>
+            </div>
+          </Reveal>
+
+          <Reveal dir="right" delay={150} style={{ flex: '1 1 300px' }}>
+            <div style={{ flex: '1 1 300px', display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
+              {[
+                { title: 'General',           count: 19, color: '#818cf8', bg: 'rgba(99,102,241,.12)',  icon: MdMenuBook },
+                { title: 'Course Reg.',        count: 8,  color: '#60a5fa', bg: 'rgba(59,130,246,.12)', icon: MdSchool },
+                { title: 'Project Proposal',   count: 1,  color: '#c084fc', bg: 'rgba(168,85,247,.12)', icon: MdBadge },
+                { title: 'More coming soon',   count: null, color: '#475569', bg: 'rgba(71,85,105,.08)', icon: MdAccessTime },
+              ].map(card => {
+                const Icon = card.icon
+                return (
+                  <div key={card.title} style={{ background: card.bg, border: `1px solid ${card.color}25`, borderRadius: 14, padding: 20, transition: 'transform .2s', cursor: 'default' }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                    <div style={{ width: 36, height: 36, borderRadius: 9, background: `${card.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                      <Icon style={{ fontSize: 20, color: card.color }} />
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{card.title}</div>
+                    {card.count !== null
+                      ? <div style={{ fontSize: 12, color: card.color, fontWeight: 600 }}>{card.count} items</div>
+                      : <div style={{ fontSize: 12, color: 'rgba(255,255,255,.25)', fontWeight: 500 }}>In progress</div>}
+                  </div>
+                )
+              })}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── LMS ─────────────────────────────────────────────────────────────── */}
+      <section id="lms" style={{ background: 'linear-gradient(135deg,#04081a 0%,#0d1537 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', bottom: '-10%', left: '-5%', width: 480, height: 480, borderRadius: '50%', background: 'radial-gradient(circle,rgba(59,130,246,0.15) 0%,transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+              <div className="section-tag" style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdCastForEducation size={14} /> Learning Management System
+              </div>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+                Digital Learning, <GradText from="#60a5fa" to="#a78bfa">Fully Integrated</GradText>
+              </h2>
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,.48)', maxWidth: 540, margin: '0 auto', lineHeight: 1.7 }}>
+                Courses, assignments, grades, and resources — all accessible from one unified learning hub for students and faculty alike.
+              </p>
+            </div>
+          </Reveal>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4,1fr)', gap: 18 }}>
+            {LMS_FEATURES.map((feat, i) => {
+              const Icon = feat.icon
+              return (
+                <Reveal key={feat.title} delay={i * 80}>
+                  <div style={{ background: feat.bg, border: `1px solid ${feat.color}25`, borderRadius: 18, padding: '28px 22px', transition: 'all .3s cubic-bezier(.22,1,.36,1)', cursor: 'default' }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = `0 20px 40px ${feat.color}20`; e.currentTarget.style.border = `1px solid ${feat.color}50` }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.border = `1px solid ${feat.color}25` }}>
+                    <div style={{ width: 56, height: 56, borderRadius: 16, background: `${feat.color}20`, border: `1px solid ${feat.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                      <Icon style={{ fontSize: 30, color: feat.color }} />
+                    </div>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: '#fff', marginBottom: 10 }}>{feat.title}</div>
+                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', lineHeight: 1.7 }}>{feat.desc}</div>
+                  </div>
+                </Reveal>
+              )
+            })}
+          </div>
+          {/* LMS dashboard mockup */}
+          <Reveal delay={200}>
+            <div style={{ marginTop: 40, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, padding: isMobile ? '20px' : '28px 36px', display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(59,130,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <MdComputer style={{ fontSize: 28, color: '#60a5fa' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>Active for all roles</div>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,.4)' }}>Students submit · Faculty grade · Admin oversee</div>
+                </div>
+              </div>
+              {[{ label: 'Courses Available', val: '60+', color: '#60a5fa' }, { label: 'Assignments/sem', val: '200+', color: '#a78bfa' }, { label: 'Submission Rate', val: '98%', color: '#34d399' }].map(s => (
+                <div key={s.label} style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: s.color, letterSpacing: '-1px' }}>{s.val}</div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,.35)', fontWeight: 500 }}>{s.label}</div>
+                </div>
               ))}
-              <span style={{
-                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 100, padding: '5px 14px', fontSize: 13,
-                fontWeight: 600, color: 'rgba(255,255,255,0.35)'
-              }}>
-                +{ACADEMICS_GENERAL_ITEMS.length - 14} more
-              </span>
             </div>
-          </div>
+          </Reveal>
+        </div>
+      </section>
 
-          {/* Right — 2x2 sub-section cards */}
-          <div style={{
-            flex: '1 1 300px',
-            display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16
-          }}>
-            {[
-              { title: 'General', count: 19, color: '#6366f1', bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.25)', icon: MdMenuBook },
-              { title: 'Course Registration', count: 8, color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.25)', icon: MdSchool },
-              { title: 'Project Proposal', count: 1, color: '#a855f7', bg: 'rgba(168,85,247,0.12)', border: 'rgba(168,85,247,0.25)', icon: MdBadge },
-              { title: 'More coming soon', count: null, color: '#64748b', bg: 'rgba(100,116,139,0.08)', border: 'rgba(100,116,139,0.15)', icon: MdAccessTime },
-            ].map(card => {
-              const Icon = card.icon
-              return (
-                <div key={card.title} style={{
-                  background: card.bg, border: `1px solid ${card.border}`,
-                  borderRadius: 14, padding: 20,
-                  transition: 'transform 0.18s',
-                  cursor: 'default'
-                }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'none'}
-                >
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 9,
-                    background: `${card.color}22`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12
-                  }}>
-                    <Icon style={{ fontSize: 20, color: card.color }} />
+      {/* ── 9. Examinations ─────────────────────────────────────────────────── */}
+      <section id="examinations" style={{ background: 'linear-gradient(135deg,#fdf2f8 0%,#fef2f2 100%)', padding: isMobile ? '64px 20px' : '96px 48px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+              <div className="section-tag" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdAssignment size={14} /> Examination System
+              </div>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: 16 }}>
+                Complete Examination Management
+              </h2>
+              <p style={{ fontSize: 17, color: '#64748b', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
+                Regular, arrear, online and make-up exams — with full transparency on marks, grades and re-evaluation.
+              </p>
+            </div>
+          </Reveal>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2,1fr)', gap: 18 }}>
+            {EXAM_GROUPS.map((group, gi) => (
+              <Reveal key={group.title} delay={gi * 80}>
+                <div className="exam-card" style={{ background: '#fff', borderRadius: 16, padding: 24, border: `1.5px solid ${group.color}20`, borderTop: `4px solid ${group.color}`, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: group.color }}>{group.title}</span>
+                    <span style={{ background: `${group.color}15`, color: group.color, fontSize: 10, fontWeight: 700, padding: '2px 9px', borderRadius: 20 }}>{group.items.length} modules</span>
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{card.title}</div>
-                  {card.count !== null && (
-                    <div style={{ fontSize: 12, color: card.color, fontWeight: 600 }}>{card.count} items</div>
-                  )}
-                  {card.count === null && (
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>In progress</div>
-                  )}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                    {group.items.map(item => (
+                      <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                        <div style={{ width: 18, height: 18, borderRadius: '50%', background: `${group.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <MdCheck style={{ fontSize: 11, color: group.color }} />
+                        </div>
+                        <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{item}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 10. Finance ─────────────────────────────────────────────────────── */}
+      <section style={{ background: '#fff', padding: isMobile ? '64px 20px' : '96px 48px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+              <div className="section-tag" style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdPayment size={14} /> Finance & Payments
+              </div>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: 16 }}>
+                Transparent Fee Management
+              </h2>
+              <p style={{ fontSize: 17, color: '#64748b', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+                Complete financial visibility — from intimation to payments, wallet top-ups, and refund processing.
+              </p>
+            </div>
+          </Reveal>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${isMobile ? '100%' : '220px'},1fr))`, gap: 18 }}>
+            {FINANCE_ITEMS.map((item, i) => {
+              const Icon = item.icon
+              return (
+                <Reveal key={item.label} delay={i * 60}>
+                  <div className="finance-card" style={{ background: '#fafafa', borderRadius: 16, padding: '22px 20px', border: '1.5px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', cursor: 'default' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = `${item.color}08`; e.currentTarget.style.border = `1.5px solid ${item.color}30`; e.currentTarget.style.transform = 'translateY(-4px)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#fafafa'; e.currentTarget.style.border = '1.5px solid #f1f5f9'; e.currentTarget.style.transform = 'none' }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 12, background: `${item.color}12`, border: `1.5px solid ${item.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+                      <Icon style={{ fontSize: 24, color: item.color }} />
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>{item.label}</div>
+                    <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.6 }}>{item.desc}</div>
+                  </div>
+                </Reveal>
               )
             })}
           </div>
         </div>
       </section>
 
-      {/* ── 8. Examinations Section ────────────────────────────────────────── */}
-      <section id="examinations" style={{
-        background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-        padding: isMobile ? '60px 20px' : '96px 48px'
-      }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)',
-              borderRadius: 100, padding: '6px 16px', marginBottom: 20
-            }}>
-              <MdAssignment style={{ fontSize: 14, color: '#ef4444' }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#ef4444' }}>Examination System</span>
+      {/* ── Employee & HR ───────────────────────────────────────────────────── */}
+      <section id="hr" style={{ background: 'linear-gradient(135deg,#04081a 0%,#0d1537 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-5%', right: '-5%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle,rgba(245,158,11,0.12) 0%,transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-5%', left: '-5%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+              <div className="section-tag" style={{ background: 'rgba(245,158,11,0.12)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdBusinessCenter size={14} /> HR & Administration
+              </div>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+                Complete <GradText from="#fbbf24" to="#f87171">HR Management</GradText> Suite
+              </h2>
+              <p style={{ fontSize: 17, color: 'rgba(255,255,255,.48)', maxWidth: 540, margin: '0 auto', lineHeight: 1.7 }}>
+                Employee management, leave workflows, and payroll — fully automated and integrated for admin teams.
+              </p>
             </div>
-            <h2 style={{
-              fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: '#1e293b',
-              margin: '0 0 16px', letterSpacing: '-1px', fontFamily: FONT
-            }}>
-              Complete Examination Management
-            </h2>
-            <p style={{ fontSize: 17, color: '#64748b', maxWidth: 580, margin: '0 auto', lineHeight: 1.7 }}>
-              Covers regular, arrear, online and make-up examinations with full transparency on marks, grades and re-evaluation.
-            </p>
-          </div>
-
-          <div style={{
-            display: 'flex', gap: 48, alignItems: 'flex-start',
-            flexDirection: isMobile ? 'column' : 'row'
-          }}>
-            {/* Left — checklists */}
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 20 }}>
-                {[
-                  { title: 'General', items: EXAM_GENERAL, color: '#ef4444' },
-                  { title: 'Arrear', items: EXAM_ARREAR, color: '#f97316' },
-                  { title: 'Online', items: EXAM_ONLINE, color: '#8b5cf6' },
-                  { title: 'Makeup', items: EXAM_MAKEUP, color: '#06b6d4' },
-                ].map(group => (
-                  <div key={group.title} style={{
-                    background: '#fff', borderRadius: 16, padding: '24px',
-                    border: `1.5px solid ${group.color}25`,
-                    borderTop: `4px solid ${group.color}`,
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.05)'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                      <span style={{ fontSize: 15, fontWeight: 700, color: group.color }}>{group.title}</span>
-                      <span style={{
-                        background: `${group.color}15`, color: group.color,
-                        fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20
-                      }}>{group.items.length}</span>
+          </Reveal>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 22 }}>
+            {HR_MODULES.map((mod, i) => {
+              const Icon = mod.icon
+              return (
+                <Reveal key={mod.title} delay={i * 100}>
+                  <div style={{ background: mod.bg, border: `1.5px solid ${mod.color}25`, borderRadius: 20, padding: '28px 26px', transition: 'all .3s cubic-bezier(.22,1,.36,1)', cursor: 'default', height: '100%' }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = `0 24px 48px ${mod.color}18`; e.currentTarget.style.borderColor = `${mod.color}50` }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = `${mod.color}25` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
+                      <div style={{ width: 52, height: 52, borderRadius: 14, background: `${mod.color}20`, border: `1px solid ${mod.color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon style={{ fontSize: 28, color: mod.color }} />
+                      </div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{mod.title}</div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {group.items.map(item => (
-                        <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <div style={{
-                            width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
-                            background: `${group.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center'
-                          }}>
-                            <MdCheck style={{ fontSize: 11, color: group.color }} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {mod.items.map(item => (
+                        <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ width: 20, height: 20, borderRadius: '50%', background: `${mod.color}18`, border: `1px solid ${mod.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <MdCheck style={{ fontSize: 12, color: mod.color }} />
                           </div>
-                          <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{item}</span>
+                          <span style={{ fontSize: 13, color: 'rgba(255,255,255,.65)', fontWeight: 500 }}>{item}</span>
                         </div>
                       ))}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right — mock exam card */}
-            <div style={{ flex: '0 0 340px' }}>
-              <div style={{
-                background: '#fff', borderRadius: 20, padding: 28,
-                boxShadow: '0 16px 48px rgba(239,68,68,0.12)',
-                border: '1.5px solid rgba(239,68,68,0.15)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#1e293b' }}>Upcoming Exams</span>
-                  <span style={{
-                    background: '#fef2f2', color: '#ef4444',
-                    fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20
-                  }}>3 Scheduled</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {[
-                    { date: 'Jun 15', course: 'Operating Systems', venue: 'Hall A - R101', type: 'Theory', typeColor: '#6366f1', typeBg: '#eef2ff' },
-                    { date: 'Jun 18', course: 'Database Systems', venue: 'Hall B - R204', type: 'Practical', typeColor: '#10b981', typeBg: '#f0fdf4' },
-                    { date: 'Jun 20', course: 'Software Engineering', venue: 'Hall A - R110', type: 'Theory', typeColor: '#6366f1', typeBg: '#eef2ff' },
-                  ].map(exam => (
-                    <div key={exam.course} style={{
-                      display: 'grid', gridTemplateColumns: '52px 1fr auto',
-                      gap: 12, alignItems: 'center', padding: '12px 14px',
-                      background: '#f8fafc', borderRadius: 12, border: '1px solid #f1f5f9'
-                    }}>
-                      <div style={{
-                        background: '#fff', borderRadius: 8, padding: '6px',
-                        textAlign: 'center', border: '1px solid #e2e8f0'
-                      }}>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: '#ef4444', lineHeight: 1 }}>
-                          {exam.date.split(' ')[1]}
-                        </div>
-                        <div style={{ fontSize: 10, color: '#64748b', fontWeight: 600 }}>{exam.date.split(' ')[0]}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 2 }}>{exam.course}</div>
-                        <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>{exam.venue}</div>
-                      </div>
-                      <span style={{
-                        background: exam.typeBg, color: exam.typeColor,
-                        fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20
-                      }}>{exam.type}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 9. Finance Section ─────────────────────────────────────────────── */}
-      <section style={{ background: '#fff', padding: isMobile ? '60px 20px' : '96px 48px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)',
-              borderRadius: 100, padding: '6px 16px', marginBottom: 20
-            }}>
-              <MdPayment style={{ fontSize: 14, color: '#10b981' }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#10b981' }}>Finance & Payments</span>
-            </div>
-            <h2 style={{
-              fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: '#1e293b',
-              margin: '0 0 16px', letterSpacing: '-1px', fontFamily: FONT
-            }}>
-              Transparent Fee &amp; Payment Management
-            </h2>
-            <p style={{ fontSize: 17, color: '#64748b', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
-              Complete financial visibility — from fee intimation to online payments, wallet top-ups, and refund processing.
-            </p>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: 20
-          }}>
-            {FINANCE_ITEMS.map((item, i) => {
-              const Icon = item.icon
-              const hov = hoveredFinance === i
-              return (
-                <div
-                  key={item.label}
-                  onMouseEnter={() => setHoveredFinance(i)}
-                  onMouseLeave={() => setHoveredFinance(null)}
-                  style={{
-                    background: hov ? item.bg : '#fafafa',
-                    borderRadius: 16, padding: '24px 22px',
-                    border: `1.5px solid ${hov ? item.color + '35' : '#f1f5f9'}`,
-                    boxShadow: hov ? `0 12px 32px ${item.color}18` : '0 2px 8px rgba(0,0,0,0.03)',
-                    transform: hov ? 'translateY(-4px)' : 'none',
-                    transition: 'all 0.2s ease', cursor: 'default'
-                  }}
-                >
-                  <div style={{
-                    width: 48, height: 48, borderRadius: 13, background: item.bg,
-                    border: `1.5px solid ${item.color}20`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16
-                  }}>
-                    <Icon style={{ fontSize: 24, color: item.color }} />
-                  </div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#1e293b', marginBottom: 6 }}>{item.label}</div>
-                  <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.6 }}>{item.desc}</div>
-                </div>
+                </Reveal>
               )
             })}
           </div>
-        </div>
-      </section>
-
-      {/* ── 10. Portal Section ─────────────────────────────────────────────── */}
-      <section id="portals" style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-        padding: isMobile ? '60px 20px' : '96px 48px', position: 'relative', overflow: 'hidden'
-      }}>
-        <div style={{
-          position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)',
-          width: 600, height: 600, borderRadius: '50%', pointerEvents: 'none',
-          background: 'radial-gradient(circle, rgba(99,102,241,0.14) 0%, transparent 60%)'
-        }} />
-
-        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <h2 style={{
-              fontSize: 'clamp(28px, 3.5vw, 48px)', fontWeight: 800, color: '#fff',
-              margin: '0 0 16px', letterSpacing: '-1.5px', fontFamily: FONT
-            }}>
-              Choose Your Portal
-            </h2>
-            <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.5)', maxWidth: 500, margin: '0 auto' }}>
-              Each portal is purpose-built for your specific role in the institution.
-            </p>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
-            gap: 20
-          }}>
-            {PORTALS.map(portal => {
-              const Icon = portal.icon
-              const hov = hoveredPortal === portal.key
-              return (
-                <div
-                  key={portal.key}
-                  onMouseEnter={() => setHoveredPortal(portal.key)}
-                  onMouseLeave={() => setHoveredPortal(null)}
-                  style={{
-                    background: hov ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.06)',
-                    border: `1px solid ${hov ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.12)'}`,
-                    borderRadius: 16, padding: 28,
-                    display: 'flex', flexDirection: 'column', gap: 14,
-                    transform: hov ? 'translateY(-5px)' : 'none',
-                    boxShadow: hov ? `0 20px 48px rgba(0,0,0,0.3)` : 'none',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    transition: 'all 0.22s ease', cursor: 'default'
-                  }}
-                >
-                  <div style={{
-                    width: 48, height: 48, borderRadius: 13,
-                    background: `${portal.color}25`, border: `1px solid ${portal.color}35`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}>
-                    <Icon style={{ fontSize: 26, color: portal.color }} />
-                  </div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>{portal.label}</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, flex: 1 }}>
-                    {portal.description}
-                  </div>
-                  <button
-                    onClick={() => navigate(`/auth/login?portal=${portal.key}`)}
-                    style={{
-                      padding: '10px 16px', background: portal.color, border: 'none',
-                      borderRadius: 9, fontSize: 13, fontWeight: 700, color: '#fff',
-                      cursor: 'pointer', fontFamily: FONT, width: '100%',
-                      boxShadow: `0 4px 14px ${portal.color}55`,
-                      transition: 'opacity 0.15s'
-                    }}
-                    onMouseEnter={e => e.target.style.opacity = '0.88'}
-                    onMouseLeave={e => e.target.style.opacity = '1'}
-                  >
-                    Login →
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 12. Services Spotlight ─────────────────────────────────────────── */}
-      <section style={{ background: '#fff', padding: isMobile ? '60px 20px' : '96px 48px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)',
-              borderRadius: 100, padding: '6px 16px', marginBottom: 20
-            }}>
-              <MdMiscellaneousServices style={{ fontSize: 14, color: '#f59e0b' }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#f59e0b' }}>Student Services</span>
+          {/* Admin badge strip */}
+          <Reveal delay={300}>
+            <div style={{ marginTop: 36, display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
+              {['Bulk CSV Import', 'Role-Based Access', 'Department Hierarchy', 'Payslip PDF Export', 'Audit Logs', 'Real-Time Sync'].map(badge => (
+                <span key={badge} style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', color: '#fbbf24', borderRadius: 100, padding: '6px 16px', fontSize: 12, fontWeight: 600 }}>{badge}</span>
+              ))}
             </div>
-            <h2 style={{
-              fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: '#1e293b',
-              margin: '0 0 16px', letterSpacing: '-1px', fontFamily: FONT
-            }}>
-              Everything a Student Needs
-            </h2>
-            <p style={{ fontSize: 17, color: '#64748b', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
-              One-stop access to registrations, certificates, profile management, library, and more — all without paperwork.
-            </p>
-          </div>
+          </Reveal>
+        </div>
+      </section>
 
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20
-          }}>
-            {SERVICES_GROUPS.map(group => (
-              <div
-                key={group.title}
-                style={{
-                  background: '#fff', borderRadius: 18, padding: 24,
-                  border: `1.5px solid ${group.color}20`,
-                  borderTop: `4px solid ${group.color}`,
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                  transition: 'box-shadow 0.2s, transform 0.2s'
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.boxShadow = `0 16px 40px ${group.color}18`
-                  e.currentTarget.style.transform = 'translateY(-3px)'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)'
-                  e.currentTarget.style.transform = 'none'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: '#1e293b' }}>{group.title}</span>
-                  <span style={{
-                    background: `${group.color}12`, color: group.color,
-                    fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20
-                  }}>{group.items.length} items</span>
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                  {group.items.map(item => (
-                    <span key={item} style={{
-                      background: group.bg, color: group.color,
-                      border: `1px solid ${group.color}20`,
-                      borderRadius: 20, padding: '4px 11px', fontSize: 12, fontWeight: 500
-                    }}>{item}</span>
-                  ))}
-                </div>
+      {/* ── 11. Services ────────────────────────────────────────────────────── */}
+      <section style={{ background: '#f8fafc', padding: isMobile ? '64px 20px' : '96px 48px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+              <div className="section-tag" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdMiscellaneousServices size={14} /> Student Services
               </div>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: 16 }}>
+                Everything a Student Needs
+              </h2>
+              <p style={{ fontSize: 17, color: '#64748b', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+                One-stop access to registrations, certificates, profile management, library, and more — zero paperwork.
+              </p>
+            </div>
+          </Reveal>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${isMobile ? '100%' : '260px'},1fr))`, gap: 18 }}>
+            {SERVICES_GROUPS.map((group, gi) => (
+              <Reveal key={group.title} delay={gi * 70}>
+                <div className="service-card" style={{ background: '#fff', borderRadius: 18, padding: 24, border: `1.5px solid ${group.color}18`, borderTop: `4px solid ${group.color}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', cursor: 'default' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = `0 16px 36px ${group.color}15` }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{group.title}</span>
+                    <span style={{ background: `${group.color}12`, color: group.color, fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>{group.items.length} items</span>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {group.items.map(item => (
+                      <span key={item} style={{ background: `${group.color}10`, color: group.color, border: `1px solid ${group.color}18`, borderRadius: 20, padding: '4px 11px', fontSize: 12, fontWeight: 500 }}>{item}</span>
+                    ))}
+                  </div>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── 13. Research Section ───────────────────────────────────────────── */}
-      <section style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-        padding: isMobile ? '60px 20px' : '96px 48px', position: 'relative', overflow: 'hidden'
-      }}>
-        <div style={{
-          position: 'absolute', bottom: '-10%', right: '-5%', width: 400, height: 400,
-          borderRadius: '50%', pointerEvents: 'none',
-          background: 'radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)'
-        }} />
-
-        <div style={{
-          maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1,
-          display: 'flex', gap: 72, alignItems: 'flex-start',
-          flexDirection: isMobile ? 'column' : 'row'
-        }}>
-          {/* Left */}
-          <div style={{ flex: '1 1 340px' }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)',
-              borderRadius: 100, padding: '6px 16px', marginBottom: 24
-            }}>
-              <MdScience style={{ fontSize: 14, color: '#a78bfa' }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#a78bfa' }}>🔬 RESEARCH PORTAL</span>
+      {/* ── Notifications ───────────────────────────────────────────────────── */}
+      <section id="notifications" style={{ background: '#fff', padding: isMobile ? '64px 20px' : '96px 48px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdNotificationsActive size={14} /> Smart Notifications
+              </div>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: 16 }}>
+                Stay informed. <span style={{ color: '#6366f1' }}>Always.</span>
+              </h2>
+              <p style={{ fontSize: 17, color: '#64748b', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+                The right information reaches the right person at the right time — automatically, across every portal and role.
+              </p>
             </div>
-
-            <h2 style={{
-              fontSize: 'clamp(28px, 3vw, 42px)', fontWeight: 800, color: '#fff',
-              margin: '0 0 18px', lineHeight: 1.15, letterSpacing: '-1px', fontFamily: FONT
-            }}>
-              PhD &amp; Research Scholar Portal
-            </h2>
-            <p style={{
-              fontSize: 16, color: 'rgba(255,255,255,0.55)', lineHeight: 1.75,
-              maxWidth: 460, margin: '0 0 36px'
-            }}>
-              A dedicated research portal covering all aspects of the PhD journey — from registration to thesis submission and weekly workload tracking.
-            </p>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {RESEARCH_ITEMS.map(item => (
-                <span key={item} style={{
-                  background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)',
-                  borderRadius: 100, padding: '5px 14px', fontSize: 13,
-                  fontWeight: 600, color: '#c4b5fd'
-                }}>{item}</span>
-              ))}
-            </div>
+          </Reveal>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4,1fr)', gap: 20 }}>
+            {NOTIFICATION_FEATURES.map((feat, i) => {
+              const Icon = feat.icon
+              return (
+                <Reveal key={feat.title} delay={i * 80}>
+                  <div style={{ background: '#fafafa', border: `1.5px solid #f1f5f9`, borderRadius: 18, padding: '26px 22px', transition: 'all .3s cubic-bezier(.22,1,.36,1)', cursor: 'default', height: '100%' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = `${feat.color}06`; e.currentTarget.style.border = `1.5px solid ${feat.color}30`; e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = `0 16px 36px ${feat.color}12` }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#fafafa'; e.currentTarget.style.border = '1.5px solid #f1f5f9'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}>
+                    <div style={{ width: 54, height: 54, borderRadius: 15, background: `${feat.color}12`, border: `1.5px solid ${feat.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+                      <Icon style={{ fontSize: 28, color: feat.color }} />
+                    </div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>{feat.title}</div>
+                    <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.7 }}>{feat.desc}</div>
+                  </div>
+                </Reveal>
+              )
+            })}
           </div>
+          {/* Live notification preview */}
+          <Reveal delay={250}>
+            <div style={{ marginTop: 40, background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: isMobile ? '20px' : '28px 36px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 18 }}>Live Notification Feed</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {[
+                  { icon: MdAssignment, color: '#6366f1', text: 'Digital Assignment due in 2 hours — Data Structures (CS3201)', time: 'Just now', role: 'Student' },
+                  { icon: MdCalendarToday, color: '#10b981', text: 'Leave request approved by HOD — Dr. Ravi Kumar', time: '5 min ago', role: 'Faculty' },
+                  { icon: MdMonetizationOn, color: '#f59e0b', text: 'Payroll processed for March 2025 — 142 employees', time: '1 hr ago', role: 'Admin' },
+                  { icon: MdSchool, color: '#f87171', text: 'End Semester Exam scheduled — June 20, Hall A', time: '3 hrs ago', role: 'Student' },
+                ].map((notif, i) => {
+                  const Icon = notif.icon
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', borderRadius: 12, padding: '12px 16px', border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                      <div style={{ width: 38, height: 38, borderRadius: 10, background: `${notif.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Icon style={{ fontSize: 20, color: notif.color }} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{notif.text}</div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: notif.color, background: `${notif.color}12`, padding: '2px 8px', borderRadius: 20 }}>{notif.role}</span>
+                        <span style={{ fontSize: 11, color: '#94a3b8' }}>{notif.time}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
 
-          {/* Right — mini research dashboard */}
-          <div style={{ flex: '0 0 360px' }}>
-            <div style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: 20, padding: 28,
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+      {/* ── 12. Research ────────────────────────────────────────────────────── */}
+      <section id="research" style={{ background: 'linear-gradient(135deg,#04081a 0%,#0d1537 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle,rgba(139,92,246,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', gap: 72, alignItems: 'flex-start', flexDirection: isMobile ? 'column' : 'row', position: 'relative', zIndex: 1 }}>
+          <Reveal dir="left" style={{ flex: '1 1 340px' }}>
+            <div style={{ flex: '1 1 340px' }}>
+              <div className="section-tag" style={{ background: 'rgba(139,92,246,0.12)', color: '#c084fc', border: '1px solid rgba(139,92,246,0.25)', marginBottom: 24 }}>
+                <MdScience size={14} /> 🔬 Research Portal
+              </div>
+              <h2 style={{ fontSize: 'clamp(26px,3vw,42px)', fontWeight: 800, color: '#fff', marginBottom: 18, lineHeight: 1.15, letterSpacing: '-1px' }}>
+                PhD &amp; Research<br />Scholar Portal
+              </h2>
+              <p style={{ fontSize: 16, color: 'rgba(255,255,255,.55)', lineHeight: 1.8, maxWidth: 440, marginBottom: 36 }}>
+                A dedicated research portal covering all aspects of the PhD journey — from registration to thesis submission and weekly workload tracking.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {RESEARCH_ITEMS.map(item => (
+                  <span key={item} className="chip" style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.25)', padding: '5px 14px', fontSize: 12, fontWeight: 600, color: '#c4b5fd' }}>{item}</span>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+
+          <Reveal dir="right" delay={150} style={{ flex: '0 0 360px' }}>
+            <GlassCard style={{ padding: 28, flex: '0 0 360px' }} hover={false}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
                 <div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 2, fontWeight: 500 }}>Research Dashboard</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,.35)', marginBottom: 2, fontWeight: 500 }}>Research Dashboard</div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>PhD Scholar Status</div>
                 </div>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 9,
-                  background: 'rgba(139,92,246,0.2)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
-                  <MdScience style={{ fontSize: 20, color: '#a78bfa' }} />
+                <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(139,92,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <MdScience style={{ fontSize: 20, color: '#c084fc' }} />
                 </div>
               </div>
-
-              {/* Progress bars */}
-              {[
-                { label: 'Course Work', pct: 80, color: '#a78bfa' },
-                { label: 'Thesis Progress', pct: 35, color: '#6366f1' },
-                { label: 'Meetings Done', pct: 60, color: '#10b981' },
-              ].map(item => (
+              {[{ label: 'Course Work', pct: 80, color: '#a78bfa' }, { label: 'Thesis Progress', pct: 35, color: '#6366f1' }, { label: 'Meetings Done', pct: 60, color: '#10b981' }].map(item => (
                 <div key={item.label} style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>{item.label}</span>
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,.6)', fontWeight: 500 }}>{item.label}</span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: item.color }}>{item.pct}%</span>
                   </div>
-                  <div style={{ height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${item.pct}%`, background: item.color, borderRadius: 3 }} />
+                  <div style={{ height: 6, background: 'rgba(255,255,255,.08)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${item.pct}%`, background: item.color, borderRadius: 3, transition: 'width 1s ease' }} />
                   </div>
                 </div>
               ))}
-
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 18, marginTop: 4 }}>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 12, fontWeight: 600 }}>RECENT ACTIVITY</div>
-                {[
-                  { text: 'Thesis Chapter 2 submitted', time: '2h ago', color: '#10b981' },
-                  { text: 'Guide meeting scheduled', time: '1d ago', color: '#a78bfa' },
-                  { text: 'Weekly workload updated', time: '3d ago', color: '#6366f1' },
-                ].map(act => (
-                  <div key={act.text} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)'
-                  }}>
+              <div style={{ borderTop: '1px solid rgba(255,255,255,.08)', paddingTop: 18, marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.3)', marginBottom: 12, fontWeight: 700, letterSpacing: '.06em' }}>RECENT ACTIVITY</div>
+                {[{ text: 'Thesis Chapter 2 submitted', time: '2h ago', color: '#10b981' }, { text: 'Guide meeting scheduled', time: '1d ago', color: '#a78bfa' }, { text: 'Weekly workload updated', time: '3d ago', color: '#6366f1' }].map(act => (
+                  <div key={act.text} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,.05)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', background: act.color, flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', fontWeight: 500 }}>{act.text}</span>
+                      <span style={{ fontSize: 12, color: 'rgba(255,255,255,.65)', fontWeight: 500 }}>{act.text}</span>
                     </div>
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>{act.time}</span>
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', fontWeight: 500 }}>{act.time}</span>
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
+            </GlassCard>
+          </Reveal>
         </div>
       </section>
 
-      {/* ── 14. Meet the Team ─────────────────────────────────────────────── */}
-      <section style={{
-        background: '#f8fafc',
-        padding: isMobile ? '60px 20px' : '96px 48px',
-      }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          {/* Header */}
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)',
-              borderRadius: 100, padding: '6px 18px', marginBottom: 20
-            }}>
-              <MdPeople style={{ fontSize: 14, color: '#6366f1' }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#6366f1' }}>The Builders</span>
-            </div>
-            <h2 style={{
-              fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: '#1e293b',
-              margin: '0 0 16px', letterSpacing: '-1px', fontFamily: FONT
-            }}>
-              Meet the Team
-            </h2>
-            <p style={{ fontSize: 17, color: '#64748b', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
-              The passionate people who designed, built, and launched College ERP.
-            </p>
-          </div>
-
-          {/* Team cards */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-            gap: 28,
-            maxWidth: 960,
-            margin: '0 auto'
-          }}>
-            {[
-              {
-                name: 'Manoj Kumar',
-                role: 'Founder & Marketing Team Lead',
-                initials: 'MK',
-                gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                glow: 'rgba(99,102,241,0.25)',
-                tag: 'Founder',
-                tagBg: '#eef2ff',
-                tagColor: '#6366f1',
-                desc: 'Driving the vision, strategy and growth of College ERP — from concept to campus.',
-              },
-              {
-                name: 'Hari Prasanth',
-                role: 'Co Founder & Full Stack Developer',
-                initials: 'HP',
-                gradient: 'linear-gradient(135deg, #10b981, #059669)',
-                glow: 'rgba(16,185,129,0.25)',
-                tag: 'Co Founder',
-                tagBg: '#f0fdf4',
-                tagColor: '#10b981',
-                desc: 'Architecting and building the entire platform — backend, frontend, and everything in between.',
-              },
-              {
-                name: 'Pavitaran',
-                role: 'Co Founder & DevOps Lead',
-                initials: 'PV',
-                gradient: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                glow: 'rgba(245,158,11,0.25)',
-                tag: 'Co Founder',
-                tagBg: '#fffbeb',
-                tagColor: '#d97706',
-                desc: 'Ensuring zero downtime and bulletproof infrastructure — keeping College ERP always online.',
-              },
-            ].map((member, i) => (
-              <div
-                key={member.name}
-                style={{
-                  background: '#fff', borderRadius: 20,
-                  padding: '32px 28px', textAlign: 'center',
-                  border: '1.5px solid #f1f5f9',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                  transition: 'transform 0.22s ease, box-shadow 0.22s ease',
-                  cursor: 'default',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-6px)'
-                  e.currentTarget.style.boxShadow = `0 20px 48px ${member.glow}`
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = 'none'
-                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.05)'
-                }}
-              >
-                {/* Avatar */}
-                <div style={{
-                  width: 80, height: 80, borderRadius: '50%',
-                  background: member.gradient,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  margin: '0 auto 20px',
-                  fontSize: 28, fontWeight: 800, color: '#fff', letterSpacing: 1,
-                  boxShadow: `0 8px 24px ${member.glow}`,
-                  fontFamily: FONT,
-                }}>
-                  {member.initials}
-                </div>
-
-                {/* Role tag */}
-                <span style={{
-                  display: 'inline-block',
-                  background: member.tagBg, color: member.tagColor,
-                  border: `1px solid ${member.tagColor}30`,
-                  fontSize: 10, fontWeight: 800, letterSpacing: '0.06em',
-                  textTransform: 'uppercase', padding: '3px 12px', borderRadius: 20,
-                  marginBottom: 14,
-                }}>
-                  {member.tag}
-                </span>
-
-                {/* Name */}
-                <div style={{ fontSize: 19, fontWeight: 800, color: '#0f172a', marginBottom: 6, fontFamily: FONT }}>
-                  {member.name}
-                </div>
-
-                {/* Title */}
-                <div style={{ fontSize: 13, fontWeight: 600, color: member.tagColor, marginBottom: 16 }}>
-                  {member.role}
-                </div>
-
-                {/* Divider */}
-                <div style={{ height: 1, background: '#f1f5f9', margin: '0 0 16px' }} />
-
-                {/* Desc */}
-                <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.7, margin: 0 }}>
-                  {member.desc}
-                </p>
+      {/* ── 13. Meet the Team ───────────────────────────────────────────────── */}
+      <section id="team" style={{ background: '#f8fafc', padding: isMobile ? '64px 20px' : '96px 48px' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 60 }}>
+              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.18)', marginBottom: 18, margin: '0 auto 18px' }}>
+                <MdGroups size={14} /> The Builders
               </div>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: 16 }}>
+                Meet the Team
+              </h2>
+              <p style={{ fontSize: 17, color: '#64748b', maxWidth: 480, margin: '0 auto', lineHeight: 1.7 }}>
+                The passionate people who designed, built, and launched College ERP.
+              </p>
+            </div>
+          </Reveal>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 28, maxWidth: 980, margin: '0 auto' }}>
+            {TEAM.map((m, i) => (
+              <Reveal key={m.name} delay={i * 100}>
+                <div className="team-card" style={{ background: '#fff', borderRadius: 22, padding: '36px 30px', textAlign: 'center', border: '1.5px solid #f1f5f9', boxShadow: '0 4px 24px rgba(0,0,0,0.05)', position: 'relative', overflow: 'hidden', cursor: 'default' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = `0 24px 48px ${m.glow}` }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.05)' }}>
+                  {/* Gradient bg accent */}
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 80, background: `linear-gradient(135deg, ${m.glow.replace('.4)', '.08)')} 0%, transparent 100%)`, pointerEvents: 'none' }} />
+                  {/* Avatar */}
+                  <div style={{ width: 84, height: 84, borderRadius: '50%', background: m.grad, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 30, fontWeight: 900, color: '#fff', boxShadow: `0 10px 28px ${m.glow}`, position: 'relative', zIndex: 1 }}>
+                    {m.initials}
+                  </div>
+                  {/* Tag */}
+                  <span style={{ display: 'inline-block', background: `${m.tagColor}12`, color: m.tagColor, border: `1px solid ${m.tagColor}25`, fontSize: 10, fontWeight: 800, padding: '3px 12px', borderRadius: 20, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 14 }}>
+                    {m.tag}
+                  </span>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>{m.name}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: m.tagColor, marginBottom: 18 }}>{m.role}</div>
+                  <div style={{ height: 1, background: '#f1f5f9', marginBottom: 18 }} />
+                  <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.7, margin: 0 }}>{m.desc}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── 15. Final CTA ──────────────────────────────────────────────────── */}
-      <section style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
-        padding: isMobile ? '60px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', textAlign: 'center'
-      }}>
-        <div style={{
-          position: 'absolute', top: '50%', left: '50%',
-          transform: 'translate(-50%,-50%)',
-          width: 700, height: 700, borderRadius: '50%', pointerEvents: 'none',
-          background: 'radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 60%)'
-        }} />
-        <div style={{
-          backgroundImage: 'linear-gradient(rgba(99,102,241,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.06) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-          position: 'absolute', inset: 0, pointerEvents: 'none'
-        }} />
+      {/* ── 14. Final CTA ───────────────────────────────────────────────────── */}
+      <section style={{ background: 'linear-gradient(135deg,#04081a 0%,#0d1537 50%,#04081a 100%)', padding: isMobile ? '72px 20px' : '112px 48px', position: 'relative', overflow: 'hidden', textAlign: 'center' }}>
+        <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 800, height: 800, borderRadius: '50%', background: 'radial-gradient(circle,rgba(99,102,241,0.18) 0%,transparent 60%)', pointerEvents: 'none' }} />
 
         <div style={{ maxWidth: 780, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)',
-            borderRadius: 100, padding: '6px 16px', marginBottom: 28
-          }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981', display: 'inline-block' }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.75)' }}>Ready to modernize your campus?</span>
-          </div>
-
-          <h2 style={{
-            fontSize: 'clamp(32px, 4.5vw, 58px)', fontWeight: 800, color: '#fff',
-            margin: '0 0 20px', lineHeight: 1.1, letterSpacing: '-2px', fontFamily: FONT
-          }}>
-            Start managing your college{' '}
-            <span style={{
-              background: 'linear-gradient(90deg, #6366f1, #a78bfa, #10b981)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'
-            }}>
-              smarter today
-            </span>
-          </h2>
-
-          <p style={{
-            fontSize: 18, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7,
-            margin: '0 0 44px', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto'
-          }}>
-            Join thousands of students, faculty, and administrators already using College ERP to streamline every workflow.
-          </p>
-
-          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              onMouseEnter={() => setHoveredCTA('cta-start')}
-              onMouseLeave={() => setHoveredCTA(null)}
-              onClick={() => navigate('/auth/login')}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                padding: '16px 36px', borderRadius: 12, border: 'none',
-                background: hoveredCTA === 'cta-start'
-                  ? 'linear-gradient(135deg, #4f46e5, #7c3aed)'
-                  : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                color: '#fff', fontSize: 16, fontWeight: 700,
-                cursor: 'pointer', fontFamily: FONT,
-                boxShadow: hoveredCTA === 'cta-start'
-                  ? '0 10px 36px rgba(99,102,241,0.7)'
-                  : '0 6px 28px rgba(99,102,241,0.55)',
-                transform: hoveredCTA === 'cta-start' ? 'translateY(-2px)' : 'none',
-                transition: 'all 0.18s'
-              }}
-            >
-              Get Started Free <MdArrowForward style={{ fontSize: 20 }} />
-            </button>
-
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 28, marginTop: 40, flexWrap: 'wrap' }}>
-            {[
-              { icon: MdShield, text: 'Enterprise Secured' },
-              { icon: MdCheck, text: 'Role-Based Access' },
-              { icon: MdPublic, text: '24/7 Available' },
-              { icon: MdAccessTime, text: 'Real-Time Sync' },
-            ].map(({ icon: Icon, text }) => (
-              <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'rgba(255,255,255,0.45)', fontSize: 13 }}>
-                <Icon style={{ fontSize: 15, color: 'rgba(99,102,241,0.8)' }} />
-                {text}
-              </div>
-            ))}
-          </div>
+          <Reveal>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 100, padding: '7px 18px', marginBottom: 28 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 10px #10b981', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.78)' }}>Ready to modernize your campus?</span>
+            </div>
+          </Reveal>
+          <Reveal delay={100}>
+            <h2 style={{ fontSize: isMobile ? 'clamp(32px,10vw,48px)' : 'clamp(36px,5vw,64px)', fontWeight: 900, color: '#fff', letterSpacing: '-2px', lineHeight: 1.08, marginBottom: 20 }}>
+              Start managing your college&nbsp;
+              <GradText from="#a78bfa" to="#34d399">smarter today</GradText>
+            </h2>
+          </Reveal>
+          <Reveal delay={200}>
+            <p style={{ fontSize: 18, color: 'rgba(255,255,255,.5)', lineHeight: 1.7, maxWidth: 520, margin: '0 auto 48px' }}>
+              Join students, faculty, and administrators already using College ERP to streamline every campus workflow.
+            </p>
+          </Reveal>
+          <Reveal delay={300}>
+            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 52 }}>
+              <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '17px 40px', borderRadius: 14, fontSize: 17, fontWeight: 800, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                Get Started Free <MdArrowForward size={20} />
+              </button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 32, flexWrap: 'wrap' }}>
+              {[{ icon: MdShield, t: 'Enterprise Secure' }, { icon: MdCheck, t: 'Role-Based Access' }, { icon: MdPublic, t: '24/7 Available' }, { icon: MdAccessTime, t: 'Real-Time Sync' }].map(({ icon: Icon, t }) => (
+                <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'rgba(255,255,255,.4)', fontSize: 13 }}>
+                  <Icon style={{ fontSize: 14, color: '#a78bfa' }} />{t}
+                </div>
+              ))}
+            </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* ── 15. Footer ─────────────────────────────────────────────────────── */}
-      <footer style={{ background: '#0f172a', padding: isMobile ? '48px 20px 0' : '72px 48px 0', fontFamily: FONT }}>
-        <div style={{
-          maxWidth: 1280, margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '2.2fr 1fr 1fr 1.4fr',
-          gap: 52, paddingBottom: 52,
-          borderBottom: '1px solid rgba(255,255,255,0.07)'
-        }}>
-          {/* Brand column */}
+      {/* ── 15. Footer ──────────────────────────────────────────────────────── */}
+      <footer style={{ background: '#020611', padding: isMobile ? '56px 20px 0' : '80px 48px 0' }}>
+        {/* Gradient top border */}
+        <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,rgba(99,102,241,0.5),rgba(139,92,246,0.5),transparent)', marginBottom: 60 }} />
+
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2.2fr 1fr 1fr 1.4fr', gap: 52, paddingBottom: 56, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          {/* Brand */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-              <div style={{
-                width: 38, height: 38, borderRadius: 10,
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 4px 14px rgba(99,102,241,0.4)'
-              }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(99,102,241,0.4)' }}>
                 <MdSchool style={{ color: '#fff', fontSize: 22 }} />
               </div>
               <div>
-                <div style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>College ERP</div>
-                <div style={{ fontSize: 11, color: '#475569', fontWeight: 500 }}>v2.0 — Modern Campus Platform</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: '#fff' }}>College<span style={{ color: '#a78bfa' }}>ERP</span></div>
+                <div style={{ fontSize: 11, color: '#334155', fontWeight: 500 }}>v2.0 — Modern Campus Platform</div>
               </div>
             </div>
-            <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.75, maxWidth: 280, margin: '0 0 22px' }}>
-              A comprehensive college management platform for modern educational institutions. Manage academics, exams, finance, services and research in one place.
+            <p style={{ fontSize: 13, color: '#334155', lineHeight: 1.8, maxWidth: 280, marginBottom: 22 }}>
+              A comprehensive college management platform for modern educational institutions. Academics, exams, finance, research — all in one place.
             </p>
-            {/* Tech stack badges */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-              {['React 18', 'Spring Boot', 'MySQL', 'JWT'].map(tech => (
-                <span key={tech} style={{
-                  background: 'rgba(255,255,255,0.06)', color: '#64748b',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20
-                }}>{tech}</span>
+              {['React 18', 'Spring Boot', 'PostgreSQL', 'Docker', 'JWT'].map(tech => (
+                <span key={tech} style={{ background: 'rgba(255,255,255,0.05)', color: '#475569', border: '1px solid rgba(255,255,255,0.07)', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20 }}>{tech}</span>
               ))}
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Quick links */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 20, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Quick Links
-            </div>
-            {[
-              { label: 'Features', id: 'features' },
-              { label: 'Academics', id: 'academics' },
-              { label: 'Examinations', id: 'examinations' },
-              { label: 'Finance', id: null, path: null },
-            ].map(link => (
-              <div key={link.label} style={{ marginBottom: 12 }}>
-                <button
-                  onClick={() => link.id ? scrollTo(link.id) : null}
-                  style={{
-                    background: 'none', border: 'none', padding: 0,
-                    fontSize: 14, color: '#475569', cursor: 'pointer',
-                    fontFamily: FONT, fontWeight: 400,
-                    transition: 'color 0.15s'
-                  }}
-                  onMouseEnter={e => e.target.style.color = '#a5b4fc'}
-                  onMouseLeave={e => e.target.style.color = '#475569'}
-                >
-                  {link.label}
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 20, textTransform: 'uppercase', letterSpacing: '.1em' }}>Quick Links</div>
+            {[{ label: 'Features', id: 'features' }, { label: 'How It Works', id: 'how-it-works' }, { label: 'Academics', id: 'academics' }, { label: 'LMS', id: 'lms' }, { label: 'HR & Payroll', id: 'hr' }, { label: 'Examinations', id: 'examinations' }, { label: 'Research', id: 'research' }, { label: 'Team', id: 'team' }].map(l => (
+              <div key={l.label} style={{ marginBottom: 12 }}>
+                <button onClick={() => scrollTo(l.id)} style={{ background: 'none', border: 'none', padding: 0, fontSize: 14, color: '#334155', cursor: 'pointer', fontFamily: FONT, transition: 'color .15s' }}
+                  onMouseEnter={e => e.target.style.color = '#a78bfa'}
+                  onMouseLeave={e => e.target.style.color = '#334155'}>
+                  {l.label}
                 </button>
               </div>
             ))}
@@ -1605,69 +1324,49 @@ export default function LandingPage() {
 
           {/* Portals */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 20, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Portals
-            </div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 20, textTransform: 'uppercase', letterSpacing: '.1em' }}>Portals</div>
             {PORTALS.map(p => (
-              <div key={p.key} style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 7 }}>
+              <div key={p.key} style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
-                <button
-                  onClick={() => navigate(`/auth/login?portal=${p.key}`)}
-                  style={{
-                    background: 'none', border: 'none', padding: 0,
-                    fontSize: 14, color: '#475569', cursor: 'pointer',
-                    fontFamily: FONT, fontWeight: 400, transition: 'color 0.15s'
-                  }}
+                <button onClick={() => navigate(`/auth/login?portal=${p.key}`)} style={{ background: 'none', border: 'none', padding: 0, fontSize: 14, color: '#334155', cursor: 'pointer', fontFamily: FONT, transition: 'color .15s' }}
                   onMouseEnter={e => e.target.style.color = p.color}
-                  onMouseLeave={e => e.target.style.color = '#475569'}
-                >
+                  onMouseLeave={e => e.target.style.color = '#334155'}>
                   {p.label} Portal
                 </button>
               </div>
             ))}
           </div>
 
-          {/* Sign In / Register */}
+          {/* CTA column */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 20, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Get Started
-            </div>
-            <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, marginBottom: 20 }}>
-              Sign in to your portal to access your dashboard.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button
-                onClick={() => navigate('/auth/login')}
-                style={{
-                  padding: '10px 20px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700,
-                  color: '#fff', cursor: 'pointer', fontFamily: FONT,
-                  boxShadow: '0 4px 16px rgba(99,102,241,0.35)', textAlign: 'center'
-                }}
-              >
-                Sign In →
-              </button>
-
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 20, textTransform: 'uppercase', letterSpacing: '.1em' }}>Get Started</div>
+            <p style={{ fontSize: 13, color: '#334155', lineHeight: 1.75, marginBottom: 20 }}>Sign in to your portal to access your personalized dashboard.</p>
+            <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '11px 22px', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 7, width: '100%', justifyContent: 'center' }}>
+              Sign In <MdArrowForward size={15} />
+            </button>
+            <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#334155' }}>
+                <MdEmail size={14} style={{ color: '#475569', flexShrink: 0 }} /> contact@collegeerp.in
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#334155' }}>
+                <MdRocketLaunch size={14} style={{ color: '#475569', flexShrink: 0 }} /> Chennai, Tamil Nadu, India
+              </div>
             </div>
           </div>
         </div>
 
         {/* Bottom bar */}
-        <div style={{
-          maxWidth: 1280, margin: '0 auto',
-          padding: '22px 0',
-          display: 'flex', justifyContent: isMobile ? 'center' : 'space-between', alignItems: 'center',
-          flexWrap: 'wrap', gap: 12, flexDirection: isMobile ? 'column' : 'row', textAlign: isMobile ? 'center' : 'left'
-        }}>
-          <span style={{ fontSize: 13, color: '#334155', fontWeight: 400 }}>
-            © 2025 College ERP · Built for Modern Institutions · Chennai, India
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '22px 0', display: 'flex', justifyContent: isMobile ? 'center' : 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, flexDirection: isMobile ? 'column' : 'row', textAlign: isMobile ? 'center' : 'left' }}>
+          <span style={{ fontSize: 13, color: '#1e293b', fontWeight: 400 }}>
+            © 2025 College ERP · Built with ❤️ in Chennai, India
           </span>
-          <div style={{ display: 'flex', gap: 20 }}>
-            {['Privacy Policy', 'Terms of Service', 'Support'].map(link => (
-              <span key={link} style={{ fontSize: 12, color: '#334155', cursor: 'pointer' }}
+          <div style={{ display: 'flex', gap: 22 }}>
+            {['Privacy Policy', 'Terms of Service', 'Support'].map(l => (
+              <span key={l} style={{ fontSize: 12, color: '#1e293b', cursor: 'pointer', transition: 'color .15s' }}
                 onMouseEnter={e => e.target.style.color = '#64748b'}
-                onMouseLeave={e => e.target.style.color = '#334155'}
-              >{link}</span>
+                onMouseLeave={e => e.target.style.color = '#1e293b'}>
+                {l}
+              </span>
             ))}
           </div>
         </div>
