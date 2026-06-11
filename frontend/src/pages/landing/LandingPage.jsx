@@ -348,6 +348,59 @@ function FAQAccordion({ items }) {
   )
 }
 
+// ── Theme Toggle ───────────────────────────────────────────────────────────────
+function ThemeToggle({ isDark, onToggle }) {
+  const [hov, setHov] = useState(false)
+  return (
+    <div
+      onClick={onToggle}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 2,
+        background: isDark ? 'rgba(255,255,255,0.1)' : '#e5e7eb',
+        border: isDark ? '1px solid rgba(255,255,255,0.18)' : '1px solid #d1d5db',
+        borderRadius: 100, padding: 3, cursor: 'pointer',
+        transition: 'all 0.25s cubic-bezier(.22,1,.36,1)',
+        boxShadow: hov ? (isDark ? '0 0 0 3px rgba(255,255,255,0.1)' : '0 0 0 3px rgba(99,102,241,0.15)') : 'none',
+        flexShrink: 0,
+      }}
+    >
+      {/* Sun */}
+      <div style={{
+        width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: !isDark ? '#111' : 'transparent',
+        transition: 'background 0.25s',
+        flexShrink: 0,
+      }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+          stroke={!isDark ? '#fff' : (isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.3)')}
+          strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      </div>
+      {/* Moon */}
+      <div style={{
+        width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: isDark ? '#111' : 'transparent',
+        transition: 'background 0.25s',
+        flexShrink: 0,
+      }}>
+        <svg width="13" height="13" viewBox="0 0 24 24"
+          fill={isDark ? '#fff' : 'rgba(0,0,0,0.28)'}
+          stroke="none">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </div>
+    </div>
+  )
+}
+
 // ── Landing Page ───────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate()
@@ -357,6 +410,15 @@ export default function LandingPage() {
   const [hovNav, setHovNav] = useState(null)
   const [hovPortal, setHovPortal] = useState(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isDark, setIsDark] = useState(() => {
+    try { return localStorage.getItem('erp_theme') !== 'light' } catch { return true }
+  })
+
+  const toggleTheme = () => {
+    const next = !isDark
+    setIsDark(next)
+    try { localStorage.setItem('erp_theme', next ? 'dark' : 'light') } catch { /* ignore */ }
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -369,14 +431,28 @@ export default function LandingPage() {
   const scrollTo = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   const navH = 64 + (announcement ? 36 : 0)
 
+  const D = isDark  // shorthand
+
   return (
-    <div style={{ fontFamily: FONT, margin: 0, padding: 0, overflowX: 'hidden', background: '#04081a', color: '#f1f5f9' }}>
+    <div style={{ fontFamily: FONT, margin: 0, padding: 0, overflowX: 'hidden', background: D ? '#04081a' : '#f8fafc', color: D ? '#f1f5f9' : '#0f172a', transition: 'background 0.35s ease, color 0.35s ease' }}>
 
       {/* ── CSS ───────────────────────────────────────────────────────────────── */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body, html { background: #04081a; }
+        body, html { background: ${D ? '#04081a' : '#f8fafc'}; transition: background 0.35s ease; }
+
+        .hero-bg-light {
+          background: radial-gradient(ellipse 100% 60% at 20% 40%, rgba(99,102,241,0.09) 0%, transparent 60%),
+                      radial-gradient(ellipse 80% 50% at 80% 80%, rgba(139,92,246,0.07) 0%, transparent 60%),
+                      radial-gradient(ellipse 60% 40% at 60% 10%, rgba(16,185,129,0.06) 0%, transparent 60%),
+                      #f0f4ff;
+        }
+        .grid-overlay-light {
+          background-image: linear-gradient(rgba(99,102,241,0.07) 1px,transparent 1px),
+                            linear-gradient(90deg,rgba(99,102,241,0.07) 1px,transparent 1px);
+          background-size: 48px 48px;
+        }
 
         @keyframes marquee        { from { transform: translateX(0) }          to { transform: translateX(-33.333%) } }
         @keyframes float          { 0%,100% { transform: translateY(0) }       50% { transform: translateY(-14px) } }
@@ -464,7 +540,7 @@ export default function LandingPage() {
       )}
 
       {/* ── 2. Sticky navbar ────────────────────────────────────────────────── */}
-      <nav style={{ position: 'fixed', top: announcement ? 36 : 0, left: 0, right: 0, height: 64, zIndex: 1000, background: scrolled ? 'rgba(4,8,26,0.94)' : 'transparent', backdropFilter: scrolled ? 'blur(24px)' : 'none', borderBottom: scrolled ? '1px solid rgba(255,255,255,0.07)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '0 20px' : '0 48px', transition: 'all .3s' }}>
+      <nav style={{ position: 'fixed', top: announcement ? 36 : 0, left: 0, right: 0, height: 64, zIndex: 1000, background: scrolled ? (D ? 'rgba(4,8,26,0.94)' : 'rgba(255,255,255,0.96)') : 'transparent', backdropFilter: scrolled ? 'blur(24px)' : 'none', borderBottom: scrolled ? (D ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.08)') : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '0 20px' : '0 48px', transition: 'all .3s' }}>
         {/* Logo */}
         <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
           <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(99,102,241,0.5)' }}>
@@ -491,7 +567,8 @@ export default function LandingPage() {
 
         {/* CTAs */}
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          {!isMobile && <button className="btn-ghost" onClick={() => navigate('/auth/login')} style={{ padding: '8px 18px', borderRadius: 9, fontSize: 13, fontWeight: 600, color: '#fff' }}>Sign In</button>}
+          <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+          {!isMobile && <button className="btn-ghost" onClick={() => navigate('/auth/login')} style={{ padding: '8px 18px', borderRadius: 9, fontSize: 13, fontWeight: 600, color: D ? '#fff' : '#0f172a' }}>Sign In</button>}
           {!isMobile && (
             <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '8px 20px', borderRadius: 9, fontSize: 13, fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
               Get Started <MdArrowForward size={15} />
@@ -528,16 +605,16 @@ export default function LandingPage() {
       )}
 
       {/* ── 3. Hero ─────────────────────────────────────────────────────────── */}
-      <section className="hero-bg" style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', paddingTop: navH + 40, paddingBottom: 80, padding: isMobile ? `${navH + 40}px 24px 80px` : `${navH + 40}px 48px 80px` }}>
-        {/* Aurora conic mesh */}
-        <div className="aurora-mesh" style={{ position:'absolute', width:'140%', height:'140%', top:'50%', left:'50%', pointerEvents:'none', zIndex:0 }} />
+      <section className={D ? 'hero-bg' : 'hero-bg-light'} style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', paddingTop: navH + 40, paddingBottom: 80, padding: isMobile ? `${navH + 40}px 24px 80px` : `${navH + 40}px 48px 80px`, transition: 'background 0.35s ease' }}>
+        {/* Aurora conic mesh — dark only */}
+        {D && <div className="aurora-mesh" style={{ position:'absolute', width:'140%', height:'140%', top:'50%', left:'50%', pointerEvents:'none', zIndex:0 }} />}
         {/* Film grain noise */}
-        <div className="noise-layer" style={{ zIndex:1 }} />
+        {D && <div className="noise-layer" style={{ zIndex:1 }} />}
         {/* Grid overlay */}
-        <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex:1 }} />
+        <div className={D ? 'grid-overlay' : 'grid-overlay-light'} style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex:1 }} />
 
-        {/* Star particles */}
-        <StarField />
+        {/* Star particles — dark only */}
+        {D && <StarField />}
 
         {/* Animated glow orbs */}
         <div style={{ position: 'absolute', top: '10%', left: '5%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 70%)', animation: 'heroGlow 5s ease-in-out infinite', pointerEvents: 'none' }} />
@@ -565,14 +642,14 @@ export default function LandingPage() {
             </div>
 
             {/* Headline */}
-            <h1 style={{ fontSize: isMobile ? 'clamp(34px,10vw,52px)' : 'clamp(44px,5vw,72px)', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-2px', color: '#fff', marginBottom: 24, animation: 'zoomIn .7s ease .1s both' }}>
+            <h1 style={{ fontSize: isMobile ? 'clamp(34px,10vw,52px)' : 'clamp(44px,5vw,72px)', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-2px', color: D ? '#fff' : '#0f172a', marginBottom: 24, animation: 'zoomIn .7s ease .1s both', transition: 'color 0.35s' }}>
               The Campus Platform<br />
-              <span style={{ fontSize: isMobile ? 'clamp(28px,8vw,42px)' : 'clamp(36px,4vw,58px)', fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: '-1px' }}>built for </span>
+              <span style={{ fontSize: isMobile ? 'clamp(28px,8vw,42px)' : 'clamp(36px,4vw,58px)', fontWeight: 700, color: D ? 'rgba(255,255,255,0.5)' : 'rgba(15,23,42,0.45)', letterSpacing: '-1px' }}>built for </span>
               <Typewriter />
             </h1>
 
             {/* Sub */}
-            <p style={{ fontSize: isMobile ? 16 : 19, color: 'rgba(255,255,255,0.58)', lineHeight: 1.75, maxWidth: 520, marginBottom: 40, fontWeight: 400, animation: 'zoomIn .7s ease .2s both' }}>
+            <p style={{ fontSize: isMobile ? 16 : 19, color: D ? 'rgba(255,255,255,0.58)' : '#475569', lineHeight: 1.75, maxWidth: 520, marginBottom: 40, fontWeight: 400, animation: 'zoomIn .7s ease .2s both', transition: 'color 0.35s' }}>
               One unified platform for every role in your institution —
               from academics and research to payroll and alumni. 50+ features, zero friction.
             </p>
@@ -582,7 +659,7 @@ export default function LandingPage() {
               <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '15px 32px', borderRadius: 12, fontSize: 16, fontWeight: 700, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 Get Started Free <MdArrowForward size={18} />
               </button>
-              <button className="btn-ghost" onClick={() => scrollTo('features')} style={{ padding: '15px 28px', borderRadius: 12, fontSize: 16, fontWeight: 700, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <button className="btn-ghost" onClick={() => scrollTo('features')} style={{ padding: '15px 28px', borderRadius: 12, fontSize: 16, fontWeight: 700, color: D ? '#fff' : '#0f172a', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <MdSpeed size={18} /> Explore Features
               </button>
             </div>
@@ -591,7 +668,7 @@ export default function LandingPage() {
             <div style={{ animation: 'zoomIn .7s ease .4s both' }}>
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 18 }}>
                 {[{ icon: MdShield, text: 'Enterprise Secure' }, { icon: MdCheck, text: 'Role-Based Access' }, { icon: MdPublic, text: '24/7 Online' }, { icon: MdSpeed, text: 'Real-Time Sync' }].map(({ icon: Icon, text }) => (
-                  <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'rgba(255,255,255,0.52)', fontSize: 13 }}>
+                  <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 7, color: D ? 'rgba(255,255,255,0.52)' : '#64748b', fontSize: 13 }}>
                     <Icon style={{ fontSize: 14, color: '#a78bfa' }} />{text}
                   </div>
                 ))}
@@ -600,7 +677,7 @@ export default function LandingPage() {
                 {['Admin', 'Student', 'Faculty', 'Parent', 'Alumni'].map((role, i) => (
                   <div key={role} style={{ width: 28, height: 28, borderRadius: '50%', background: ['#f87171','#60a5fa','#c084fc','#fbbf24','#34d399'][i] + '22', border: `1.5px solid ${['#f87171','#60a5fa','#c084fc','#fbbf24','#34d399'][i]}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: ['#f87171','#60a5fa','#c084fc','#fbbf24','#34d399'][i], marginLeft: i > 0 ? -8 : 0, zIndex: 5 - i }}>{role.slice(0,2).toUpperCase()}</div>
                 ))}
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginLeft: 6 }}>5 portals · 1 unified system</span>
+                <span style={{ fontSize: 12, color: D ? 'rgba(255,255,255,0.4)' : '#94a3b8', marginLeft: 6 }}>5 portals · 1 unified system</span>
               </div>
             </div>
           </div>
