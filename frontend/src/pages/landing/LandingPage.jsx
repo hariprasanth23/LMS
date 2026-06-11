@@ -436,17 +436,17 @@ export default function LandingPage() {
   // Theme tokens — use T.xxx throughout
   const T = {
     // Section backgrounds
-    s1:  D ? 'linear-gradient(135deg,#04081a 0%,#080f2e 100%)' : '#ffffff',
-    s2:  D ? 'linear-gradient(135deg,#04081a 0%,#0d1537 100%)' : '#f8fafc',
-    s3:  D ? 'linear-gradient(180deg,#04081a 0%,#060b20 100%)' : '#ffffff',
-    s4:  D ? 'linear-gradient(135deg,#06091e 0%,#0d1235 100%)' : '#f8fafc',
-    s5:  D ? 'linear-gradient(135deg,#04081a 0%,#060d24 100%)' : '#ffffff',
-    s6:  D ? 'linear-gradient(135deg,#04081a 0%,#070d28 100%)' : '#f8fafc',
-    s7:  D ? 'linear-gradient(135deg,#04081a 0%,#08102e 100%)' : '#ffffff',
-    s8:  D ? 'linear-gradient(160deg,#04081a 0%,#0b0b2e 45%,#04081a 100%)' : '#f8fafc',
-    s9:  D ? 'linear-gradient(180deg,#04081a 0%,#060c22 100%)' : '#ffffff',
-    s10: D ? 'linear-gradient(135deg,#04081a 0%,#0d1537 50%,#04081a 100%)' : '#f1f5f9',
-    sCta:D ? 'linear-gradient(135deg,#04081a 0%,#0d1537 50%,#04081a 100%)' : 'linear-gradient(135deg,#f0f4ff 0%,#f8fafc 100%)',
+    s1:  D ? 'linear-gradient(135deg,#04081a 0%,#080f2e 100%)' : '#f0eeff',
+    s2:  D ? 'linear-gradient(135deg,#04081a 0%,#0d1537 100%)' : '#ede9ff',
+    s3:  D ? 'linear-gradient(180deg,#04081a 0%,#060b20 100%)' : '#f0eeff',
+    s4:  D ? 'linear-gradient(135deg,#06091e 0%,#0d1235 100%)' : '#ede9ff',
+    s5:  D ? 'linear-gradient(135deg,#04081a 0%,#060d24 100%)' : '#f0eeff',
+    s6:  D ? 'linear-gradient(135deg,#04081a 0%,#070d28 100%)' : '#ede9ff',
+    s7:  D ? 'linear-gradient(135deg,#04081a 0%,#08102e 100%)' : '#f0eeff',
+    s8:  D ? 'linear-gradient(160deg,#04081a 0%,#0b0b2e 45%,#04081a 100%)' : '#ede9ff',
+    s9:  D ? 'linear-gradient(180deg,#04081a 0%,#060c22 100%)' : '#f0eeff',
+    s10: D ? 'linear-gradient(135deg,#04081a 0%,#0d1537 50%,#04081a 100%)' : '#e8e3fa',
+    sCta:D ? 'linear-gradient(135deg,#04081a 0%,#0d1537 50%,#04081a 100%)' : 'linear-gradient(135deg,#ede9ff 0%,#f0eeff 100%)',
     foot:D ? '#020611' : '#0f172a',
     // Text
     h:   D ? '#ffffff' : '#0f172a',
@@ -454,8 +454,8 @@ export default function LandingPage() {
     f:   D ? 'rgba(255,255,255,0.28)' : '#94a3b8',
     // Cards / glass
     cb:  D ? 'rgba(255,255,255,0.04)' : '#ffffff',
-    cb2: D ? 'rgba(255,255,255,0.03)' : '#f8fafc',
-    cbb: D ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
+    cb2: D ? 'rgba(255,255,255,0.03)' : '#f5f3ff',
+    cbb: D ? 'rgba(255,255,255,0.08)' : '#ddd6fe',
     // Section tag (purple)
     tb:  D ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.07)',
     tc:  D ? '#a78bfa' : '#6366f1',
@@ -492,41 +492,41 @@ export default function LandingPage() {
     w25: D ? 'rgba(255,255,255,0.25)' : '#9ca3af',
     w22: D ? 'rgba(255,255,255,0.22)' : '#9ca3af',
     w20: D ? 'rgba(255,255,255,0.20)' : '#d1d5db',
-    // Card surfaces (light mode = actual white/light surfaces)
+    // Card surfaces (light mode = white cards on purple-tinted bg)
     gbg:  D ? 'rgba(255,255,255,0.04)' : '#ffffff',    // glass card bg
-    gbgh: D ? 'rgba(255,255,255,0.06)' : '#f8fafc',   // glass card hover
-    gbrd: D ? 'rgba(255,255,255,0.08)' : '#e2e8f0',   // glass card border
-    cbg3: D ? 'rgba(255,255,255,0.03)' : '#fafafa',
+    gbgh: D ? 'rgba(255,255,255,0.06)' : '#f5f3ff',   // glass card hover
+    gbrd: D ? 'rgba(255,255,255,0.08)' : '#ddd6fe',   // glass card border
+    cbg3: D ? 'rgba(255,255,255,0.03)' : 'rgba(139,92,246,0.04)',
     cbg4: D ? 'rgba(255,255,255,0.04)' : '#ffffff',
-    cbg5: D ? 'rgba(255,255,255,0.05)' : '#f8fafc',
-    cbg8: D ? 'rgba(255,255,255,0.08)' : '#f1f5f9',
+    cbg5: D ? 'rgba(255,255,255,0.05)' : '#f5f3ff',
+    cbg8: D ? 'rgba(255,255,255,0.08)' : '#ede9ff',
     // Border opacity shades
-    bd5:  D ? 'rgba(255,255,255,0.05)' : '#e2e8f0',
-    bd6:  D ? 'rgba(255,255,255,0.06)' : '#e2e8f0',
-    bd7:  D ? 'rgba(255,255,255,0.07)' : '#e2e8f0',
-    bd8:  D ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
-    bd12: D ? 'rgba(255,255,255,0.12)' : '#d1d5db',
-    bd15: D ? 'rgba(255,255,255,0.15)' : '#d1d5db',
+    bd5:  D ? 'rgba(255,255,255,0.05)' : '#ddd6fe',
+    bd6:  D ? 'rgba(255,255,255,0.06)' : '#ddd6fe',
+    bd7:  D ? 'rgba(255,255,255,0.07)' : '#ddd6fe',
+    bd8:  D ? 'rgba(255,255,255,0.08)' : '#ddd6fe',
+    bd12: D ? 'rgba(255,255,255,0.12)' : '#c4b5fd',
+    bd15: D ? 'rgba(255,255,255,0.15)' : '#c4b5fd',
   }
 
   return (
-    <div style={{ fontFamily: FONT, margin: 0, padding: 0, overflowX: 'hidden', background: D ? '#04081a' : '#f8fafc', color: D ? '#f1f5f9' : '#0f172a', transition: 'background 0.35s ease, color 0.35s ease' }}>
+    <div style={{ fontFamily: FONT, margin: 0, padding: 0, overflowX: 'hidden', background: D ? '#04081a' : '#f0eeff', color: D ? '#f1f5f9' : '#0f172a', transition: 'background 0.35s ease, color 0.35s ease' }}>
 
       {/* ── CSS ───────────────────────────────────────────────────────────────── */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body, html { background: ${D ? '#04081a' : '#f8fafc'}; transition: background 0.35s ease; }
+        body, html { background: ${D ? '#04081a' : '#f0eeff'}; transition: background 0.35s ease; }
 
         .hero-bg-light {
-          background: radial-gradient(ellipse 100% 60% at 20% 40%, rgba(99,102,241,0.09) 0%, transparent 60%),
-                      radial-gradient(ellipse 80% 50% at 80% 80%, rgba(139,92,246,0.07) 0%, transparent 60%),
-                      radial-gradient(ellipse 60% 40% at 60% 10%, rgba(16,185,129,0.06) 0%, transparent 60%),
-                      #f0f4ff;
+          background: radial-gradient(ellipse 100% 60% at 20% 40%, rgba(99,102,241,0.18) 0%, transparent 60%),
+                      radial-gradient(ellipse 80% 50% at 80% 80%, rgba(139,92,246,0.14) 0%, transparent 60%),
+                      radial-gradient(ellipse 60% 40% at 60% 10%, rgba(16,185,129,0.08) 0%, transparent 60%),
+                      #ede9ff;
         }
         .grid-overlay-light {
-          background-image: linear-gradient(rgba(99,102,241,0.07) 1px,transparent 1px),
-                            linear-gradient(90deg,rgba(99,102,241,0.07) 1px,transparent 1px);
+          background-image: linear-gradient(rgba(99,102,241,0.12) 1px,transparent 1px),
+                            linear-gradient(90deg,rgba(99,102,241,0.12) 1px,transparent 1px);
           background-size: 48px 48px;
         }
 
