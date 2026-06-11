@@ -431,7 +431,42 @@ export default function LandingPage() {
   const scrollTo = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   const navH = 64 + (announcement ? 36 : 0)
 
-  const D = isDark  // shorthand
+  const D = isDark
+
+  // Theme tokens — use T.xxx throughout
+  const T = {
+    // Section backgrounds
+    s1:  D ? 'linear-gradient(135deg,#04081a 0%,#080f2e 100%)' : '#ffffff',
+    s2:  D ? 'linear-gradient(135deg,#04081a 0%,#0d1537 100%)' : '#f8fafc',
+    s3:  D ? 'linear-gradient(180deg,#04081a 0%,#060b20 100%)' : '#ffffff',
+    s4:  D ? 'linear-gradient(135deg,#06091e 0%,#0d1235 100%)' : '#f8fafc',
+    s5:  D ? 'linear-gradient(135deg,#04081a 0%,#060d24 100%)' : '#ffffff',
+    s6:  D ? 'linear-gradient(135deg,#04081a 0%,#070d28 100%)' : '#f8fafc',
+    s7:  D ? 'linear-gradient(135deg,#04081a 0%,#08102e 100%)' : '#ffffff',
+    s8:  D ? 'linear-gradient(160deg,#04081a 0%,#0b0b2e 45%,#04081a 100%)' : '#f8fafc',
+    s9:  D ? 'linear-gradient(180deg,#04081a 0%,#060c22 100%)' : '#ffffff',
+    s10: D ? 'linear-gradient(135deg,#04081a 0%,#0d1537 50%,#04081a 100%)' : '#f1f5f9',
+    sCta:D ? 'linear-gradient(135deg,#04081a 0%,#0d1537 50%,#04081a 100%)' : 'linear-gradient(135deg,#f0f4ff 0%,#f8fafc 100%)',
+    foot:D ? '#020611' : '#0f172a',
+    // Text
+    h:   D ? '#ffffff' : '#0f172a',
+    p:   D ? 'rgba(255,255,255,0.50)' : '#64748b',
+    f:   D ? 'rgba(255,255,255,0.28)' : '#94a3b8',
+    // Cards / glass
+    cb:  D ? 'rgba(255,255,255,0.04)' : '#ffffff',
+    cb2: D ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+    cbb: D ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
+    // Section tag (purple)
+    tb:  D ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.07)',
+    tc:  D ? '#a78bfa' : '#6366f1',
+    tbd: D ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.2)',
+    // Section dividers
+    div: D ? 'rgba(255,255,255,0.07)' : '#e2e8f0',
+    // Chip styles
+    chBg:  D ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.07)',
+    chC:   D ? '#a5b4fc' : '#6366f1',
+    chBd:  D ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.18)',
+  }
 
   return (
     <div style={{ fontFamily: FONT, margin: 0, padding: 0, overflowX: 'hidden', background: D ? '#04081a' : '#f8fafc', color: D ? '#f1f5f9' : '#0f172a', transition: 'background 0.35s ease, color 0.35s ease' }}>
@@ -546,7 +581,7 @@ export default function LandingPage() {
           <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(99,102,241,0.5)' }}>
             <MdSchool style={{ color: '#fff', fontSize: 22 }} />
           </div>
-          <span style={{ fontSize: 19, fontWeight: 800, color: '#fff', letterSpacing: '-.4px' }}>College<span style={{ color: '#a78bfa' }}>ERP</span></span>
+          <span style={{ fontSize: 19, fontWeight: 800, color: T.h, letterSpacing: '-.4px' }}>College<span style={{ color: '#a78bfa' }}>ERP</span></span>
         </div>
 
         {/* Nav links (desktop) */}
@@ -780,7 +815,7 @@ export default function LandingPage() {
         <div style={{ display: 'flex', width: 'max-content', animation: 'marquee 24s linear infinite reverse' }}>
           {[...MARQUEE_ITEMS_ROW2, ...MARQUEE_ITEMS_ROW2, ...MARQUEE_ITEMS_ROW2].map((item, i) => (
             <div key={`r2-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 26px', whiteSpace: 'nowrap' }}>
-              <MdStar style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', flexShrink: 0 }} />
+              <MdStar style={{ fontSize: 11, color: T.p, flexShrink: 0 }} />
               <span style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.78)' }}>{item}</span>
             </div>
           ))}
@@ -788,15 +823,15 @@ export default function LandingPage() {
       </div>
 
       {/* ── 5. Stats ────────────────────────────────────────────────────────── */}
-      <section style={{ background: 'linear-gradient(135deg,#04081a 0%,#080f2e 100%)', padding: isMobile ? '64px 20px' : '88px 48px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '50%', left: '50%', width: 700, height: 700, borderRadius: '50%', transform: 'translate(-50%,-50%)', background: 'radial-gradient(circle,rgba(99,102,241,0.1) 0%,transparent 60%)', pointerEvents: 'none' }} />
+      <section style={{ background: T.s1, padding: isMobile ? '64px 20px' : '88px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
+        {D && <div style={{ position: 'absolute', top: '50%', left: '50%', width: 700, height: 700, borderRadius: '50%', transform: 'translate(-50%,-50%)', background: 'radial-gradient(circle,rgba(99,102,241,0.1) 0%,transparent 60%)', pointerEvents: 'none' }} />}
         <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 56 }}>
-              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 16, margin: '0 auto 16px' }}>
+              <div className="section-tag" style={{ background: T.tb, color: T.tc, border: `1px solid ${T.tbd}`, marginBottom: 16, margin: '0 auto 16px' }}>
                 <MdAnalytics size={14} /> Platform by the numbers
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3vw,40px)', fontWeight: 800, color: '#fff', letterSpacing: '-.8px' }}>
+              <h2 style={{ fontSize: 'clamp(26px,3vw,40px)', fontWeight: 800, color: T.h, letterSpacing: '-.8px' }}>
                 Built for modern educational institutions
               </h2>
             </div>
@@ -809,10 +844,10 @@ export default function LandingPage() {
               { val: 100, suf: '%', label: 'Secure',       sublabel: 'JWT + bcrypt', color: '#fbbf24' },
             ].map((s, i) => (
               <Reveal key={s.label} delay={i * 90}>
-                <div className="stat-card" style={{ background: `${s.color}10`, border: `1.5px solid ${s.color}25`, borderRadius: 20, padding: '32px 18px', textAlign: 'center', boxShadow: `0 4px 24px ${s.color}12` }}>
+                <div className="stat-card" style={{ background: D ? `${s.color}10` : '#fff', border: `1.5px solid ${s.color}25`, borderRadius: 20, padding: '32px 18px', textAlign: 'center', boxShadow: D ? `0 4px 24px ${s.color}12` : `0 2px 12px rgba(0,0,0,0.06)` }}>
                   <RingCounter target={s.val} suffix={s.suf} color={s.color} size={110} />
-                  <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{s.label}</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.38)', fontWeight: 500 }}>{s.sublabel}</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: T.h, marginBottom: 4 }}>{s.label}</div>
+                  <div style={{ fontSize: 12, color: T.f, fontWeight: 500 }}>{s.sublabel}</div>
                 </div>
               </Reveal>
             ))}
@@ -821,17 +856,17 @@ export default function LandingPage() {
       </section>
 
       {/* ── 6. Features Bento Grid ──────────────────────────────────────────── */}
-      <section id="features" style={{ background: 'linear-gradient(180deg,#04081a 0%,#060b20 100%)', padding: isMobile ? '64px 20px' : '96px 48px' }}>
+      <section id="features" style={{ background: T.s3, padding: isMobile ? '64px 20px' : '96px 48px', transition: 'background 0.35s' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 56 }}>
-              <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
+              <div className="section-tag" style={{ background: T.tb, color: T.tc, border: `1px solid ${T.tbd}`, marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdLayers size={14} /> 80+ Core Features
               </div>
-              <h2 style={{ fontSize: 'clamp(28px,3.5vw,46px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(28px,3.5vw,46px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 16 }}>
                 Everything your college needs
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: T.p, maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
                 From curriculum tracking to research thesis submission — College ERP covers every aspect of campus life.
               </p>
             </div>
@@ -846,11 +881,11 @@ export default function LandingPage() {
                   <div
                     className="feature-card"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
+                      background: T.cb,
                       borderRadius: 18,
                       padding: '26px 24px',
-                      border: `1.5px solid rgba(255,255,255,0.07)`,
-                      boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
+                      border: `1.5px solid ${T.cbb}`,
+                      boxShadow: D ? '0 4px 24px rgba(0,0,0,0.2)' : '0 2px 12px rgba(0,0,0,0.06)',
                       position: 'relative',
                       overflow: 'hidden',
                       flex: 1,
@@ -878,8 +913,8 @@ export default function LandingPage() {
                     <div style={{ width: 52, height: 52, borderRadius: 14, background: feat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18, flexShrink: 0 }}>
                       <Icon style={{ fontSize: 28, color: feat.color }} />
                     </div>
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 10 }}>{feat.title}</h3>
-                    <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, margin: 0, flex: 1 }}>{feat.desc}</p>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: T.h, marginBottom: 10 }}>{feat.title}</h3>
+                    <p style={{ fontSize: 14, color: T.p, lineHeight: 1.65, margin: 0, flex: 1 }}>{feat.desc}</p>
                   </div>
                 </Reveal>
               )
@@ -898,16 +933,16 @@ export default function LandingPage() {
       </section>
 
       {/* ── How It Works ────────────────────────────────────────────────────── */}
-      <section id="how-it-works" style={{ background: 'linear-gradient(135deg,#04081a 0%,#080f2e 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
-        <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .4 }} />
-        <div style={{ position: 'absolute', top: '50%', left: '50%', width: 600, height: 600, borderRadius: '50%', transform: 'translate(-50%,-50%)', background: 'radial-gradient(circle,rgba(139,92,246,0.1) 0%,transparent 60%)', pointerEvents: 'none' }} />
+      <section id="how-it-works" style={{ background: T.s1, padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
+        {D && <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .4 }} />}
+        {D && <div style={{ position: 'absolute', top: '50%', left: '50%', width: 600, height: 600, borderRadius: '50%', transform: 'translate(-50%,-50%)', background: 'radial-gradient(circle,rgba(139,92,246,0.1) 0%,transparent 60%)', pointerEvents: 'none' }} />}
         <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 60 }}>
               <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdHowToReg size={14} /> Simple Onboarding
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,46px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,46px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 16 }}>
                 Get started in <GradText from="#a78bfa" to="#34d399">4 simple steps</GradText>
               </h2>
               <p style={{ fontSize: 17, color: 'rgba(255,255,255,.48)', maxWidth: 500, margin: '0 auto', lineHeight: 1.7 }}>
@@ -928,7 +963,7 @@ export default function LandingPage() {
                       <Icon style={{ fontSize: 36, color: step.color }} />
                       <div style={{ position: 'absolute', top: -10, right: -10, width: 28, height: 28, borderRadius: '50%', background: step.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, color: '#fff' }}>{step.step}</div>
                     </div>
-                    <div style={{ fontSize: 17, fontWeight: 800, color: '#fff', marginBottom: 10 }}>{step.title}</div>
+                    <div style={{ fontSize: 17, fontWeight: 800, color: T.h, marginBottom: 10 }}>{step.title}</div>
                     <div style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', lineHeight: 1.7, maxWidth: 220, margin: '0 auto' }}>{step.desc}</div>
                   </div>
                 </Reveal>
@@ -946,14 +981,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── Comparison: Traditional vs College ERP ──────────────────────────── */}
-      <section style={{ background: 'linear-gradient(180deg,#060b20 0%,#04081a 100%)', padding: isMobile ? '64px 20px' : '88px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: T.s3, padding: isMobile ? '64px 20px' : '88px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         <div style={{ maxWidth: 960, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 52 }}>
               <div className="section-tag" style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399', border: '1px solid rgba(52,211,153,0.22)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdVerified size={14} /> Why College ERP
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 14 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 14 }}>
                 Traditional vs <GradText from="#a78bfa" to="#34d399">College ERP</GradText>
               </h2>
               <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.45)', maxWidth: 460, margin: '0 auto' }}>
@@ -1006,7 +1041,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 7. Portal Section ───────────────────────────────────────────────── */}
-      <section id="portals" style={{ background: 'linear-gradient(135deg,#04081a 0%,#0d1537 50%,#04081a 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section id="portals" style={{ background: T.s2, padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .5 }} />
         <div style={{ position: 'absolute', top: '30%', left: '50%', width: 700, height: 700, borderRadius: '50%', transform: 'translateX(-50%)', background: 'radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 60%)', pointerEvents: 'none' }} />
 
@@ -1016,10 +1051,10 @@ export default function LandingPage() {
               <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdGroups size={14} /> 5 Dedicated Portals
               </div>
-              <h2 style={{ fontSize: 'clamp(28px,3.5vw,48px)', fontWeight: 800, color: '#fff', letterSpacing: '-1.5px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(28px,3.5vw,48px)', fontWeight: 800, color: T.h, letterSpacing: '-1.5px', marginBottom: 16 }}>
                 Choose Your Portal
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,.5)', maxWidth: 500, margin: '0 auto' }}>
+              <p style={{ fontSize: 17, color: T.p, maxWidth: 500, margin: '0 auto' }}>
                 Each portal is purpose-built for your specific role in the institution.
               </p>
             </div>
@@ -1036,8 +1071,8 @@ export default function LandingPage() {
                     onMouseEnter={() => setHovPortal(p.key)}
                     onMouseLeave={() => setHovPortal(null)}
                     style={{
-                      background: hov ? p.bg : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${hov ? p.color + '50' : 'rgba(255,255,255,0.08)'}`,
+                      background: hov ? p.bg : T.cb,
+                      border: `1px solid ${hov ? p.color + '50' : T.cbb}`,
                       borderRadius: 18,
                       padding: '28px 20px',
                       display: 'flex', flexDirection: 'column', gap: 16,
@@ -1051,7 +1086,7 @@ export default function LandingPage() {
                       <span style={{ background: `${p.color}15`, color: p.color, border: `1px solid ${p.color}30`, borderRadius: 20, padding: '4px 10px', fontSize: 11, fontWeight: 700 }}>{p.count} features</span>
                     </div>
                     <div style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>{p.label}</div>
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', lineHeight: 1.65, flex: 1 }}>{p.desc}</div>
+                    <div style={{ fontSize: 12, color: T.p, lineHeight: 1.65, flex: 1 }}>{p.desc}</div>
                     <button onClick={() => navigate(`/auth/login?portal=${p.key}`)} style={{ padding: '10px', background: p.color, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: `0 4px 16px ${p.color}45`, transition: 'opacity .15s' }}
                       onMouseEnter={e => e.currentTarget.style.opacity = '.85'}
                       onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
@@ -1066,7 +1101,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 8. Academics ────────────────────────────────────────────────────── */}
-      <section id="academics" style={{ background: 'linear-gradient(135deg,#04081a 0%,#0d1537 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section id="academics" style={{ background: T.s3, padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: 450, height: 450, borderRadius: '50%', background: 'radial-gradient(circle,rgba(99,102,241,0.15) 0%,transparent 70%)', pointerEvents: 'none' }} />
 
         <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', gap: 72, alignItems: 'flex-start', flexDirection: isMobile ? 'column' : 'row', position: 'relative', zIndex: 1 }}>
@@ -1078,12 +1113,12 @@ export default function LandingPage() {
               <h2 style={{ fontSize: 'clamp(26px,3vw,44px)', fontWeight: 800, color: '#fff', marginBottom: 18, lineHeight: 1.15, letterSpacing: '-1px' }}>
                 Complete Academic<br />Management — All in One
               </h2>
-              <p style={{ fontSize: 16, color: 'rgba(255,255,255,.55)', lineHeight: 1.8, maxWidth: 440, marginBottom: 36 }}>
+              <p style={{ fontSize: 16, color: T.p, lineHeight: 1.8, maxWidth: 440, marginBottom: 36 }}>
                 From curriculum planning to project submissions, digital assignments to APAAR ID — every academic function managed in a single, intuitive portal.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {ACADEMICS_GENERAL_ITEMS.slice(0, 15).map(item => (
-                  <span key={item} className="chip" style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', padding: '5px 14px', fontSize: 12, fontWeight: 600, color: '#a5b4fc' }}>{item}</span>
+                  <span key={item} className="chip" style={{ background: T.chBg, border: `1px solid ${T.chBd}`, padding: '5px 14px', fontSize: 12, fontWeight: 600, color: T.chC }}>{item}</span>
                 ))}
                 <span className="chip" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px 14px', fontSize: 12, color: 'rgba(255,255,255,.35)', fontWeight: 500 }}>+{ACADEMICS_GENERAL_ITEMS.length - 15} more</span>
               </div>
@@ -1125,7 +1160,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── LMS ─────────────────────────────────────────────────────────────── */}
-      <section id="lms" style={{ background: 'linear-gradient(135deg,#04081a 0%,#0d1537 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section id="lms" style={{ background: T.s2, padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         <div style={{ position: 'absolute', bottom: '-10%', left: '-5%', width: 480, height: 480, borderRadius: '50%', background: 'radial-gradient(circle,rgba(59,130,246,0.15) 0%,transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
@@ -1133,7 +1168,7 @@ export default function LandingPage() {
               <div className="section-tag" style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdCastForEducation size={14} /> Learning Management System
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 16 }}>
                 Digital Learning, <GradText from="#60a5fa" to="#a78bfa">Fully Integrated</GradText>
               </h2>
               <p style={{ fontSize: 17, color: 'rgba(255,255,255,.48)', maxWidth: 540, margin: '0 auto', lineHeight: 1.7 }}>
@@ -1153,7 +1188,7 @@ export default function LandingPage() {
                       <Icon style={{ fontSize: 30, color: feat.color }} />
                     </div>
                     <div style={{ fontSize: 17, fontWeight: 700, color: '#fff', marginBottom: 10 }}>{feat.title}</div>
-                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', lineHeight: 1.7 }}>{feat.desc}</div>
+                    <div style={{ fontSize: 13, color: T.p, lineHeight: 1.7 }}>{feat.desc}</div>
                   </div>
                 </Reveal>
               )
@@ -1191,10 +1226,10 @@ export default function LandingPage() {
               <div className="section-tag" style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdAssignment size={14} /> Examination System
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 16 }}>
                 Complete Examination Management
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: T.p, maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
                 Regular, arrear, online and make-up exams — with full transparency on marks, grades and re-evaluation.
               </p>
             </div>
@@ -1226,7 +1261,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 10. Finance ─────────────────────────────────────────────────────── */}
-      <section style={{ background: 'linear-gradient(135deg,#04081a 0%,#060d24 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: T.s3, padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle,rgba(16,185,129,0.12) 0%,transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
@@ -1234,10 +1269,10 @@ export default function LandingPage() {
               <div className="section-tag" style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdPayment size={14} /> Finance & Payments
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 16 }}>
                 Transparent Fee Management
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: T.p, maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
                 Complete financial visibility — from intimation to payments, wallet top-ups, and refund processing.
               </p>
             </div>
@@ -1254,7 +1289,7 @@ export default function LandingPage() {
                       <Icon style={{ fontSize: 24, color: item.color }} />
                     </div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>{item.label}</div>
-                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.48)', lineHeight: 1.6 }}>{item.desc}</div>
+                    <div style={{ fontSize: 13, color: T.p, lineHeight: 1.6 }}>{item.desc}</div>
                   </div>
                 </Reveal>
               )
@@ -1264,7 +1299,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Employee & HR ───────────────────────────────────────────────────── */}
-      <section id="hr" style={{ background: 'linear-gradient(135deg,#04081a 0%,#0d1537 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section id="hr" style={{ background: T.s2, padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         <div style={{ position: 'absolute', top: '-5%', right: '-5%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle,rgba(245,158,11,0.12) 0%,transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: '-5%', left: '-5%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
@@ -1273,7 +1308,7 @@ export default function LandingPage() {
               <div className="section-tag" style={{ background: 'rgba(245,158,11,0.12)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdBusinessCenter size={14} /> HR & Administration
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 16 }}>
                 Complete <GradText from="#fbbf24" to="#f87171">HR Management</GradText> Suite
               </h2>
               <p style={{ fontSize: 17, color: 'rgba(255,255,255,.48)', maxWidth: 540, margin: '0 auto', lineHeight: 1.7 }}>
@@ -1293,7 +1328,7 @@ export default function LandingPage() {
                       <div style={{ width: 52, height: 52, borderRadius: 14, background: `${mod.color}20`, border: `1px solid ${mod.color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Icon style={{ fontSize: 28, color: mod.color }} />
                       </div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{mod.title}</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: T.h }}>{mod.title}</div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                       {mod.items.map(item => (
@@ -1322,7 +1357,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 11. Services ────────────────────────────────────────────────────── */}
-      <section style={{ background: 'linear-gradient(135deg,#04081a 0%,#070d28 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: T.s3, padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         <div style={{ position: 'absolute', top: '-8%', left: '50%', width: 600, height: 400, borderRadius: '50%', transform: 'translateX(-50%)', background: 'radial-gradient(ellipse,rgba(245,158,11,0.08) 0%,transparent 65%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
@@ -1330,10 +1365,10 @@ export default function LandingPage() {
               <div className="section-tag" style={{ background: 'rgba(245,158,11,0.12)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdMiscellaneousServices size={14} /> Student Services
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 16 }}>
                 Everything a Student Needs
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: T.p, maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
                 One-stop access to registrations, certificates, profile management, library, and more — zero paperwork.
               </p>
             </div>
@@ -1361,7 +1396,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Notifications ───────────────────────────────────────────────────── */}
-      <section id="notifications" style={{ background: 'linear-gradient(135deg,#04081a 0%,#08102e 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section id="notifications" style={{ background: T.s2, padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         <div style={{ position: 'absolute', bottom: '-5%', right: '-5%', width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle,rgba(99,102,241,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
@@ -1369,10 +1404,10 @@ export default function LandingPage() {
               <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdNotificationsActive size={14} /> Smart Notifications
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 16 }}>
                 Stay informed. <GradText from="#a78bfa" to="#34d399">Always.</GradText>
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: T.p, maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
                 The right information reaches the right person at the right time — automatically, across every portal and role.
               </p>
             </div>
@@ -1429,7 +1464,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 12. Research ────────────────────────────────────────────────────── */}
-      <section id="research" style={{ background: 'linear-gradient(160deg,#04081a 0%,#0b0b2e 45%,#04081a 100%)', padding: isMobile ? '64px 20px' : '100px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section id="research" style={{ background: T.s8, padding: isMobile ? '64px 20px' : '100px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         {/* Background glows */}
         <div style={{ position: 'absolute', top: '-12%', left: '-6%', width: 520, height: 520, borderRadius: '50%', background: 'radial-gradient(circle,rgba(139,92,246,0.16) 0%,transparent 65%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: '-10%', right: '-4%', width: 440, height: 440, borderRadius: '50%', background: 'radial-gradient(circle,rgba(99,102,241,0.13) 0%,transparent 65%)', pointerEvents: 'none' }} />
@@ -1447,7 +1482,7 @@ export default function LandingPage() {
               <h2 style={{ fontSize: 'clamp(28px,3.8vw,54px)', fontWeight: 900, color: '#fff', letterSpacing: '-1.5px', lineHeight: 1.08, marginBottom: 18 }}>
                 Complete PhD Journey,<br /><GradText from="#c084fc" to="#34d399">One Platform</GradText>
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 560, margin: '0 auto', lineHeight: 1.75 }}>
+              <p style={{ fontSize: 17, color: T.p, maxWidth: 560, margin: '0 auto', lineHeight: 1.75 }}>
                 From first registration to final thesis submission — every milestone of the research scholar journey, digitally managed and fully trackable.
               </p>
             </div>
@@ -1580,17 +1615,17 @@ export default function LandingPage() {
       </section>
 
       {/* ── 13. Meet the Team ───────────────────────────────────────────────── */}
-      <section id="team" style={{ background: 'linear-gradient(135deg,#04081a 0%,#080f2e 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section id="team" style={{ background: T.s1, padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 60 }}>
               <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdGroups size={14} /> The Builders
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 16 }}>
                 Meet the Team
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.48)', maxWidth: 480, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: T.p, maxWidth: 480, margin: '0 auto', lineHeight: 1.7 }}>
                 The passionate people who designed, built, and launched College ERP.
               </p>
             </div>
@@ -1599,7 +1634,7 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 28, maxWidth: 980, margin: '0 auto' }}>
             {TEAM.map((m, i) => (
               <Reveal key={m.name} delay={i * 100}>
-                <div className="team-card" style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 22, padding: '36px 30px', textAlign: 'center', border: '1.5px solid rgba(255,255,255,0.08)', boxShadow: '0 4px 32px rgba(0,0,0,0.3)', position: 'relative', overflow: 'hidden', cursor: 'default' }}
+                <div className="team-card" style={{ background: T.cb, borderRadius: 22, padding: '36px 30px', textAlign: 'center', border: `1.5px solid ${T.cbb}`, boxShadow: '0 4px 32px rgba(0,0,0,0.3)', position: 'relative', overflow: 'hidden', cursor: 'default' }}
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = `0 24px 48px ${m.glow}` }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.05)' }}>
                   {/* Gradient bg accent */}
@@ -1612,7 +1647,7 @@ export default function LandingPage() {
                   <span style={{ display: 'inline-block', background: `${m.tagColor}12`, color: m.tagColor, border: `1px solid ${m.tagColor}25`, fontSize: 10, fontWeight: 800, padding: '3px 12px', borderRadius: 20, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 14 }}>
                     {m.tag}
                   </span>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 6 }}>{m.name}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: T.h, marginBottom: 6 }}>{m.name}</div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: m.tagColor, marginBottom: 18 }}>{m.role}</div>
                   <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 18 }} />
                   <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, margin: 0 }}>{m.desc}</p>
@@ -1624,7 +1659,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Testimonials ────────────────────────────────────────────────────── */}
-      <section style={{ background: 'linear-gradient(180deg,#04081a 0%,#060c22 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: T.s3, padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         <div style={{ position: 'absolute', top: '50%', left: '50%', width: 800, height: 400, borderRadius: '50%', transform: 'translate(-50%,-50%)', background: 'radial-gradient(ellipse,rgba(99,102,241,0.08) 0%,transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
@@ -1632,7 +1667,7 @@ export default function LandingPage() {
               <div className="section-tag" style={{ background: 'rgba(139,92,246,0.12)', color: '#c084fc', border: '1px solid rgba(139,92,246,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdStar size={14} /> User Stories
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 14 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 14 }}>
                 Loved by every role
               </h2>
               <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.45)', maxWidth: 460, margin: '0 auto', lineHeight: 1.7 }}>
@@ -1669,7 +1704,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── FAQ ─────────────────────────────────────────────────────────────── */}
-      <section style={{ background: '#04081a', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: T.s2, padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .35 }} />
         <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
@@ -1677,7 +1712,7 @@ export default function LandingPage() {
               <div className="section-tag" style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)', marginBottom: 18, margin: '0 auto 18px' }}>
                 <MdFeedback size={14} /> Got Questions
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 14 }}>
+              <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 14 }}>
                 Frequently Asked Questions
               </h2>
               <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.45)', maxWidth: 460, margin: '0 auto' }}>
@@ -1690,7 +1725,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 14. Final CTA ───────────────────────────────────────────────────── */}
-      <section style={{ background: 'linear-gradient(135deg,#04081a 0%,#0d1537 50%,#04081a 100%)', padding: isMobile ? '72px 20px' : '112px 48px', position: 'relative', overflow: 'hidden', textAlign: 'center' }}>
+      <section style={{ background: T.sCta, padding: isMobile ? '72px 20px' : '112px 48px', position: 'relative', overflow: 'hidden', textAlign: 'center', transition: 'background 0.35s' }}>
         <div className="grid-overlay" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 800, height: 800, borderRadius: '50%', background: 'radial-gradient(circle,rgba(99,102,241,0.18) 0%,transparent 60%)', pointerEvents: 'none' }} />
 
@@ -1708,7 +1743,7 @@ export default function LandingPage() {
             </h2>
           </Reveal>
           <Reveal delay={200}>
-            <p style={{ fontSize: 18, color: 'rgba(255,255,255,.5)', lineHeight: 1.7, maxWidth: 520, margin: '0 auto 48px' }}>
+            <p style={{ fontSize: 18, color: T.p, lineHeight: 1.7, maxWidth: 520, margin: '0 auto 48px' }}>
               Join students, faculty, and administrators already using College ERP to streamline every campus workflow.
             </p>
           </Reveal>
@@ -1744,7 +1779,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 15. Footer ──────────────────────────────────────────────────────── */}
-      <footer style={{ background: '#020611', padding: isMobile ? '56px 20px 0' : '80px 48px 0' }}>
+      <footer style={{ background: T.foot, padding: isMobile ? '56px 20px 0' : '80px 48px 0', transition: 'background 0.35s' }}>
         {/* Gradient top border */}
         <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,rgba(99,102,241,0.6),rgba(139,92,246,0.6),transparent)', marginBottom: 60 }} />
 
