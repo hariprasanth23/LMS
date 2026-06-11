@@ -144,32 +144,32 @@ function RingCounter({ target, suffix = '', color, size = 110 }) {
   return (
     <div ref={ref} style={{ position: 'relative', width: size, height: size, margin: '0 auto 14px' }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={`${color}20`} strokeWidth="5" />
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="5"
           strokeDasharray={`${dash} ${circumference}`} strokeLinecap="round"
           style={{ transition: 'stroke-dasharray 1.8s cubic-bezier(.22,1,.36,1)', filter: `drop-shadow(0 0 7px ${color})` }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: 24, fontWeight: 900, color: '#fff', letterSpacing: '-1px' }}>{count}{suffix}</span>
+        <span style={{ fontSize: 24, fontWeight: 900, color: color, letterSpacing: '-1px' }}>{count}{suffix}</span>
       </div>
     </div>
   )
 }
 
 // ── Glass card ─────────────────────────────────────────────────────────────────
-function GlassCard({ children, style = {}, hover = true }) {
+function GlassCard({ children, style = {}, hover = true, isDark = true }) {
   const [hov, setHov] = useState(false)
   return (
     <div
       onMouseEnter={() => hover && setHov(true)}
       onMouseLeave={() => hover && setHov(false)}
       style={{
-        background: hov ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.04)',
-        border: `1px solid ${hov ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.08)'}`,
+        background: hov ? (isDark ? 'rgba(255,255,255,0.06)' : '#f0f4ff') : (isDark ? 'rgba(255,255,255,0.04)' : '#ffffff'),
+        border: `1px solid ${hov ? 'rgba(139,92,246,0.5)' : (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0')}`,
         borderRadius: 20,
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        boxShadow: hov ? '0 28px 56px rgba(99,102,241,0.22), inset 0 1px 0 rgba(255,255,255,0.12)' : '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)',
+        boxShadow: hov ? '0 28px 56px rgba(99,102,241,0.22), inset 0 1px 0 rgba(255,255,255,0.12)' : (isDark ? '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)' : '0 4px 24px rgba(0,0,0,0.08)'),
         transform: hov ? 'translateY(-5px) scale(1.01)' : 'none',
         transition: 'all 0.35s cubic-bezier(.22,1,.36,1)',
         willChange: 'transform, box-shadow',
@@ -334,13 +334,13 @@ function FAQAccordion({ items }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 800, margin: '0 auto' }}>
       {items.map((item, i) => (
-        <div key={i} style={{ border: `1px solid ${open === i ? 'rgba(139,92,246,0.45)' : 'rgba(255,255,255,0.07)'}`, borderRadius: 14, overflow: 'hidden', transition: 'border-color .2s', background: open === i ? 'rgba(99,102,241,0.07)' : 'rgba(255,255,255,0.03)' }}>
-          <button onClick={() => setOpen(open === i ? null : i)} style={{ width: '100%', padding: '18px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', color: '#fff', fontSize: 15, fontWeight: 600, fontFamily: FONT, cursor: 'pointer', textAlign: 'left', gap: 16 }}>
+        <div key={i} style={{ border: `1px solid ${open === i ? 'rgba(139,92,246,0.45)' : 'rgba(99,102,241,0.15)'}`, borderRadius: 14, overflow: 'hidden', transition: 'border-color .2s', background: open === i ? 'rgba(99,102,241,0.07)' : 'rgba(99,102,241,0.03)' }}>
+          <button onClick={() => setOpen(open === i ? null : i)} style={{ width: '100%', padding: '18px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', color: 'inherit', fontSize: 15, fontWeight: 600, fontFamily: FONT, cursor: 'pointer', textAlign: 'left', gap: 16 }}>
             {item.q}
             <span style={{ flexShrink: 0, fontSize: 22, color: '#a78bfa', transform: open === i ? 'rotate(45deg)' : 'none', transition: 'transform .25s cubic-bezier(.22,1,.36,1)', lineHeight: 1 }}>+</span>
           </button>
           <div style={{ maxHeight: open === i ? 200 : 0, overflow: 'hidden', transition: 'max-height .38s cubic-bezier(.22,1,.36,1)' }}>
-            <div style={{ padding: '0 22px 20px', fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.85 }}>{item.a}</div>
+            <div style={{ padding: '0 22px 20px', fontSize: 14, color: 'inherit', opacity: 0.6, lineHeight: 1.85 }}>{item.a}</div>
           </div>
         </div>
       ))}
@@ -466,6 +466,47 @@ export default function LandingPage() {
     chBg:  D ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.07)',
     chC:   D ? '#a5b4fc' : '#6366f1',
     chBd:  D ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.18)',
+    // White text → dark text in light mode
+    wh:  D ? '#ffffff' : '#0f172a',
+    w90: D ? 'rgba(255,255,255,0.90)' : '#1e293b',
+    w88: D ? 'rgba(255,255,255,0.88)' : '#1e293b',
+    w85: D ? 'rgba(255,255,255,0.85)' : '#1e293b',
+    w82: D ? 'rgba(255,255,255,0.82)' : '#334155',
+    w78: D ? 'rgba(255,255,255,0.78)' : '#334155',
+    w75: D ? 'rgba(255,255,255,0.75)' : '#374151',
+    w72: D ? 'rgba(255,255,255,0.72)' : '#374151',
+    w70: D ? 'rgba(255,255,255,0.70)' : '#374151',
+    w65: D ? 'rgba(255,255,255,0.65)' : '#4b5563',
+    w62: D ? 'rgba(255,255,255,0.62)' : '#4b5563',
+    w58: D ? 'rgba(255,255,255,0.58)' : '#4b5563',
+    w55: D ? 'rgba(255,255,255,0.55)' : '#4b5563',
+    w50: D ? 'rgba(255,255,255,0.50)' : '#6b7280',
+    w48: D ? 'rgba(255,255,255,0.48)' : '#6b7280',
+    w45: D ? 'rgba(255,255,255,0.45)' : '#6b7280',
+    w42: D ? 'rgba(255,255,255,0.42)' : '#9ca3af',
+    w40: D ? 'rgba(255,255,255,0.40)' : '#9ca3af',
+    w38: D ? 'rgba(255,255,255,0.38)' : '#9ca3af',
+    w35: D ? 'rgba(255,255,255,0.35)' : '#9ca3af',
+    w30: D ? 'rgba(255,255,255,0.30)' : '#6b7280',
+    w28: D ? 'rgba(255,255,255,0.28)' : '#6b7280',
+    w25: D ? 'rgba(255,255,255,0.25)' : '#9ca3af',
+    w22: D ? 'rgba(255,255,255,0.22)' : '#9ca3af',
+    w20: D ? 'rgba(255,255,255,0.20)' : '#d1d5db',
+    // Card surfaces (light mode = actual white/light surfaces)
+    gbg:  D ? 'rgba(255,255,255,0.04)' : '#ffffff',    // glass card bg
+    gbgh: D ? 'rgba(255,255,255,0.06)' : '#f8fafc',   // glass card hover
+    gbrd: D ? 'rgba(255,255,255,0.08)' : '#e2e8f0',   // glass card border
+    cbg3: D ? 'rgba(255,255,255,0.03)' : '#fafafa',
+    cbg4: D ? 'rgba(255,255,255,0.04)' : '#ffffff',
+    cbg5: D ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+    cbg8: D ? 'rgba(255,255,255,0.08)' : '#f1f5f9',
+    // Border opacity shades
+    bd5:  D ? 'rgba(255,255,255,0.05)' : '#e2e8f0',
+    bd6:  D ? 'rgba(255,255,255,0.06)' : '#e2e8f0',
+    bd7:  D ? 'rgba(255,255,255,0.07)' : '#e2e8f0',
+    bd8:  D ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
+    bd12: D ? 'rgba(255,255,255,0.12)' : '#d1d5db',
+    bd15: D ? 'rgba(255,255,255,0.15)' : '#d1d5db',
   }
 
   return (
@@ -539,8 +580,8 @@ export default function LandingPage() {
         .btn-primary::after { content:''; position:absolute; top:0; left:-100%; width:55%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent); transform:skewX(-20deg); }
         .btn-primary:hover::after { animation: shimmerLight .65s ease forwards; }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99,102,241,0.65); }
-        .btn-ghost { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); transition: all .2s ease; cursor: pointer; }
-        .btn-ghost:hover { background: rgba(255,255,255,0.12); transform: translateY(-2px); }
+        .btn-ghost { background: ${D ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}; border: 1px solid ${D ? 'rgba(255,255,255,0.15)' : '#d1d5db'}; transition: all .2s ease; cursor: pointer; }
+        .btn-ghost:hover { background: ${D ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'}; transform: translateY(-2px); }
         .feature-card { transition: all .32s cubic-bezier(.22,1,.36,1); cursor: default; will-change: transform, box-shadow; }
         .feature-card:hover { transform: translateY(-7px) scale(1.01); }
         .portal-card { transition: all .35s cubic-bezier(.22,1,.36,1); will-change: transform, box-shadow; }
@@ -593,7 +634,7 @@ export default function LandingPage() {
               { label: 'LMS', id: 'lms' }, { label: 'HR', id: 'hr' }, { label: 'Team', id: 'team' },
             ].map(l => (
               <button key={l.id} className="nav-link" onMouseEnter={() => setHovNav(l.id)} onMouseLeave={() => setHovNav(null)} onClick={() => scrollTo(l.id)}
-                style={{ padding: '8px 13px', borderRadius: 9, fontSize: 13, fontWeight: 500, color: hovNav === l.id ? '#a78bfa' : 'rgba(255,255,255,0.75)', background: hovNav === l.id ? 'rgba(99,102,241,0.1)' : 'transparent' }}>
+                style={{ padding: '8px 13px', borderRadius: 9, fontSize: 13, fontWeight: 500, color: hovNav === l.id ? '#a78bfa' : (D ? 'rgba(255,255,255,0.75)' : '#374151'), background: hovNav === l.id ? 'rgba(99,102,241,0.1)' : 'transparent' }}>
                 {l.label}
               </button>
             ))}
@@ -673,7 +714,7 @@ export default function LandingPage() {
                 <span style={{ position: 'absolute', width: 10, height: 10, borderRadius: '50%', background: '#10b981', opacity: .4, animation: 'ripplePulse 2s ease-out infinite .7s' }} />
                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981', display: 'inline-block', position: 'relative', zIndex: 1 }} />
               </span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.88)' }}>Student · Staff · Parent · Alumni · Admin</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: T.w88 }}>Student · Staff · Parent · Alumni · Admin</span>
             </div>
 
             {/* Headline */}
@@ -899,10 +940,10 @@ export default function LandingPage() {
                       e.currentTarget.style.background = feat.bg
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.border = '1.5px solid rgba(255,255,255,0.07)'
-                      e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.2)'
+                      e.currentTarget.style.border = `1.5px solid ${T.cbb}`
+                      e.currentTarget.style.boxShadow = D ? '0 4px 24px rgba(0,0,0,0.2)' : '0 2px 12px rgba(0,0,0,0.06)'
                       e.currentTarget.style.transform = 'none'
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+                      e.currentTarget.style.background = T.cb
                     }}
                   >
                     {/* Subtle bg gradient */}
@@ -922,8 +963,8 @@ export default function LandingPage() {
           </div>
           {/* Bottom CTA row */}
           <Reveal delay={500}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, marginTop: 44, paddingTop: 36, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-              <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>Covers every campus workflow end-to-end</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, marginTop: 44, paddingTop: 36, borderTop: `1px solid ${T.bd6}` }}>
+              <span style={{ fontSize: 14, color: T.w40 }}>Covers every campus workflow end-to-end</span>
               <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '11px 26px', borderRadius: 10, fontSize: 14, fontWeight: 700, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
                 Access All Features <MdArrowForward size={16} />
               </button>
@@ -945,7 +986,7 @@ export default function LandingPage() {
               <h2 style={{ fontSize: 'clamp(26px,3.5vw,46px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 16 }}>
                 Get started in <GradText from="#a78bfa" to="#34d399">4 simple steps</GradText>
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,.48)', maxWidth: 500, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: T.w48, maxWidth: 500, margin: '0 auto', lineHeight: 1.7 }}>
                 From first login to full campus management — it only takes minutes.
               </p>
             </div>
@@ -964,7 +1005,7 @@ export default function LandingPage() {
                       <div style={{ position: 'absolute', top: -10, right: -10, width: 28, height: 28, borderRadius: '50%', background: step.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, color: '#fff' }}>{step.step}</div>
                     </div>
                     <div style={{ fontSize: 17, fontWeight: 800, color: T.h, marginBottom: 10 }}>{step.title}</div>
-                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', lineHeight: 1.7, maxWidth: 220, margin: '0 auto' }}>{step.desc}</div>
+                    <div style={{ fontSize: 13, color: T.w45, lineHeight: 1.7, maxWidth: 220, margin: '0 auto' }}>{step.desc}</div>
                   </div>
                 </Reveal>
               )
@@ -991,40 +1032,40 @@ export default function LandingPage() {
               <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 14 }}>
                 Traditional vs <GradText from="#a78bfa" to="#34d399">College ERP</GradText>
               </h2>
-              <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.45)', maxWidth: 460, margin: '0 auto' }}>
+              <p style={{ fontSize: 16, color: T.w45, maxWidth: 460, margin: '0 auto' }}>
                 See exactly what gets replaced when you switch.
               </p>
             </div>
           </Reveal>
           <Reveal delay={100}>
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, overflowX: 'auto' }}>
+            <div style={{ background: T.cbg3, border: `1px solid ${T.bd7}`, borderRadius: 20, overflowX: 'auto' }}>
               <div style={{ minWidth: isMobile ? 560 : 'auto' }}>
               {/* Header row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: 'rgba(255,255,255,0.04)', padding: '16px 28px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Category</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: T.cbg4, padding: '16px 28px', borderBottom: `1px solid ${T.bd7}` }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: T.w40, textTransform: 'uppercase', letterSpacing: '.08em' }}>Category</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#f87171', textTransform: 'uppercase', letterSpacing: '.08em' }}>Traditional</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#34d399', textTransform: 'uppercase', letterSpacing: '.08em' }}>College ERP</div>
               </div>
               {COMPARISON_ROWS.map((row, i) => (
-                <div key={row.category} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: '16px 28px', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center', gap: 12, background: i % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent', transition: 'background .2s' }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>{row.category}</div>
+                <div key={row.category} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: '16px 28px', borderBottom: `1px solid ${T.bd5}`, alignItems: 'center', gap: 12, background: i % 2 === 0 ? (D ? 'rgba(255,255,255,0.015)' : 'rgba(0,0,0,0.015)') : 'transparent', transition: 'background .2s' }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: T.w72 }}>{row.category}</div>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                     <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
                       <span style={{ fontSize: 10, color: '#f87171', fontWeight: 800 }}>✕</span>
                     </div>
-                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.38)', lineHeight: 1.5 }}>{row.old}</span>
+                    <span style={{ fontSize: 12, color: T.w38, lineHeight: 1.5 }}>{row.old}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                     <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
                       <MdCheck style={{ fontSize: 11, color: '#34d399' }} />
                     </div>
-                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5, fontWeight: 500 }}>{row.erp}</span>
+                    <span style={{ fontSize: 12, color: T.w75, lineHeight: 1.5, fontWeight: 500 }}>{row.erp}</span>
                   </div>
                 </div>
               ))}
               {/* Winner summary strip */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: '16px 28px', background: 'rgba(52,211,153,0.06)', borderTop: '1px solid rgba(52,211,153,0.15)', alignItems: 'center', gap: 12 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '.06em' }}>Result</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: T.w50, textTransform: 'uppercase', letterSpacing: '.06em' }}>Result</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                   <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 11, color: '#f87171', fontWeight: 800 }}>0</span></div>
                   <span style={{ fontSize: 12, color: '#f87171', fontWeight: 600 }}>Manual & fragmented</span>
@@ -1085,7 +1126,7 @@ export default function LandingPage() {
                       </div>
                       <span style={{ background: `${p.color}15`, color: p.color, border: `1px solid ${p.color}30`, borderRadius: 20, padding: '4px 10px', fontSize: 11, fontWeight: 700 }}>{p.count} features</span>
                     </div>
-                    <div style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>{p.label}</div>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: T.h }}>{p.label}</div>
                     <div style={{ fontSize: 12, color: T.p, lineHeight: 1.65, flex: 1 }}>{p.desc}</div>
                     <button onClick={() => navigate(`/auth/login?portal=${p.key}`)} style={{ padding: '10px', background: p.color, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: `0 4px 16px ${p.color}45`, transition: 'opacity .15s' }}
                       onMouseEnter={e => e.currentTarget.style.opacity = '.85'}
@@ -1110,7 +1151,7 @@ export default function LandingPage() {
               <div className="section-tag" style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)', marginBottom: 24 }}>
                 📚 Academics
               </div>
-              <h2 style={{ fontSize: 'clamp(26px,3vw,44px)', fontWeight: 800, color: '#fff', marginBottom: 18, lineHeight: 1.15, letterSpacing: '-1px' }}>
+              <h2 style={{ fontSize: 'clamp(26px,3vw,44px)', fontWeight: 800, color: T.h, marginBottom: 18, lineHeight: 1.15, letterSpacing: '-1px' }}>
                 Complete Academic<br />Management — All in One
               </h2>
               <p style={{ fontSize: 16, color: T.p, lineHeight: 1.8, maxWidth: 440, marginBottom: 36 }}>
@@ -1120,7 +1161,7 @@ export default function LandingPage() {
                 {ACADEMICS_GENERAL_ITEMS.slice(0, 15).map(item => (
                   <span key={item} className="chip" style={{ background: T.chBg, border: `1px solid ${T.chBd}`, padding: '5px 14px', fontSize: 12, fontWeight: 600, color: T.chC }}>{item}</span>
                 ))}
-                <span className="chip" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px 14px', fontSize: 12, color: 'rgba(255,255,255,.35)', fontWeight: 500 }}>+{ACADEMICS_GENERAL_ITEMS.length - 15} more</span>
+                <span className="chip" style={{ background: T.cbg5, border: `1px solid ${T.bd8}`, padding: '5px 14px', fontSize: 12, color: T.w35, fontWeight: 500 }}>+{ACADEMICS_GENERAL_ITEMS.length - 15} more</span>
               </div>
             </div>
           </Reveal>
@@ -1142,7 +1183,7 @@ export default function LandingPage() {
                         <Icon style={{ fontSize: 20, color: card.color }} />
                       </div>
                       <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{card.title}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: T.h }}>{card.title}</div>
                         <div style={{ fontSize: 11, color: card.color, fontWeight: 600 }}>{card.count} modules</div>
                       </div>
                     </div>
@@ -1171,7 +1212,7 @@ export default function LandingPage() {
               <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 16 }}>
                 Digital Learning, <GradText from="#60a5fa" to="#a78bfa">Fully Integrated</GradText>
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,.48)', maxWidth: 540, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: T.w48, maxWidth: 540, margin: '0 auto', lineHeight: 1.7 }}>
                 Courses, assignments, grades, and resources — all accessible from one unified learning hub for students and faculty alike.
               </p>
             </div>
@@ -1187,7 +1228,7 @@ export default function LandingPage() {
                     <div style={{ width: 56, height: 56, borderRadius: 16, background: `${feat.color}20`, border: `1px solid ${feat.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                       <Icon style={{ fontSize: 30, color: feat.color }} />
                     </div>
-                    <div style={{ fontSize: 17, fontWeight: 700, color: '#fff', marginBottom: 10 }}>{feat.title}</div>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: T.h, marginBottom: 10 }}>{feat.title}</div>
                     <div style={{ fontSize: 13, color: T.p, lineHeight: 1.7 }}>{feat.desc}</div>
                   </div>
                 </Reveal>
@@ -1196,20 +1237,20 @@ export default function LandingPage() {
           </div>
           {/* LMS dashboard mockup */}
           <Reveal delay={200}>
-            <div style={{ marginTop: 40, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, padding: isMobile ? '20px' : '28px 36px', display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ marginTop: 40, background: T.cbg3, border: `1px solid ${T.bd7}`, borderRadius: 20, padding: isMobile ? '20px' : '28px 36px', display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(59,130,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <MdComputer style={{ fontSize: 28, color: '#60a5fa' }} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>Active for all roles</div>
-                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,.4)' }}>Students submit · Faculty grade · Admin oversee</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: T.h }}>Active for all roles</div>
+                  <div style={{ fontSize: 13, color: T.w40 }}>Students submit · Faculty grade · Admin oversee</div>
                 </div>
               </div>
               {[{ label: 'Courses Available', val: '60+', color: '#60a5fa' }, { label: 'Assignments/sem', val: '200+', color: '#a78bfa' }, { label: 'Submission Rate', val: '98%', color: '#34d399' }].map(s => (
                 <div key={s.label} style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: 28, fontWeight: 900, color: s.color, letterSpacing: '-1px' }}>{s.val}</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,.35)', fontWeight: 500 }}>{s.label}</div>
+                  <div style={{ fontSize: 12, color: T.w35, fontWeight: 500 }}>{s.label}</div>
                 </div>
               ))}
             </div>
@@ -1218,7 +1259,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 9. Examinations ─────────────────────────────────────────────────── */}
-      <section id="examinations" style={{ background: 'linear-gradient(135deg,#06091e 0%,#0d1235 100%)', padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden' }}>
+      <section id="examinations" style={{ background: T.s4, padding: isMobile ? '64px 20px' : '96px 48px', position: 'relative', overflow: 'hidden', transition: 'background 0.35s' }}>
         <div style={{ position: 'absolute', top: '-8%', right: '-4%', width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle,rgba(239,68,68,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal>
@@ -1249,7 +1290,7 @@ export default function LandingPage() {
                         <div style={{ width: 18, height: 18, borderRadius: '50%', background: `${group.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <MdCheck style={{ fontSize: 11, color: group.color }} />
                         </div>
-                        <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', fontWeight: 500 }}>{item}</span>
+                        <span style={{ fontSize: 13, color: T.w65, fontWeight: 500 }}>{item}</span>
                       </div>
                     ))}
                   </div>
@@ -1288,7 +1329,7 @@ export default function LandingPage() {
                     <div style={{ width: 48, height: 48, borderRadius: 12, background: `${item.color}18`, border: `1.5px solid ${item.color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
                       <Icon style={{ fontSize: 24, color: item.color }} />
                     </div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>{item.label}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: T.h, marginBottom: 6 }}>{item.label}</div>
                     <div style={{ fontSize: 13, color: T.p, lineHeight: 1.6 }}>{item.desc}</div>
                   </div>
                 </Reveal>
@@ -1311,7 +1352,7 @@ export default function LandingPage() {
               <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 16 }}>
                 Complete <GradText from="#fbbf24" to="#f87171">HR Management</GradText> Suite
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,.48)', maxWidth: 540, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: T.w48, maxWidth: 540, margin: '0 auto', lineHeight: 1.7 }}>
                 Employee management, leave workflows, and payroll — fully automated and integrated for admin teams.
               </p>
             </div>
@@ -1336,7 +1377,7 @@ export default function LandingPage() {
                           <div style={{ width: 20, height: 20, borderRadius: '50%', background: `${mod.color}18`, border: `1px solid ${mod.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             <MdCheck style={{ fontSize: 12, color: mod.color }} />
                           </div>
-                          <span style={{ fontSize: 13, color: 'rgba(255,255,255,.65)', fontWeight: 500 }}>{item}</span>
+                          <span style={{ fontSize: 13, color: T.w65, fontWeight: 500 }}>{item}</span>
                         </div>
                       ))}
                     </div>
@@ -1380,7 +1421,7 @@ export default function LandingPage() {
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.background = `${group.color}16`; e.currentTarget.style.borderColor = `${group.color}45`; e.currentTarget.style.boxShadow = `0 16px 36px ${group.color}15` }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.background = `${group.color}0a`; e.currentTarget.style.borderColor = `${group.color}22`; e.currentTarget.style.boxShadow = 'none' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>{group.title}</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: T.h }}>{group.title}</span>
                     <span style={{ background: `${group.color}18`, color: group.color, fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>{group.items.length} items</span>
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -1423,8 +1464,8 @@ export default function LandingPage() {
                     <div style={{ width: 54, height: 54, borderRadius: 15, background: `${feat.color}18`, border: `1.5px solid ${feat.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
                       <Icon style={{ fontSize: 28, color: feat.color }} />
                     </div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 10 }}>{feat.title}</div>
-                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}>{feat.desc}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: T.h, marginBottom: 10 }}>{feat.title}</div>
+                    <div style={{ fontSize: 13, color: T.w50, lineHeight: 1.7 }}>{feat.desc}</div>
                   </div>
                 </Reveal>
               )
@@ -1432,8 +1473,8 @@ export default function LandingPage() {
           </div>
           {/* Live notification preview */}
           <Reveal delay={250}>
-            <div style={{ marginTop: 40, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: isMobile ? '20px' : '28px 36px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 18 }}>Live Notification Feed</div>
+            <div style={{ marginTop: 40, background: T.cbg3, border: `1px solid ${T.bd8}`, borderRadius: 20, padding: isMobile ? '20px' : '28px 36px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: T.w30, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 18 }}>Live Notification Feed</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {[
                   { icon: MdAssignment, color: '#6366f1', text: 'Digital Assignment due in 2 hours — Data Structures (CS3201)', time: 'Just now', role: 'Student' },
@@ -1443,16 +1484,16 @@ export default function LandingPage() {
                 ].map((notif, i) => {
                   const Icon = notif.icon
                   return (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '12px 16px', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.cbg4, borderRadius: 12, padding: '12px 16px', border: `1px solid ${T.bd7}` }}>
                       <div style={{ width: 38, height: 38, borderRadius: 10, background: `${notif.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <Icon style={{ fontSize: 20, color: notif.color }} />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{notif.text}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: T.w85 }}>{notif.text}</div>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
                         <span style={{ fontSize: 10, fontWeight: 700, color: notif.color, background: `${notif.color}12`, padding: '2px 8px', borderRadius: 20 }}>{notif.role}</span>
-                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{notif.time}</span>
+                        <span style={{ fontSize: 11, color: T.w35 }}>{notif.time}</span>
                       </div>
                     </div>
                   )
@@ -1479,7 +1520,7 @@ export default function LandingPage() {
               <div className="section-tag" style={{ background: 'rgba(139,92,246,0.12)', color: '#c084fc', border: '1px solid rgba(139,92,246,0.28)', marginBottom: 20, margin: '0 auto 20px' }}>
                 <MdScience size={14} /> PhD & Research
               </div>
-              <h2 style={{ fontSize: 'clamp(28px,3.8vw,54px)', fontWeight: 900, color: '#fff', letterSpacing: '-1.5px', lineHeight: 1.08, marginBottom: 18 }}>
+              <h2 style={{ fontSize: 'clamp(28px,3.8vw,54px)', fontWeight: 900, color: T.h, letterSpacing: '-1.5px', lineHeight: 1.08, marginBottom: 18 }}>
                 Complete PhD Journey,<br /><GradText from="#c084fc" to="#34d399">One Platform</GradText>
               </h2>
               <p style={{ fontSize: 17, color: T.p, maxWidth: 560, margin: '0 auto', lineHeight: 1.75 }}>
@@ -1499,17 +1540,17 @@ export default function LandingPage() {
               const Icon = p.icon
               return (
                 <Reveal key={p.phase} delay={i * 80} wrapStyle={{ zIndex: 1 }}>
-                  <div style={{ background: p.active ? 'rgba(167,139,250,0.1)' : 'rgba(255,255,255,0.03)', border: `1px solid ${p.active ? 'rgba(167,139,250,0.4)' : p.done ? `${p.color}30` : 'rgba(255,255,255,0.07)'}`, borderRadius: 18, padding: '22px 16px', textAlign: 'center', transition: 'all .3s cubic-bezier(.22,1,.36,1)', cursor: 'default', position: 'relative', boxShadow: p.active ? '0 0 32px rgba(167,139,250,0.12)' : 'none' }}
+                  <div style={{ background: p.active ? 'rgba(167,139,250,0.1)' : T.cbg3, border: `1px solid ${p.active ? 'rgba(167,139,250,0.4)' : p.done ? `${p.color}30` : T.bd7}`, borderRadius: 18, padding: '22px 16px', textAlign: 'center', transition: 'all .3s cubic-bezier(.22,1,.36,1)', cursor: 'default', position: 'relative', boxShadow: p.active ? '0 0 32px rgba(167,139,250,0.12)' : 'none' }}
                     onMouseEnter={e => { e.currentTarget.style.background = `${p.color}12`; e.currentTarget.style.borderColor = `${p.color}50`; e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = `0 16px 32px ${p.color}15` }}
-                    onMouseLeave={e => { e.currentTarget.style.background = p.active ? 'rgba(167,139,250,0.1)' : 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = p.active ? 'rgba(167,139,250,0.4)' : p.done ? `${p.color}30` : 'rgba(255,255,255,0.07)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = p.active ? '0 0 32px rgba(167,139,250,0.12)' : 'none' }}>
+                    onMouseLeave={e => { e.currentTarget.style.background = p.active ? 'rgba(167,139,250,0.1)' : T.cbg3; e.currentTarget.style.borderColor = p.active ? 'rgba(167,139,250,0.4)' : p.done ? `${p.color}30` : T.bd7; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = p.active ? '0 0 32px rgba(167,139,250,0.12)' : 'none' }}>
                     {p.done && <div style={{ position: 'absolute', top: 10, right: 10, width: 18, height: 18, borderRadius: '50%', background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdCheck style={{ fontSize: 11, color: '#34d399' }} /></div>}
                     {p.active && <div style={{ position: 'absolute', top: 12, right: 12, width: 8, height: 8, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 10px #a78bfa', animation: 'pulse 2s infinite' }} />}
                     <div style={{ width: 52, height: 52, borderRadius: 14, background: `${p.color}15`, border: `1.5px solid ${p.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', boxShadow: p.active ? `0 0 20px ${p.color}25` : 'none' }}>
                       <Icon style={{ fontSize: 26, color: p.color }} />
                     </div>
                     <div style={{ fontSize: 10, fontWeight: 800, color: p.color, letterSpacing: '.1em', marginBottom: 6, textTransform: 'uppercase' }}>Phase {p.phase}</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 7 }}>{p.title}</div>
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>{p.desc}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: T.h, marginBottom: 7 }}>{p.title}</div>
+                    <div style={{ fontSize: 12, color: T.w40, lineHeight: 1.6 }}>{p.desc}</div>
                   </div>
                 </Reveal>
               )
@@ -1518,12 +1559,12 @@ export default function LandingPage() {
 
           {/* Rich 3-col Dashboard */}
           <Reveal delay={180}>
-            <GlassCard style={{ padding: isMobile ? '24px 18px' : '32px 36px' }} hover={false}>
+            <GlassCard style={{ padding: isMobile ? '24px 18px' : '32px 36px' }} hover={false} isDark={D}>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.5fr 1fr 1fr', gap: isMobile ? 28 : 36 }}>
 
                 {/* Col 1: PhD Journey Timeline */}
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.28)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 22 }}>PhD Journey</div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: T.w28, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 22 }}>PhD Journey</div>
                   {[
                     { label: 'PhD Registration', sub: 'Enrolled Jul 2022', done: true },
                     { label: 'Course Work', sub: '4 subjects completed', done: true },
@@ -1539,8 +1580,8 @@ export default function LandingPage() {
                         {i < arr.length - 1 && <div style={{ width: 2, height: 28, background: step.done ? 'linear-gradient(180deg,rgba(52,211,153,0.4),rgba(52,211,153,0.1))' : 'rgba(255,255,255,0.05)', margin: '3px 0', borderRadius: 1 }} />}
                       </div>
                       <div style={{ paddingBottom: i < arr.length - 1 ? 22 : 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: step.done ? '#fff' : step.active ? '#c4b5fd' : 'rgba(255,255,255,0.35)' }}>{step.label}</div>
-                        <div style={{ fontSize: 11, color: step.active ? 'rgba(196,181,253,0.55)' : 'rgba(255,255,255,0.22)', marginTop: 2 }}>{step.sub}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: step.done ? T.h : step.active ? '#c4b5fd' : T.w35 }}>{step.label}</div>
+                        <div style={{ fontSize: 11, color: step.active ? 'rgba(196,181,253,0.55)' : T.w22, marginTop: 2 }}>{step.sub}</div>
                       </div>
                     </div>
                   ))}
@@ -1548,17 +1589,17 @@ export default function LandingPage() {
 
                 {/* Col 2: Thesis Ring + Progress Bars */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', borderLeft: isMobile ? 'none' : '1px solid rgba(255,255,255,0.06)', borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.06)', padding: isMobile ? '0' : '0 28px' }}>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.28)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 16, textAlign: 'center' }}>Thesis Progress</div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: T.w28, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 16, textAlign: 'center' }}>Thesis Progress</div>
                   <RingCounter target={35} suffix="%" color="#a78bfa" size={118} />
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.45)', marginBottom: 22, textAlign: 'center' }}>Chapter 2 of 5 complete</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: T.w45, marginBottom: 22, textAlign: 'center' }}>Chapter 2 of 5 complete</div>
                   <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {[{ l: 'Course Work', v: 100, c: '#34d399' }, { l: 'Research Hours', v: 62, c: '#818cf8' }, { l: 'Guide Meetings', v: 75, c: '#06b6d4' }].map(bar => (
                       <div key={bar.l}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.42)', fontWeight: 500 }}>{bar.l}</span>
+                          <span style={{ fontSize: 11, color: T.w42, fontWeight: 500 }}>{bar.l}</span>
                           <span style={{ fontSize: 11, fontWeight: 700, color: bar.c }}>{bar.v}%</span>
                         </div>
-                        <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ height: 4, background: T.bd6, borderRadius: 2, overflow: 'hidden' }}>
                           <div style={{ height: '100%', width: `${bar.v}%`, background: `linear-gradient(90deg,${bar.c}cc,${bar.c})`, borderRadius: 2, boxShadow: `0 0 6px ${bar.c}60` }} />
                         </div>
                       </div>
@@ -1568,7 +1609,7 @@ export default function LandingPage() {
 
                 {/* Col 3: Activity + Mini Stats */}
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.28)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 16 }}>Recent Activity</div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: T.w28, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 16 }}>Recent Activity</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
                     {[
                       { text: 'Thesis Ch.2 submitted', time: '2h ago', color: '#34d399', icon: MdAssignment },
@@ -1578,13 +1619,13 @@ export default function LandingPage() {
                     ].map((act, ai) => {
                       const AIcon = act.icon
                       return (
-                        <div key={ai} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '9px 11px', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div key={ai} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '9px 11px', background: T.cbg3, borderRadius: 10, border: `1px solid ${T.bd5}` }}>
                           <div style={{ width: 28, height: 28, borderRadius: 8, background: `${act.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             <AIcon style={{ fontSize: 14, color: act.color }} />
                           </div>
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(255,255,255,0.7)', lineHeight: 1.3 }}>{act.text}</div>
-                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>{act.time}</div>
+                            <div style={{ fontSize: 11.5, fontWeight: 600, color: T.w70, lineHeight: 1.3 }}>{act.text}</div>
+                            <div style={{ fontSize: 10, color: T.w25, marginTop: 2 }}>{act.time}</div>
                           </div>
                         </div>
                       )
@@ -1594,7 +1635,7 @@ export default function LandingPage() {
                     {[{ label: 'Years Enrolled', val: '2.5', color: '#a78bfa' }, { label: 'Publications', val: '3', color: '#34d399' }].map(stat => (
                       <div key={stat.label} style={{ background: `${stat.color}10`, border: `1px solid ${stat.color}22`, borderRadius: 10, padding: '12px 10px', textAlign: 'center' }}>
                         <div style={{ fontSize: 22, fontWeight: 900, color: stat.color, letterSpacing: '-0.5px' }}>{stat.val}</div>
-                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 3, fontWeight: 500 }}>{stat.label}</div>
+                        <div style={{ fontSize: 10, color: T.w35, marginTop: 3, fontWeight: 500 }}>{stat.label}</div>
                       </div>
                     ))}
                   </div>
@@ -1649,8 +1690,8 @@ export default function LandingPage() {
                   </span>
                   <div style={{ fontSize: 20, fontWeight: 800, color: T.h, marginBottom: 6 }}>{m.name}</div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: m.tagColor, marginBottom: 18 }}>{m.role}</div>
-                  <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 18 }} />
-                  <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, margin: 0 }}>{m.desc}</p>
+                  <div style={{ height: 1, background: T.bd7, marginBottom: 18 }} />
+                  <p style={{ fontSize: 13, color: T.w50, lineHeight: 1.7, margin: 0 }}>{m.desc}</p>
                 </div>
               </Reveal>
             ))}
@@ -1670,7 +1711,7 @@ export default function LandingPage() {
               <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 14 }}>
                 Loved by every role
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.45)', maxWidth: 460, margin: '0 auto', lineHeight: 1.7 }}>
+              <p style={{ fontSize: 17, color: T.w45, maxWidth: 460, margin: '0 auto', lineHeight: 1.7 }}>
                 From students to administrators — see what real users say about College ERP.
               </p>
             </div>
@@ -1678,7 +1719,7 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2,1fr)', gap: 20 }}>
             {TESTIMONIALS.map((t, i) => (
               <Reveal key={t.name} delay={i * 80}>
-                <GlassCard style={{ padding: '32px 28px' }}>
+                <GlassCard style={{ padding: '32px 28px' }} isDark={D}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                     <div style={{ display: 'flex', gap: 3 }}>
                       {[...Array(5)].map((_, si) => (
@@ -1687,12 +1728,12 @@ export default function LandingPage() {
                     </div>
                     <div style={{ fontSize: 56, fontWeight: 900, color: 'rgba(167,139,250,0.18)', lineHeight: .8, fontFamily: 'Georgia, serif' }}>&ldquo;</div>
                   </div>
-                  <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.72)', lineHeight: 1.8, marginBottom: 24, marginTop: 0 }}>{t.quote}</p>
+                  <p style={{ fontSize: 15, color: T.w72, lineHeight: 1.8, marginBottom: 24, marginTop: 0 }}>{t.quote}</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                     <div style={{ width: 44, height: 44, borderRadius: '50%', background: `${t.color}25`, border: `2px solid ${t.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: t.color, flexShrink: 0 }}>{t.initials}</div>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{t.name}</div>
-                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>{t.role}</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: T.h }}>{t.name}</div>
+                      <div style={{ fontSize: 12, color: T.w40, marginTop: 2 }}>{t.role}</div>
                     </div>
                     <span style={{ marginLeft: 'auto', background: `${t.color}15`, color: t.color, border: `1px solid ${t.color}30`, borderRadius: 20, padding: '3px 12px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{t.portal}</span>
                   </div>
@@ -1715,7 +1756,7 @@ export default function LandingPage() {
               <h2 style={{ fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 800, color: T.h, letterSpacing: '-1px', marginBottom: 14 }}>
                 Frequently Asked Questions
               </h2>
-              <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.45)', maxWidth: 460, margin: '0 auto' }}>
+              <p style={{ fontSize: 17, color: T.w45, maxWidth: 460, margin: '0 auto' }}>
                 Everything you need to know about College ERP.
               </p>
             </div>
@@ -1733,11 +1774,11 @@ export default function LandingPage() {
           <Reveal>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 100, padding: '7px 18px', marginBottom: 28 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 10px #10b981', display: 'inline-block', animation: 'pulse 2s infinite' }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.78)' }}>Ready to modernize your campus?</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: T.w78 }}>Ready to modernize your campus?</span>
             </div>
           </Reveal>
           <Reveal delay={100}>
-            <h2 style={{ fontSize: isMobile ? 'clamp(32px,10vw,48px)' : 'clamp(36px,5vw,64px)', fontWeight: 900, color: '#fff', letterSpacing: '-2px', lineHeight: 1.08, marginBottom: 20 }}>
+            <h2 style={{ fontSize: isMobile ? 'clamp(32px,10vw,48px)' : 'clamp(36px,5vw,64px)', fontWeight: 900, color: T.h, letterSpacing: '-2px', lineHeight: 1.08, marginBottom: 20 }}>
               Start managing your college&nbsp;
               <GradText from="#a78bfa" to="#34d399">smarter today</GradText>
             </h2>
@@ -1752,24 +1793,24 @@ export default function LandingPage() {
               <button className="btn-primary" onClick={() => navigate('/auth/login')} style={{ padding: '17px 40px', borderRadius: 14, fontSize: 17, fontWeight: 800, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 10 }}>
                 Get Started Free <MdArrowForward size={20} />
               </button>
-              <button className="btn-ghost" onClick={() => scrollTo('how-it-works')} style={{ padding: '17px 28px', borderRadius: 14, fontSize: 15, fontWeight: 600, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <button className="btn-ghost" onClick={() => scrollTo('how-it-works')} style={{ padding: '17px 28px', borderRadius: 14, fontSize: 15, fontWeight: 600, color: D ? '#fff' : '#374151', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 How it works
               </button>
             </div>
             {/* Demo credentials quick ref */}
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: '16px 24px', maxWidth: 560, margin: '0 auto 40px', display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>Try demo →</span>
+            <div style={{ background: T.cbg4, border: `1px solid ${T.bd8}`, borderRadius: 14, padding: '16px 24px', maxWidth: 560, margin: '0 auto 40px', display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
+              <span style={{ fontSize: 12, color: T.w40, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>Try demo →</span>
               {[{ role: 'Admin', email: 'demo@college.com', color: '#f87171' }, { role: 'Student', email: 'student@demo.com', color: '#60a5fa' }, { role: 'Faculty', email: 'staff@demo.com', color: '#c084fc' }].map(d => (
                 <div key={d.role} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ background: `${d.color}15`, color: d.color, border: `1px solid ${d.color}30`, borderRadius: 6, padding: '2px 8px', fontSize: 10, fontWeight: 700 }}>{d.role}</span>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.42)', fontFamily: 'monospace' }}>{d.email}</span>
+                  <span style={{ fontSize: 11, color: T.w42, fontFamily: 'monospace' }}>{d.email}</span>
                 </div>
               ))}
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)' }}>pw: Demo@123</span>
+              <span style={{ fontSize: 11, color: T.w28 }}>pw: Demo@123</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 32, flexWrap: 'wrap' }}>
               {[{ icon: MdShield, t: 'Enterprise Secure' }, { icon: MdCheck, t: 'Role-Based Access' }, { icon: MdPublic, t: '24/7 Available' }, { icon: MdAccessTime, t: 'Real-Time Sync' }].map(({ icon: Icon, t }) => (
-                <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'rgba(255,255,255,.4)', fontSize: 13 }}>
+                <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 7, color: T.w40, fontSize: 13 }}>
                   <Icon style={{ fontSize: 14, color: '#a78bfa' }} />{t}
                 </div>
               ))}
