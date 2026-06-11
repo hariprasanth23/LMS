@@ -447,7 +447,7 @@ export default function LandingPage() {
     s9:  D ? 'linear-gradient(180deg,#04081a 0%,#060c22 100%)' : '#f0eeff',
     s10: D ? 'linear-gradient(135deg,#04081a 0%,#0d1537 50%,#04081a 100%)' : '#e8e3fa',
     sCta:D ? 'linear-gradient(135deg,#04081a 0%,#0d1537 50%,#04081a 100%)' : 'linear-gradient(135deg,#ede9ff 0%,#f0eeff 100%)',
-    foot:D ? '#020611' : '#0f172a',
+    foot:D ? '#020611' : '#160d38',
     // Text
     h:   D ? '#ffffff' : '#0f172a',
     p:   D ? 'rgba(255,255,255,0.50)' : '#64748b',
