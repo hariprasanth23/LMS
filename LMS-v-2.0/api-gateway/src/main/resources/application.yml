@@ -1,0 +1,121 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - ${FRONTEND_URL:http://localhost:5173}
+            allowedMethods: ["GET","POST","PUT","DELETE","OPTIONS"]
+            allowedHeaders: ["*"]
+            allowCredentials: true
+      routes:
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+
+        - id: user-service
+          uri: ${USER_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/students/**, /api/employees/**, /api/departments/**
+          filters:
+            - JwtAuthFilter
+
+        - id: course-service
+          uri: ${COURSE_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/courses/**, /api/assignments/**, /api/quizzes/**, /api/announcements/**, /api/enrollments/**
+          filters:
+            - JwtAuthFilter
+
+        - id: examination-service
+          uri: ${EXAM_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/examination/**
+          filters:
+            - JwtAuthFilter
+
+        - id: attendance-service
+          uri: ${ATTENDANCE_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/attendance/**
+          filters:
+            - JwtAuthFilter
+
+        - id: finance-service
+          uri: ${FINANCE_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/finance/**
+          filters:
+            - JwtAuthFilter
+
+        - id: hr-service
+          uri: ${HR_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/leaves/**, /api/payroll/**
+          filters:
+            - JwtAuthFilter
+
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8088}
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - JwtAuthFilter
+
+        - id: academics-service
+          uri: ${ACADEMICS_SERVICE_URL:http://localhost:8089}
+          predicates:
+            - Path=/api/academics/**
+          filters:
+            - JwtAuthFilter
+
+        - id: feedback-service
+          uri: ${FEEDBACK_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/feedback/**
+          filters:
+            - JwtAuthFilter
+
+        - id: research-service
+          uri: ${RESEARCH_SERVICE_URL:http://localhost:8091}
+          predicates:
+            - Path=/api/research/**
+          filters:
+            - JwtAuthFilter
+
+        - id: student-services
+          uri: ${STUDENT_SERVICES_URL:http://localhost:8092}
+          predicates:
+            - Path=/api/services/**
+          filters:
+            - JwtAuthFilter
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

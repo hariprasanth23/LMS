@@ -1,0 +1,289 @@
+services:
+
+  # ── Infrastructure ───────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: lms-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lmsadmin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/db/init-databases.sql:/docker-entrypoint-initdb.d/01-init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lmsadmin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lms-net
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: lms-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - lms-net
+
+  localstack:
+    image: localstack/localstack:3.4
+    container_name: lms-localstack
+    environment:
+      SERVICES: sqs,s3,secretsmanager
+      DEBUG: 0
+      DEFAULT_REGION: us-east-1
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./infra/localstack/setup.sh:/etc/localstack/init/ready.d/setup.sh
+      - localstack_data:/var/lib/localstack
+    networks:
+      - lms-net
+
+  # ── Microservices ─────────────────────────────────────────────────────────────
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: lms-api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      AUTH_SERVICE_URL: http://auth-service:8081
+      USER_SERVICE_URL: http://user-service:8082
+      COURSE_SERVICE_URL: http://course-service:8083
+      EXAM_SERVICE_URL: http://examination-service:8084
+      ATTENDANCE_SERVICE_URL: http://attendance-service:8085
+      FINANCE_SERVICE_URL: http://finance-service:8086
+      HR_SERVICE_URL: http://hr-service:8087
+      NOTIFICATION_SERVICE_URL: http://notification-service:8088
+      ACADEMICS_SERVICE_URL: http://academics-service:8089
+      FEEDBACK_SERVICE_URL: http://feedback-service:8090
+      RESEARCH_SERVICE_URL: http://research-service:8091
+      STUDENT_SERVICES_URL: http://student-services:8092
+    depends_on:
+      - redis
+    networks:
+      - lms-net
+
+  auth-service:
+    build: ./auth-service
+    container_name: lms-auth-service
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/lms_auth_db
+      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lms-net
+
+  user-service:
+    build: ./user-service
+    container_name: lms-user-service
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/lms_user_db
+      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      SQS_ENDPOINT: http://localstack:4566
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lms-net
+
+  course-service:
+    build: ./course-service
+    container_name: lms-course-service
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/lms_course_db
+      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      USER_SERVICE_URL: http://user-service:8082
+      SQS_ENDPOINT: http://localstack:4566
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lms-net
+
+  examination-service:
+    build: ./examination-service
+    container_name: lms-examination-service
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/lms_exam_db
+      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      USER_SERVICE_URL: http://user-service:8082
+      COURSE_SERVICE_URL: http://course-service:8083
+      SQS_ENDPOINT: http://localstack:4566
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lms-net
+
+  attendance-service:
+    build: ./attendance-service
+    container_name: lms-attendance-service
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/lms_attendance_db
+      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      COURSE_SERVICE_URL: http://course-service:8083
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lms-net
+
+  finance-service:
+    build: ./finance-service
+    container_name: lms-finance-service
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/lms_finance_db
+      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      USER_SERVICE_URL: http://user-service:8082
+      SQS_ENDPOINT: http://localstack:4566
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lms-net
+
+  hr-service:
+    build: ./hr-service
+    container_name: lms-hr-service
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/lms_hr_db
+      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      USER_SERVICE_URL: http://user-service:8082
+      SQS_ENDPOINT: http://localstack:4566
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lms-net
+
+  notification-service:
+    build: ./notification-service
+    container_name: lms-notification-service
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/lms_notification_db
+      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      SQS_ENDPOINT: http://localstack:4566
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_started
+    networks:
+      - lms-net
+
+  academics-service:
+    build: ./academics-service
+    container_name: lms-academics-service
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/lms_academics_db
+      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      USER_SERVICE_URL: http://user-service:8082
+      COURSE_SERVICE_URL: http://course-service:8083
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lms-net
+
+  feedback-service:
+    build: ./feedback-service
+    container_name: lms-feedback-service
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/lms_feedback_db
+      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lms-net
+
+  research-service:
+    build: ./research-service
+    container_name: lms-research-service
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/lms_research_db
+      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      USER_SERVICE_URL: http://user-service:8082
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lms-net
+
+  student-services:
+    build: ./student-services
+    container_name: lms-student-services
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/lms_services_db
+      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      USER_SERVICE_URL: http://user-service:8082
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lms-net
+
+  # ── Frontend ──────────────────────────────────────────────────────────────────
+
+  frontend:
+    build: ./frontend
+    container_name: lms-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api-gateway
+    networks:
+      - lms-net
+
+volumes:
+  postgres_data:
+    name: lms_v2_postgres_data
+  localstack_data:
+    name: lms_v2_localstack_data
+
+networks:
+  lms-net:
+    name: lms_v2_network
