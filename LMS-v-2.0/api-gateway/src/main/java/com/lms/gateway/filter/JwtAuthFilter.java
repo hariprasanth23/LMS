@@ -1,8 +1,11 @@
 package com.lms.gateway.filter;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -12,65 +15,94 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
+/**
+ * Validates the {@code lms_token} httpOnly cookie on every protected route.
+ *
+ * <p>If valid, the JWT's claims are extracted and forwarded downstream as
+ * {@code X-User-Id}, {@code X-User-Role}, {@code X-User-Name} headers. The
+ * downstream services trust these headers and never re-parse the JWT.
+ *
+ * <p>Public routes (login/register/refresh) are excluded by route definition,
+ * not by an in-filter allow-list — so this filter never runs for them.
+ */
+@Slf4j
 @Component
 public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Config> {
 
     @Value("${app.jwt.secret}")
     private String jwtSecret;
 
-    // Paths that bypass JWT validation
-    private static final List<String> PUBLIC_PATHS = List.of(
-        "/api/auth/login",
-        "/api/auth/register",
-        "/api/auth/refresh",
-        "/actuator/health"
-    );
+    private SecretKey signingKey;
 
-    public JwtAuthFilter() {
-        super(Config.class);
+    public JwtAuthFilter() { super(Config.class); }
+
+    @PostConstruct
+    void init() {
+        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException(
+                "JWT_SECRET must be at least 32 bytes (256 bits) — got " + keyBytes.length);
+        }
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+        log.info("JwtAuthFilter initialised");
     }
 
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
-            var request = exchange.getRequest();
-            String path = request.getPath().value();
+            ServerHttpRequest req = exchange.getRequest();
 
-            if (PUBLIC_PATHS.stream().anyMatch(path::startsWith)) {
-                return chain.filter(exchange);
+            var cookie = req.getCookies().getFirst("lms_token");
+            String token = (cookie != null) ? cookie.getValue() : null;
+
+            // Fallback: Authorization: Bearer … (for non-browser clients / tests)
+            if (token == null || token.isBlank()) {
+                String auth = req.getHeaders().getFirst("Authorization");
+                if (auth != null && auth.startsWith("Bearer ")) {
+                    token = auth.substring(7);
+                }
             }
 
-            // Read JWT from httpOnly cookie
-            var cookies = request.getCookies().getFirst("lms_token");
-            if (cookies == null) {
-                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                return exchange.getResponse().setComplete();
+            if (token == null || token.isBlank()) {
+                return unauthorized(exchange, "Missing authentication token");
             }
 
             try {
-                SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
                 Claims claims = Jwts.parser()
-                    .verifyWith(key)
-                    .build()
-                    .parseSignedClaims(cookies.getValue())
-                    .getPayload();
+                        .verifyWith(signingKey)
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload();
 
-                // Inject user context into downstream request headers
-                ServerHttpRequest mutatedRequest = request.mutate()
-                    .header("X-User-Id",   claims.getSubject())
-                    .header("X-User-Role", claims.get("role", String.class))
-                    .header("X-User-Name", claims.get("name", String.class))
-                    .build();
+                // Reject if this is a refresh token (those are for /auth/refresh only)
+                if ("refresh".equals(claims.get("type", String.class))) {
+                    return unauthorized(exchange, "Refresh token cannot be used for API calls");
+                }
 
-                return chain.filter(exchange.mutate().request(mutatedRequest).build());
+                String role = claims.get("role", String.class);
+                String name = claims.get("name", String.class);
 
-            } catch (Exception e) {
-                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                return exchange.getResponse().setComplete();
+                ServerHttpRequest mutated = req.mutate()
+                        .header("X-User-Id",   claims.getSubject())
+                        .header("X-User-Role", role != null ? role : "")
+                        .header("X-User-Name", name != null ? name : "")
+                        .build();
+
+                return chain.filter(exchange.mutate().request(mutated).build());
+
+            } catch (JwtException e) {
+                log.debug("JWT validation failed for {}: {}", req.getPath(), e.getMessage());
+                return unauthorized(exchange, "Invalid or expired token");
             }
         };
+    }
+
+    private reactor.core.publisher.Mono<Void> unauthorized(
+            org.springframework.web.server.ServerWebExchange exchange, String msg) {
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        exchange.getResponse().getHeaders().add("X-Auth-Error", msg);
+        return exchange.getResponse().setComplete();
     }
 
     public static class Config {}

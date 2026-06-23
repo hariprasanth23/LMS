@@ -1,5 +1,6 @@
 server:
   port: 8080
+  forward-headers-strategy: framework
 
 spring:
   application:
@@ -15,34 +16,62 @@ spring:
           '[/**]':
             allowedOrigins:
               - ${FRONTEND_URL:http://localhost:5173}
-            allowedMethods: ["GET","POST","PUT","DELETE","OPTIONS"]
+            allowedMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
             allowedHeaders: ["*"]
             allowCredentials: true
+            maxAge: 3600
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
       routes:
-        - id: auth-service
+
+        # ── PUBLIC auth endpoints — no JWT required, rate-limited per IP ─────
+        - id: auth-public
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/auth/login,/api/auth/register,/api/auth/refresh
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                key-resolver: "#{@ipKeyResolver}"
+
+        # ── AUTHENTICATED auth endpoints — JWT required (me/profile/logout/…)
+        - id: auth-private
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/auth/**
           filters:
+            - JwtAuthFilter
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
-                key-resolver: "#{@ipKeyResolver}"
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@userKeyResolver}"
 
         - id: user-service
           uri: ${USER_SERVICE_URL:http://localhost:8082}
           predicates:
-            - Path=/api/students/**, /api/employees/**, /api/departments/**
+            - Path=/api/students/**,/api/employees/**,/api/departments/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+                key-resolver: "#{@userKeyResolver}"
 
         - id: course-service
           uri: ${COURSE_SERVICE_URL:http://localhost:8083}
           predicates:
-            - Path=/api/courses/**, /api/assignments/**, /api/quizzes/**, /api/announcements/**, /api/enrollments/**
+            - Path=/api/courses/**,/api/assignments/**,/api/quizzes/**,/api/announcements/**,/api/enrollments/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+                key-resolver: "#{@userKeyResolver}"
 
         - id: examination-service
           uri: ${EXAM_SERVICE_URL:http://localhost:8084}
@@ -50,6 +79,11 @@ spring:
             - Path=/api/examination/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@userKeyResolver}"
 
         - id: attendance-service
           uri: ${ATTENDANCE_SERVICE_URL:http://localhost:8085}
@@ -57,6 +91,11 @@ spring:
             - Path=/api/attendance/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+                key-resolver: "#{@userKeyResolver}"
 
         - id: finance-service
           uri: ${FINANCE_SERVICE_URL:http://localhost:8086}
@@ -64,13 +103,24 @@ spring:
             - Path=/api/finance/**
           filters:
             - JwtAuthFilter
+            # Stricter limits on money endpoints
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                key-resolver: "#{@userKeyResolver}"
 
         - id: hr-service
           uri: ${HR_SERVICE_URL:http://localhost:8087}
           predicates:
-            - Path=/api/leaves/**, /api/payroll/**
+            - Path=/api/leaves/**,/api/payroll/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@userKeyResolver}"
 
         - id: notification-service
           uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8088}
@@ -78,6 +128,11 @@ spring:
             - Path=/api/notifications/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+                key-resolver: "#{@userKeyResolver}"
 
         - id: academics-service
           uri: ${ACADEMICS_SERVICE_URL:http://localhost:8089}
@@ -85,6 +140,11 @@ spring:
             - Path=/api/academics/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@userKeyResolver}"
 
         - id: feedback-service
           uri: ${FEEDBACK_SERVICE_URL:http://localhost:8090}
@@ -92,6 +152,11 @@ spring:
             - Path=/api/feedback/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@userKeyResolver}"
 
         - id: research-service
           uri: ${RESEARCH_SERVICE_URL:http://localhost:8091}
@@ -99,6 +164,11 @@ spring:
             - Path=/api/research/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@userKeyResolver}"
 
         - id: student-services
           uri: ${STUDENT_SERVICES_URL:http://localhost:8092}
@@ -106,6 +176,11 @@ spring:
             - Path=/api/services/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@userKeyResolver}"
 
 app:
   jwt:
@@ -115,7 +190,25 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus,gateway
   endpoint:
     health:
-      show-details: always
+      show-details: when_authorized
+      probes:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: INFO
+    com.lms.gateway: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    com.lms.gateway: INFO
