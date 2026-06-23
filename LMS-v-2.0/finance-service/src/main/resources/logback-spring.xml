@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Structured JSON logging via logstash-encoder.
+  - One JSON object per log line on stdout (parsed cleanly by CloudWatch/ELK)
+  - 'local' profile keeps a colourised plain pattern for human eyes
+  - 'service' field is fixed so multi-service logs are filterable
+-->
+<configuration>
+
+    <springProperty scope="context" name="serviceName"
+                    source="spring.application.name" defaultValue="unknown-service"/>
+    <springProperty scope="context" name="activeProfile"
+                    source="spring.profiles.active" defaultValue="default"/>
+
+    <!-- ── Plain colourised pattern for local dev ─────────────────────────── -->
+    <appender name="STDOUT_PLAIN" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan([%X{traceId:-}]) %magenta(%logger{32}) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ── JSON for everything else (CI / staging / prod) ─────────────────── -->
+    <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service":"${serviceName}","profile":"${activeProfile}"}</customFields>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>correlationId</includeMdcKeyName>
+            <includeMdcKeyName>userId</includeMdcKeyName>
+            <fieldNames>
+                <timestamp>@timestamp</timestamp>
+                <message>message</message>
+                <thread>thread</thread>
+                <logger>logger</logger>
+                <level>level</level>
+            </fieldNames>
+        </encoder>
+    </appender>
+
+    <springProfile name="local">
+        <root level="INFO">
+            <appender-ref ref="STDOUT_PLAIN"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="!local">
+        <root level="INFO">
+            <appender-ref ref="STDOUT_JSON"/>
+        </root>
+    </springProfile>
+
+    <logger name="com.lms"            level="DEBUG"/>
+    <logger name="org.hibernate.SQL"  level="WARN"/>
+    <logger name="org.springframework.cloud.gateway" level="INFO"/>
+
+</configuration>

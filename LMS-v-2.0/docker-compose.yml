@@ -79,11 +79,13 @@ services:
     build: ./auth-service
     container_name: lms-auth-service
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       DB_URL: jdbc:postgresql://postgres:5432/lms_auth_db
-      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_USERNAME: ${AUTH_DB_USER:-lms_auth_user}
+      DB_PASSWORD: ${AUTH_DB_PASSWORD:-changeme}
       JWT_SECRET: ${JWT_SECRET}
+      COOKIE_SECURE:   ${COOKIE_SECURE:-false}
+      COOKIE_SAMESITE: ${COOKIE_SAMESITE:-Lax}
     depends_on:
       postgres:
         condition: service_healthy
@@ -94,10 +96,10 @@ services:
     build: ./user-service
     container_name: lms-user-service
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       DB_URL: jdbc:postgresql://postgres:5432/lms_user_db
-      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_USERNAME: ${USER_DB_USER:-lms_user_user}
+      DB_PASSWORD: ${USER_DB_PASSWORD:-changeme}
       SQS_ENDPOINT: http://localstack:4566
     depends_on:
       postgres:
@@ -109,10 +111,10 @@ services:
     build: ./course-service
     container_name: lms-course-service
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       DB_URL: jdbc:postgresql://postgres:5432/lms_course_db
-      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_USERNAME: ${COURSE_DB_USER:-lms_course_user}
+      DB_PASSWORD: ${COURSE_DB_PASSWORD:-changeme}
       USER_SERVICE_URL: http://user-service:8082
       SQS_ENDPOINT: http://localstack:4566
     depends_on:
@@ -125,10 +127,10 @@ services:
     build: ./examination-service
     container_name: lms-examination-service
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       DB_URL: jdbc:postgresql://postgres:5432/lms_exam_db
-      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_USERNAME: ${EXAM_DB_USER:-lms_exam_user}
+      DB_PASSWORD: ${EXAM_DB_PASSWORD:-changeme}
       USER_SERVICE_URL: http://user-service:8082
       COURSE_SERVICE_URL: http://course-service:8083
       SQS_ENDPOINT: http://localstack:4566
@@ -142,10 +144,10 @@ services:
     build: ./attendance-service
     container_name: lms-attendance-service
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       DB_URL: jdbc:postgresql://postgres:5432/lms_attendance_db
-      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_USERNAME: ${ATTENDANCE_DB_USER:-lms_attendance_user}
+      DB_PASSWORD: ${ATTENDANCE_DB_PASSWORD:-changeme}
       COURSE_SERVICE_URL: http://course-service:8083
     depends_on:
       postgres:
@@ -157,10 +159,10 @@ services:
     build: ./finance-service
     container_name: lms-finance-service
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       DB_URL: jdbc:postgresql://postgres:5432/lms_finance_db
-      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_USERNAME: ${FINANCE_DB_USER:-lms_finance_user}
+      DB_PASSWORD: ${FINANCE_DB_PASSWORD:-changeme}
       USER_SERVICE_URL: http://user-service:8082
       SQS_ENDPOINT: http://localstack:4566
     depends_on:
@@ -173,10 +175,10 @@ services:
     build: ./hr-service
     container_name: lms-hr-service
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       DB_URL: jdbc:postgresql://postgres:5432/lms_hr_db
-      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_USERNAME: ${HR_DB_USER:-lms_hr_user}
+      DB_PASSWORD: ${HR_DB_PASSWORD:-changeme}
       USER_SERVICE_URL: http://user-service:8082
       SQS_ENDPOINT: http://localstack:4566
     depends_on:
@@ -189,10 +191,10 @@ services:
     build: ./notification-service
     container_name: lms-notification-service
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       DB_URL: jdbc:postgresql://postgres:5432/lms_notification_db
-      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_USERNAME: ${NOTIFICATION_DB_USER:-lms_notification_user}
+      DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD:-changeme}
       MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
       MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USERNAME: ${MAIL_USERNAME:-}
@@ -210,10 +212,10 @@ services:
     build: ./academics-service
     container_name: lms-academics-service
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       DB_URL: jdbc:postgresql://postgres:5432/lms_academics_db
-      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_USERNAME: ${ACADEMICS_DB_USER:-lms_academics_user}
+      DB_PASSWORD: ${ACADEMICS_DB_PASSWORD:-changeme}
       USER_SERVICE_URL: http://user-service:8082
       COURSE_SERVICE_URL: http://course-service:8083
     depends_on:
@@ -226,10 +228,10 @@ services:
     build: ./feedback-service
     container_name: lms-feedback-service
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       DB_URL: jdbc:postgresql://postgres:5432/lms_feedback_db
-      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_USERNAME: ${FEEDBACK_DB_USER:-lms_feedback_user}
+      DB_PASSWORD: ${FEEDBACK_DB_PASSWORD:-changeme}
     depends_on:
       postgres:
         condition: service_healthy
@@ -240,10 +242,10 @@ services:
     build: ./research-service
     container_name: lms-research-service
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       DB_URL: jdbc:postgresql://postgres:5432/lms_research_db
-      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_USERNAME: ${RESEARCH_DB_USER:-lms_research_user}
+      DB_PASSWORD: ${RESEARCH_DB_PASSWORD:-changeme}
       USER_SERVICE_URL: http://user-service:8082
     depends_on:
       postgres:
@@ -255,10 +257,10 @@ services:
     build: ./student-services
     container_name: lms-student-services
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       DB_URL: jdbc:postgresql://postgres:5432/lms_services_db
-      DB_USERNAME: ${POSTGRES_USER:-lmsadmin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_USERNAME: ${SERVICES_DB_USER:-lms_services_user}
+      DB_PASSWORD: ${SERVICES_DB_PASSWORD:-changeme}
       USER_SERVICE_URL: http://user-service:8082
     depends_on:
       postgres:
