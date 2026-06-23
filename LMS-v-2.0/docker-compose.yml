@@ -267,16 +267,22 @@ services:
       - lms-net
 
   # ── Frontend ──────────────────────────────────────────────────────────────────
+  # Shares the React SPA with the v1 monolith repo (../frontend).
+  # Override FRONTEND_DIR in `.env` if you maintain a separate v2 frontend.
 
   frontend:
-    build: ./frontend
+    build:
+      context: ${FRONTEND_DIR:-../frontend}
     container_name: lms-frontend
     ports:
-      - "5173:5173"
+      - "5173:80"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080/api
     depends_on:
       - api-gateway
     networks:
       - lms-net
+    profiles: ["with-frontend"]   # opt-in: `docker compose --profile with-frontend up`
 
 volumes:
   postgres_data:
