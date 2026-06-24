@@ -37,6 +37,10 @@ spring.data.redis:
   # written — gateway-side check just degrades gracefully.
 
 app:
+  internal:
+    secret:  ${INTERNAL_SECRET}
+    enforce: ${INTERNAL_ENFORCE:true}
+    max-age-seconds: ${INTERNAL_MAX_AGE_SEC:60}
   jwt:
     # Must be ≥ 32 chars. Startup fails fast if shorter (see JwtUtil).
     secret: ${JWT_SECRET}

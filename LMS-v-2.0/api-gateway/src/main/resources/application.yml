@@ -233,6 +233,10 @@ spring:
                 key-resolver: "#{@userKeyResolver}"
 
 app:
+  internal:
+    secret:  ${INTERNAL_SECRET}
+    enforce: ${INTERNAL_ENFORCE:true}
+    max-age-seconds: ${INTERNAL_MAX_AGE_SEC:60}
   jwt:
     secret: ${JWT_SECRET}
     issuer:   ${JWT_ISSUER:lms-auth-service}

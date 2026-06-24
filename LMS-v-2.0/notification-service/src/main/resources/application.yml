@@ -35,6 +35,10 @@ cloud:
 
 # SQS queues this service consumes
 app:
+  internal:
+    secret:  ${INTERNAL_SECRET}
+    enforce: ${INTERNAL_ENFORCE:true}
+    max-age-seconds: ${INTERNAL_MAX_AGE_SEC:60}
   sqs:
     queues:
       user-registered: ${SQS_USER_REGISTERED_URL:}

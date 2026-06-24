@@ -38,3 +38,9 @@ management:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+app:
+  internal:
+    secret:  ${INTERNAL_SECRET}
+    enforce: ${INTERNAL_ENFORCE:true}
+    max-age-seconds: ${INTERNAL_MAX_AGE_SEC:60}
