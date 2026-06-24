@@ -41,23 +41,32 @@ CREATE DATABASE lms_feedback_db     OWNER lms_feedback_user;
 CREATE DATABASE lms_research_db     OWNER lms_research_user;
 CREATE DATABASE lms_services_db     OWNER lms_services_user;
 
--- ── Revoke default PUBLIC connect, then grant per-service ───────────────────
+-- ── Strip PUBLIC's default rights (CONNECT, TEMPORARY) ──────────────────────
+-- New PG cluster grants PUBLIC the CONNECT privilege on every new database.
+-- Lock that down so only the owning role can even open a connection.
 
-REVOKE ALL ON DATABASE lms_auth_db,         lms_user_db,    lms_course_db,
-                       lms_exam_db,         lms_attendance_db, lms_finance_db,
+REVOKE ALL ON DATABASE lms_auth_db,         lms_user_db,         lms_course_db,
+                       lms_exam_db,         lms_attendance_db,   lms_finance_db,
                        lms_hr_db,           lms_notification_db, lms_academics_db,
-                       lms_feedback_db,     lms_research_db,  lms_services_db
+                       lms_feedback_db,     lms_research_db,     lms_services_db
 FROM PUBLIC;
 
-GRANT  ALL ON DATABASE lms_auth_db         TO lms_auth_user;
-GRANT  ALL ON DATABASE lms_user_db         TO lms_user_user;
-GRANT  ALL ON DATABASE lms_course_db       TO lms_course_user;
-GRANT  ALL ON DATABASE lms_exam_db         TO lms_exam_user;
-GRANT  ALL ON DATABASE lms_attendance_db   TO lms_attendance_user;
-GRANT  ALL ON DATABASE lms_finance_db      TO lms_finance_user;
-GRANT  ALL ON DATABASE lms_hr_db           TO lms_hr_user;
-GRANT  ALL ON DATABASE lms_notification_db TO lms_notification_user;
-GRANT  ALL ON DATABASE lms_academics_db    TO lms_academics_user;
-GRANT  ALL ON DATABASE lms_feedback_db     TO lms_feedback_user;
-GRANT  ALL ON DATABASE lms_research_db     TO lms_research_user;
-GRANT  ALL ON DATABASE lms_services_db     TO lms_services_user;
+-- ── Grant the minimum needed for runtime ────────────────────────────────────
+-- Each role OWNS its DB (set above) — so it implicitly has every privilege
+-- on every object it (or Flyway, running as it) creates. We don't need
+-- ALL PRIVILEGES at the database level — that grants CREATE on the database
+-- itself, which would let the role create new schemas at runtime. Just
+-- CONNECT + TEMPORARY is enough; Flyway uses the role's ownership for DDL.
+
+GRANT CONNECT, TEMPORARY ON DATABASE lms_auth_db         TO lms_auth_user;
+GRANT CONNECT, TEMPORARY ON DATABASE lms_user_db         TO lms_user_user;
+GRANT CONNECT, TEMPORARY ON DATABASE lms_course_db       TO lms_course_user;
+GRANT CONNECT, TEMPORARY ON DATABASE lms_exam_db         TO lms_exam_user;
+GRANT CONNECT, TEMPORARY ON DATABASE lms_attendance_db   TO lms_attendance_user;
+GRANT CONNECT, TEMPORARY ON DATABASE lms_finance_db      TO lms_finance_user;
+GRANT CONNECT, TEMPORARY ON DATABASE lms_hr_db           TO lms_hr_user;
+GRANT CONNECT, TEMPORARY ON DATABASE lms_notification_db TO lms_notification_user;
+GRANT CONNECT, TEMPORARY ON DATABASE lms_academics_db    TO lms_academics_user;
+GRANT CONNECT, TEMPORARY ON DATABASE lms_feedback_db     TO lms_feedback_user;
+GRANT CONNECT, TEMPORARY ON DATABASE lms_research_db     TO lms_research_user;
+GRANT CONNECT, TEMPORARY ON DATABASE lms_services_db     TO lms_services_user;
