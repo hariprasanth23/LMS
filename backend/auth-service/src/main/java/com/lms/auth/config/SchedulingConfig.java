@@ -2,7 +2,7 @@ package com.lms.auth.config;
 
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
-import net.javacrumbs.shedlock.support.LockProvider;
+import net.javacrumbs.shedlock.core.LockProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
