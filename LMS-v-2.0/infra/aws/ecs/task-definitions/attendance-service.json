@@ -1,5 +1,5 @@
 {
-  "family": "lms-auth-service",
+  "family": "lms-attendance-service",
   "networkMode": "awsvpc",
   "requiresCompatibilities": [
     "FARGATE"
@@ -7,14 +7,14 @@
   "cpu": "512",
   "memory": "1024",
   "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
-  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/lms-auth-service-task-role",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/lms-attendance-service-task-role",
   "containerDefinitions": [
     {
-      "name": "auth-service",
-      "image": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/lms/auth-service:latest",
+      "name": "attendance-service",
+      "image": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/lms/attendance-service:latest",
       "portMappings": [
         {
-          "containerPort": 8081,
+          "containerPort": 8085,
           "protocol": "tcp"
         }
       ],
@@ -25,7 +25,7 @@
         },
         {
           "name": "SERVER_PORT",
-          "value": "8081"
+          "value": "8085"
         },
         {
           "name": "JWT_ISSUER",
@@ -42,20 +42,24 @@
         {
           "name": "OTLP_ENDPOINT",
           "value": "http://otel-collector.lms.internal:4318/v1/traces"
+        },
+        {
+          "name": "COURSE_SERVICE_URL",
+          "value": "http://course-service.lms.internal:8082"
         }
       ],
       "secrets": [
         {
           "name": "DB_URL",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/auth-service-db:DB_URL::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/attendance-service-db:DB_URL::"
         },
         {
           "name": "DB_USERNAME",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/auth-service-db:DB_USERNAME::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/attendance-service-db:DB_USERNAME::"
         },
         {
           "name": "DB_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/auth-service-db:DB_PASSWORD::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/attendance-service-db:DB_PASSWORD::"
         },
         {
           "name": "JWT_SECRET",
@@ -64,28 +68,20 @@
         {
           "name": "INTERNAL_SECRET",
           "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/internal-hmac:INTERNAL_SECRET::"
-        },
-        {
-          "name": "REDIS_HOST",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/redis:REDIS_HOST::"
-        },
-        {
-          "name": "REDIS_PORT",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/redis:REDIS_PORT::"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/lms/auth-service",
+          "awslogs-group": "/ecs/lms/attendance-service",
           "awslogs-region": "us-east-1",
-          "awslogs-stream-prefix": "auth"
+          "awslogs-stream-prefix": "attendance"
         }
       },
       "healthCheck": {
         "command": [
           "CMD-SHELL",
-          "curl -f http://localhost:8081/actuator/health/liveness || exit 1"
+          "curl -f http://localhost:8085/actuator/health/liveness || exit 1"
         ],
         "interval": 30,
         "timeout": 5,

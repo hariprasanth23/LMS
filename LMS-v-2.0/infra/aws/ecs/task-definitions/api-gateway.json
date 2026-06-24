@@ -1,0 +1,149 @@
+{
+  "family": "lms-api-gateway",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/lms-api-gateway-task-role",
+  "containerDefinitions": [
+    {
+      "name": "api-gateway",
+      "image": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/lms/api-gateway:latest",
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "SPRING_PROFILES_ACTIVE",
+          "value": "prod"
+        },
+        {
+          "name": "SERVER_PORT",
+          "value": "8080"
+        },
+        {
+          "name": "JWT_ISSUER",
+          "value": "lms-auth-service"
+        },
+        {
+          "name": "JWT_AUDIENCE",
+          "value": "lms-gateway"
+        },
+        {
+          "name": "FRONTEND_URL",
+          "value": "https://lms.yourdomain.com"
+        },
+        {
+          "name": "TRACING_SAMPLE",
+          "value": "0.1"
+        },
+        {
+          "name": "OTLP_ENDPOINT",
+          "value": "http://otel-collector.lms.internal:4318/v1/traces"
+        },
+        {
+          "name": "GATEWAY_CONNECT_TIMEOUT_MS",
+          "value": "3000"
+        },
+        {
+          "name": "GATEWAY_RESPONSE_TIMEOUT_MS",
+          "value": "10000"
+        },
+        {
+          "name": "GATEWAY_MAX_BODY_BYTES",
+          "value": "1048576"
+        },
+        {
+          "name": "AUTH_SERVICE_URL",
+          "value": "http://auth-service.lms.internal:8081"
+        },
+        {
+          "name": "USER_SERVICE_URL",
+          "value": "http://user-service.lms.internal:8082"
+        },
+        {
+          "name": "COURSE_SERVICE_URL",
+          "value": "http://course-service.lms.internal:8083"
+        },
+        {
+          "name": "EXAMINATION_SERVICE_URL",
+          "value": "http://examination-service.lms.internal:8084"
+        },
+        {
+          "name": "ATTENDANCE_SERVICE_URL",
+          "value": "http://attendance-service.lms.internal:8085"
+        },
+        {
+          "name": "FINANCE_SERVICE_URL",
+          "value": "http://finance-service.lms.internal:8086"
+        },
+        {
+          "name": "HR_SERVICE_URL",
+          "value": "http://hr-service.lms.internal:8087"
+        },
+        {
+          "name": "NOTIFICATION_SERVICE_URL",
+          "value": "http://notification-service.lms.internal:8088"
+        },
+        {
+          "name": "ACADEMICS_SERVICE_URL",
+          "value": "http://academics-service.lms.internal:8089"
+        },
+        {
+          "name": "FEEDBACK_SERVICE_URL",
+          "value": "http://feedback-service.lms.internal:8090"
+        },
+        {
+          "name": "RESEARCH_SERVICE_URL",
+          "value": "http://research-service.lms.internal:8091"
+        },
+        {
+          "name": "STUDENT_SERVICES_SERVICE_URL",
+          "value": "http://student-services-service.lms.internal:8092"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "JWT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/jwt-secret:JWT_SECRET::"
+        },
+        {
+          "name": "INTERNAL_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/internal-hmac:INTERNAL_SECRET::"
+        },
+        {
+          "name": "REDIS_HOST",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/redis:REDIS_HOST::"
+        },
+        {
+          "name": "REDIS_PORT",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/redis:REDIS_PORT::"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/lms/api-gateway",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "gw"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8080/actuator/health/liveness || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

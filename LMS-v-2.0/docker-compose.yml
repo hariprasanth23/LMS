@@ -75,6 +75,7 @@ services:
       FEEDBACK_SERVICE_URL: http://feedback-service:8090
       RESEARCH_SERVICE_URL: http://research-service:8091
       STUDENT_SERVICES_URL: http://student-services:8092
+      MONOLITH_URL: ${MONOLITH_URL:-http://no-monolith-configured.invalid}
     depends_on:
       - redis
     networks:

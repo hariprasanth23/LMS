@@ -27,12 +27,22 @@ Phase 3: user-service extracted
 **Goal:** Deploy the API Gateway pointing all traffic to the existing monolith. No functional change.
 
 **Steps:**
-1. Deploy `api-gateway` service on ECS pointing to the monolith URL
-2. Update DNS: `api.lms.yourdomain.com` → ALB → api-gateway → monolith
-3. Verify all endpoints still work end-to-end
-4. Frontend updated to use `api.lms.yourdomain.com` instead of direct backend URL
+1. Set `MONOLITH_URL=https://api.lms-monolith.internal:8080` on the gateway task definition (already wired via `application.yml` — see the `monolith-fallback` route).
+2. Deploy `api-gateway` service on ECS.
+3. Update DNS: `api.lms.yourdomain.com` → ALB → api-gateway → monolith (via the `monolith-fallback` route — every path that isn't already claimed by a v2 service falls through to the monolith).
+4. Verify all endpoints still work end-to-end.
+5. Frontend updated to use `api.lms.yourdomain.com` instead of the direct monolith URL.
 
-**Risk:** Low — monolith is unchanged, gateway is pass-through.
+**Note:** v1 used `college_token` localStorage and `{identifier,password}` login.
+v2 uses `lms_token` httpOnly cookie and a different response envelope. **The
+v1 SPA on `main` does not work against the v2 gateway**. Either keep using
+the monolith URL directly until the v2 frontend is built, or run a v1-shim
+controller on the gateway that translates the response envelope. The compose
+file's `frontend` block is hidden behind the `with-frontend` profile so it
+isn't started by default.
+
+**Risk:** Low — monolith is unchanged, gateway is pass-through for anything
+without a more specific v2 route.
 
 ---
 

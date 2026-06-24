@@ -296,6 +296,25 @@ spring:
                 redis-rate-limiter.burstCapacity: 40
                 key-resolver: "#{@userKeyResolver}"
 
+        # ── Strangler-fig fallback to the v1 monolith ───────────────────────
+        # Any /api/** path that isn't claimed by a more-specific v2 route above
+        # falls through to the legacy monolith. As services migrate, their
+        # routes appear above and silently take precedence (Spring Cloud
+        # Gateway picks the first matching route, evaluated top-down).
+        #
+        # Disabled by default — set MONOLITH_URL to enable. In production the
+        # ALB target group for the gateway needs egress to MONOLITH_URL.
+        - id: monolith-fallback
+          uri: ${MONOLITH_URL:http://no-monolith-configured.invalid}
+          predicates:
+            - Path=/api/**
+          filters:
+            - JwtAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: cbDefault
+                fallbackUri: forward:/api/_fallback/monolith
+
 app:
   internal:
     secret:  ${INTERNAL_SECRET}
