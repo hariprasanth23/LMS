@@ -2,10 +2,14 @@ package com.lms.auth.service;
 
 import com.lms.auth.dto.*;
 import com.lms.auth.model.RefreshToken;
+import com.lms.auth.model.RevokedToken;
 import com.lms.auth.model.User;
 import com.lms.auth.repository.RefreshTokenRepository;
+import com.lms.auth.repository.RevokedTokenRepository;
 import com.lms.auth.repository.UserRepository;
 import com.lms.auth.security.JwtUtil;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -31,6 +35,8 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final RevokedTokenRepository revokedTokenRepository;
+    private final RevocationPublisher revocationPublisher;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
@@ -90,9 +96,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void logout(String rawToken) {
-        if (rawToken == null || rawToken.isBlank()) return;
-        refreshTokenRepository.findByToken(rawToken).ifPresent(refreshTokenRepository::delete);
+    public void logout(String refreshTokenRaw, String accessTokenRaw) {
+        if (refreshTokenRaw != null && !refreshTokenRaw.isBlank()) {
+            refreshTokenRepository.findByToken(refreshTokenRaw)
+                    .ifPresent(refreshTokenRepository::delete);
+        }
+        revokeAccessToken(accessTokenRaw, "logout");
     }
 
     @Override
@@ -113,7 +122,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void changePassword(String userId, ChangePasswordRequest req) {
+    public void changePassword(String userId, ChangePasswordRequest req, String accessTokenRaw) {
         User user = findOrThrow(userId);
         if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPasswordHash())) {
             throw new BadCredentialsException("Current password is incorrect");
@@ -121,9 +130,35 @@ public class AuthServiceImpl implements AuthService {
         validatePassword(req.getNewPassword());
         user.setPasswordHash(passwordEncoder.encode(req.getNewPassword()));
         userRepository.save(user);
-        // Invalidate all refresh tokens for this user — force re-login on other devices
+        // Kill every refresh token + add caller's access JWT to the denylist
         refreshTokenRepository.deleteByUser(user);
+        revokeAccessToken(accessTokenRaw, "password-change");
         log.info("Password changed for user id={}", user.getId());
+    }
+
+    /**
+     * Add the given access JWT to the revocation list so gateway / future
+     * me-endpoint calls refuse it. Best-effort: malformed/expired tokens
+     * are silently skipped — there's nothing to revoke.
+     */
+    private void revokeAccessToken(String token, String reason) {
+        if (token == null || token.isBlank()) return;
+        try {
+            Claims c = jwtUtil.parse(token);
+            String jti = c.getId();
+            if (jti == null || jti.isBlank()) return;     // pre-jti tokens — nothing to do
+            if (revokedTokenRepository.existsByJti(jti)) return;
+            var expiresAt = c.getExpiration().toInstant();
+            revokedTokenRepository.save(RevokedToken.builder()
+                    .jti(jti)
+                    .userId(UUID.fromString(c.getSubject()))
+                    .expiresAt(expiresAt)
+                    .reason(reason)
+                    .build());
+            revocationPublisher.publish(jti, expiresAt);
+        } catch (JwtException | IllegalArgumentException e) {
+            log.debug("revokeAccessToken: token unparseable ({}) — skipped", e.getClass().getSimpleName());
+        }
     }
 
     // ── helpers ─────────────────────────────────────────────────────────────────

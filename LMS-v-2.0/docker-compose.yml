@@ -53,8 +53,11 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: local
-      JWT_SECRET: ${JWT_SECRET}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      JWT_SECRET:     ${JWT_SECRET}
+      JWT_ISSUER:     ${JWT_ISSUER:-lms-auth-service}
+      JWT_AUDIENCE:   ${JWT_AUDIENCE:-lms-gateway}
+      JWT_CLOCK_SKEW: ${JWT_CLOCK_SKEW:-30}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
@@ -83,12 +86,19 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/lms_auth_db
       DB_USERNAME: ${AUTH_DB_USER:-lms_auth_user}
       DB_PASSWORD: ${AUTH_DB_PASSWORD:-changeme}
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET:      ${JWT_SECRET}
+      JWT_ISSUER:      ${JWT_ISSUER:-lms-auth-service}
+      JWT_AUDIENCE:    ${JWT_AUDIENCE:-lms-gateway}
+      JWT_CLOCK_SKEW:  ${JWT_CLOCK_SKEW:-30}
       COOKIE_SECURE:   ${COOKIE_SECURE:-false}
       COOKIE_SAMESITE: ${COOKIE_SAMESITE:-Lax}
+      REDIS_HOST:      redis
+      REDIS_PORT:      6379
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - lms-net
 

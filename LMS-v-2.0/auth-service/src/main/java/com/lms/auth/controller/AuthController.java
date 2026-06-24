@@ -63,9 +63,10 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
+            @CookieValue(value = "lms_token",   required = false) String accessCookie,
             @CookieValue(value = "lms_refresh", required = false) String refreshCookie,
             HttpServletResponse response) {
-        authService.logout(refreshCookie);
+        authService.logout(refreshCookie, accessCookie);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, expireCookie("lms_token").toString())
                 .header(HttpHeaders.SET_COOKIE, expireCookie("lms_refresh").toString())
@@ -88,9 +89,14 @@ public class AuthController {
     @PutMapping("/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             @RequestHeader("X-User-Id") String userId,
+            @CookieValue(value = "lms_token", required = false) String accessCookie,
             @Valid @RequestBody ChangePasswordRequest request) {
-        authService.changePassword(userId, request);
-        return ResponseEntity.ok(ApiResponse.success("Password changed"));
+        authService.changePassword(userId, request, accessCookie);
+        return ResponseEntity.ok()
+                // Force re-login: blow the access cookie away
+                .header(HttpHeaders.SET_COOKIE, expireCookie("lms_token").toString())
+                .header(HttpHeaders.SET_COOKIE, expireCookie("lms_refresh").toString())
+                .body(ApiResponse.success("Password changed"));
     }
 
     // ── cookie helpers ────────────────────────────────────────────────────────

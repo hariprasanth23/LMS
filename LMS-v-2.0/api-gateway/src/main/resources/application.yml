@@ -235,6 +235,9 @@ spring:
 app:
   jwt:
     secret: ${JWT_SECRET}
+    issuer:   ${JWT_ISSUER:lms-auth-service}
+    audience: ${JWT_AUDIENCE:lms-gateway}
+    clock-skew-seconds: ${JWT_CLOCK_SKEW:30}
 
 management:
   endpoints:
