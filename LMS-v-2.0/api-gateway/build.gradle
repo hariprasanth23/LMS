@@ -21,6 +21,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
 
+    // Circuit breakers — Resilience4j reactor implementation
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
+
     // JWT validation at gateway
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
     runtimeOnly  'io.jsonwebtoken:jjwt-impl:0.12.3'

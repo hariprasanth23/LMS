@@ -11,6 +11,16 @@ spring:
       port: ${REDIS_PORT:6379}
   cloud:
     gateway:
+      # ── HTTP client: bound connect + response timeouts on every upstream call.
+      # A slow downstream that doesn't close its connection used to tie up a
+      # gateway reactor thread indefinitely. Now: 3s connect, 10s response;
+      # the per-route circuit breaker enforces tighter limits when configured.
+      httpclient:
+        connect-timeout: ${GATEWAY_CONNECT_TIMEOUT_MS:3000}     # 3s
+        response-timeout: ${GATEWAY_RESPONSE_TIMEOUT_MS:10000}  # 10s
+        pool:
+          max-connections: 500
+          max-idle-time: 30s
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -22,6 +32,11 @@ spring:
             maxAge: 3600
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        # Body-size limit — 1 MiB by default. A 50 MB POST to /finance/wallet/add
+        # used to chew memory before validation fired.
+        - name: RequestSize
+          args:
+            maxSize: ${GATEWAY_MAX_BODY_BYTES:1048576}
       routes:
 
         # ── Public health probes — one route per service ─────────────────────
@@ -93,6 +108,10 @@ spring:
             - Path=/api/auth/**
           filters:
             - JwtAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: cbAuth
+                fallbackUri: forward:/api/_fallback/auth
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 20
@@ -105,6 +124,10 @@ spring:
             - Path=/api/students/**,/api/employees/**,/api/departments/**
           filters:
             - JwtAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: cbDefault
+                fallbackUri: forward:/api/_fallback/user
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 30
@@ -117,6 +140,10 @@ spring:
             - Path=/api/courses/**,/api/assignments/**,/api/quizzes/**,/api/announcements/**,/api/enrollments/**
           filters:
             - JwtAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: cbDefault
+                fallbackUri: forward:/api/_fallback/course
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 30
@@ -129,6 +156,10 @@ spring:
             - Path=/api/examination/**
           filters:
             - JwtAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: cbDefault
+                fallbackUri: forward:/api/_fallback/exam
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 20
@@ -141,6 +172,10 @@ spring:
             - Path=/api/attendance/**
           filters:
             - JwtAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: cbDefault
+                fallbackUri: forward:/api/_fallback/attendance
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 30
@@ -153,7 +188,12 @@ spring:
             - Path=/api/finance/**
           filters:
             - JwtAuthFilter
-            # Stricter limits on money endpoints
+            # Stricter breaker on money endpoints — fail FAST on flaky downstream
+            - name: CircuitBreaker
+              args:
+                name: cbFinance
+                fallbackUri: forward:/api/_fallback/finance
+            # Stricter rate limit on money endpoints
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 5
@@ -166,6 +206,10 @@ spring:
             - Path=/api/leaves/**,/api/payroll/**
           filters:
             - JwtAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: cbDefault
+                fallbackUri: forward:/api/_fallback/hr
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 10
@@ -178,6 +222,10 @@ spring:
             - Path=/api/notifications/**
           filters:
             - JwtAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: cbDefault
+                fallbackUri: forward:/api/_fallback/notification
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 30
@@ -190,6 +238,10 @@ spring:
             - Path=/api/academics/**
           filters:
             - JwtAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: cbDefault
+                fallbackUri: forward:/api/_fallback/academics
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 20
@@ -202,6 +254,10 @@ spring:
             - Path=/api/feedback/**
           filters:
             - JwtAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: cbDefault
+                fallbackUri: forward:/api/_fallback/feedback
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 10
@@ -214,6 +270,10 @@ spring:
             - Path=/api/research/**
           filters:
             - JwtAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: cbDefault
+                fallbackUri: forward:/api/_fallback/research
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 20
@@ -226,6 +286,10 @@ spring:
             - Path=/api/services/**
           filters:
             - JwtAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: cbDefault
+                fallbackUri: forward:/api/_fallback/services
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 20
