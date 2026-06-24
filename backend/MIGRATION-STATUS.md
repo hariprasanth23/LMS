@@ -1,136 +1,167 @@
 # Migration Status — Monolith → Backend Microservices
 
-Snapshot of where each domain stands in the strangler-fig migration.
+**HTTP-route migration: COMPLETE.** Every monolith controller has been
+deleted; all 12 backend services own their domain endpoints.
 
 | State | Meaning |
 |---|---|
-| ✅ **Migrated** | Endpoints removed from monolith; backend service is the source of truth. |
-| 🟡 **Scaffolded** | Backend service compiles + answers `/api/_health/<svc>` + returns HTTP 501 for business endpoints. Monolith **still owns** the routes. |
-| ❌ **Not started** | No backend service exists. |
+| ✅ **Migrated** | Real controllers in backend, monolith controller deleted. |
+| 🟡 **Partial**  | Endpoint exists but a cross-service read is stubbed (returns [] or sample data). Marked TODO inline. |
+| ❌ **Not started** | n/a — all services migrated. |
 
 ---
 
-## Service-by-service
+## Per-service status
 
-### ✅ auth-service — **MIGRATED**
+### ✅ auth-service
 
-| Routes | Owner |
+| Route | Owner |
 |---|---|
-| `POST   /api/auth/login`            | backend/auth-service |
-| `POST   /api/auth/register`         | backend/auth-service |
-| `POST   /api/auth/refresh`          | backend/auth-service |
-| `POST   /api/auth/logout`           | backend/auth-service |
-| `GET    /api/auth/me`               | backend/auth-service |
-| `PUT    /api/auth/profile`          | backend/auth-service |
-| `PUT    /api/auth/change-password`  | backend/auth-service |
-| `PUT    /api/auth/update-mobile`    | backend/auth-service (TODO: not yet implemented in v2) |
-| `GET    /api/auth/admin/users`            | backend/auth-service |
-| `PUT    /api/auth/admin/users/{id}/role`  | backend/auth-service |
-| `PUT    /api/auth/admin/users/{id}/deactivate` | backend/auth-service |
+| `/api/auth/{login,register,refresh}`            | backend/auth-service |
+| `/api/auth/{me,logout,profile,change-password}` | backend/auth-service |
+| `/api/auth/admin/users`, `…/role`, `…/deactivate` | backend/auth-service |
 
-Removed from monolith: `controller/AuthController`, `service/AuthService(Impl)`,
-`service/RefreshTokenCleanupService`, `model/RefreshToken`, `repository/RefreshTokenRepository`,
-`dto/{request,response}/*`, `common/config/LoginRateLimitFilter`, the matching tests.
+Deleted from monolith: `AuthController`, `AuthService(Impl)`, `RefreshToken*`,
+`LoginRateLimitFilter`. Kept: `User`, `UserRepository`, JWT plumbing (shared
+with v2 via JWT_SECRET).
 
-**Kept in monolith** because the data model is referenced by every other
-domain via FK `user_id`: `model/User`, `repository/UserRepository`,
-`security/{JwtAuthFilter, JwtUtil, UserDetailsServiceImpl}`. JwtAuthFilter
-continues to validate tokens — the v2 auth-service signs with the SAME
-`JWT_SECRET` env so its tokens validate on the monolith too.
+### ✅ user-service
+
+| Route | Owner |
+|---|---|
+| `/api/departments/**`  (5)  | backend/user-service |
+| `/api/students/**`     (10) — incl. `/me`, `/me/info`, `/me/bank-info` | backend/user-service |
+| `/api/employees/**`    (8)  | backend/user-service |
+
+Entities: Department, Student, StudentBankInfo, Employee. The monolith
+`student/service/*` + `employee/service/*` classes remain (referenced by
+other monolith modules for cross-domain reads).
+
+### ✅ course-service
+
+| Route | Owner |
+|---|---|
+| `/api/courses/**`              (incl. materials) | backend/course-service |
+| `/api/courses/{id}/assignments`, `/api/assignments/**` | backend/course-service |
+| `/api/quizzes/**`              (incl. questions, attempt) | backend/course-service |
+| `/api/announcements/**`        | backend/course-service |
+| `/api/enrollments/**`          | backend/course-service |
+
+9 entities — biggest backend service. Some POST/PUT operations use
+gateway-injected `X-User-Id` as `created_by`/`student_id`.
+
+### ✅ examination-service
+
+| Route | Owner | Notes |
+|---|---|---|
+| `/api/examination/{schedule,marks,grades,grade-history,online-exam/scheduled}` | backend/examination-service | |
+| `/api/examination/arrear/**` (5) | backend/examination-service | 🟡 `/eligible` returns [] — policy needs FAILED-grade lookup |
+| `/api/examination/makeup/**` (2) | backend/examination-service | |
+
+### ✅ attendance-service
+
+| Route | Owner |
+|---|---|
+| `/api/attendance/student/**`  (mark + summary) | backend/attendance-service |
+| `/api/attendance/employee/**` (mark + log) | backend/attendance-service |
+| `/api/attendance/course/{id}/date/{d}` | backend/attendance-service |
+
+### ✅ finance-service
+
+| Route | Owner |
+|---|---|
+| `/api/finance/fees`     | backend/finance-service |
+| `/api/finance/receipts` | backend/finance-service |
+| `/api/finance/wallet`, `/wallet/add` | backend/finance-service |
+| `/api/finance/refunds` (GET + POST)  | backend/finance-service |
+
+Wallet balance is a `SUM(CREDIT)-SUM(DEBIT)` native query. Money endpoints
+get the tighter `cbFinance` gateway breaker.
+
+### ✅ hr-service
+
+| Route | Owner | Notes |
+|---|---|---|
+| `/api/leaves/**` (6) — apply/my/all/approve/reject/balance | backend/hr-service | |
+| `/api/payroll/**` (5) — generate/all/my/process/byId | backend/hr-service | 🟡 `/generate` expects per-employee figures in body (no Feign to user-service yet) |
+
+### ✅ notification-service
+
+| Route | Owner |
+|---|---|
+| `/api/notifications` (list, unread-count, mark-all-read) | backend/notification-service |
+
+### ✅ academics-service
+
+| Route | Owner | Notes |
+|---|---|---|
+| `/api/academics/wishlist`, `/mooc`, `/internship`, `/conference`, `/exc/{available,register,registered}` | backend/academics-service | |
+| `/api/academics/courses/registered` | backend/academics-service | 🟡 returns [] — needs Feign to course-service `/enrollments` |
+| `/api/academics/projects/{open,apply,applications}` | backend/academics-service | 🟡 `/open` returns [] — catalog elsewhere |
+| `/api/academics/registration-schedule` | backend/academics-service | 🟡 stub `{open: false}` |
+
+### ✅ feedback-service
+
+| Route | Owner |
+|---|---|
+| `/api/feedback/{status,course,247}` (GET + POST) | backend/feedback-service |
+
+### ✅ research-service
+
+| Route | Owner |
+|---|---|
+| `/api/research/{profile,weekly-logs}` | backend/research-service |
+
+### ✅ student-services
+
+| Route | Owner |
+|---|---|
+| `/api/services/bonafide`            | backend/student-services |
+| `/api/services/library/**` (issued, renew, recommendations, recommend, stats) | backend/student-services |
+| `/api/services/requests` (3)         | backend/student-services |
+| `/api/services/health-feedback`      | backend/student-services |
 
 ---
 
-### 🟡 user-service — SCAFFOLDED
+## Cross-cutting items still parked
 
-Monolith still owns these — implement here next.
+These don't block the migration but are TODO if you want full functional parity
+with the monolith:
 
-| Source controller (monolith) | Endpoints |
-|---|---|
-| `student/StudentController` | `/api/students/**` (10 endpoints) |
-| `student/DepartmentController` | `/api/departments/**` (5) |
-| `student/EnrollmentController` | `/api/enrollments/**` (3) |
-| `employee/EmployeeController` | `/api/employees/**` (8) |
+1. **Feign clients** for cross-service reads (course-service ↔ user-service,
+   academics ↔ course, examination ↔ user). Currently routes that need them
+   return `[]` or accept the figures in the request body. CLAUDE.md already
+   documents the pattern.
+2. **Bulk CSV imports** (`/api/students/import`, `/api/employees/import`) —
+   the monolith generated random passwords and inserted auth.users rows.
+   In v2 this needs to either go via auth-service `/register` per row or
+   a new privileged `POST /api/auth/admin/users/import` endpoint.
+3. **Saga / outbox** for cross-DB writes (enrollment + notification +
+   audit log). Right now each service writes its own row independently.
+4. **SQS consumers** in notification-service. The compose `localstack`
+   creates queues but no `@SqsListener` is wired.
 
-**Migration prereqs:**
-- Implement entities + repos for Student, Department, Employee, EnrollmentLink
-- CSV-import endpoint (the monolith one is `POST /api/students/import` / `POST /api/employees/import`)
-- Feign client for auth-service `/api/auth/me` to resolve user info
-
-### 🟡 course-service — SCAFFOLDED
-
-| Monolith controller | Endpoints |
-|---|---|
-| `lms/CourseController` | `/api/courses/**` (8) |
-| `lms/AssignmentController` | `/api/courses/{id}/assignments/**`, `/api/assignments/**` (5) |
-| `lms/QuizController` | `/api/quizzes/**` (8) |
-| `lms/AnnouncementController` | `/api/announcements/**` (4) |
-
-### 🟡 examination-service — SCAFFOLDED
-
-| Monolith controller | Endpoints |
-|---|---|
-| `examination/ExaminationController` | `/api/examination/**` (5) |
-| `examination/ArrearController` | `/api/examination/arrear/**` (5) |
-| `examination/MakeupController` | `/api/examination/makeup/**` (2) |
-
-### 🟡 attendance-service — SCAFFOLDED
-
-`attendance/AttendanceController` — `/api/attendance/**` (6 endpoints).
-
-### 🟡 finance-service — SCAFFOLDED
-
-`finance/FinanceController` — `/api/finance/**` (6 endpoints).
-**Carries financial data** — needs the dual-write period (48h parity check) in
-MIGRATION-GUIDE.md Phase 5 before removing from monolith.
-
-### 🟡 hr-service — SCAFFOLDED
-
-| Monolith controller | Endpoints |
-|---|---|
-| `leave/LeaveController` | `/api/leaves/**` (6) |
-| `payroll/PayrollController` | `/api/payroll/**` (5) |
-
-### 🟡 notification-service — SCAFFOLDED
-
-`notification/NotificationController` — `/api/notifications/**` (3 endpoints).
-Should also be the sole SQS consumer per `CLAUDE.md` — wire up
-`@SqsListener` for the queues created by `infra/localstack/setup.sh`.
-
-### 🟡 academics-service — SCAFFOLDED
-
-`academics/AcademicsController` — `/api/academics/**` (17 endpoints).
-
-### 🟡 feedback-service — SCAFFOLDED
-
-`feedback/FeedbackController` — `/api/feedback/**` (4 endpoints).
-
-### 🟡 research-service — SCAFFOLDED
-
-`research/ResearchController` — `/api/research/**` (3 endpoints).
-
-### 🟡 student-services — SCAFFOLDED
-
-`services/ServicesController` — `/api/services/**` (12 endpoints).
-
----
-
-## Where the traffic actually goes today
+## Traffic shape today
 
 ```
-                                ┌─ /api/auth/**   → backend/auth-service ✅
-                                │
-client → api-gateway ───────────┤
-                                │
-                                └─ everything else → MONOLITH (still authoritative)
-                                                     via monolith-fallback route
-                                                     (active when MONOLITH_URL is set)
+                       ┌─ /api/auth/**         → backend/auth-service          ✅
+                       ├─ /api/students,…      → backend/user-service          ✅
+                       ├─ /api/courses,…       → backend/course-service        ✅
+                       ├─ /api/examination/**  → backend/examination-service   ✅
+                       ├─ /api/attendance/**   → backend/attendance-service    ✅
+                       ├─ /api/finance/**      → backend/finance-service       ✅
+client → api-gateway ──┼─ /api/{leaves,payroll}→ backend/hr-service            ✅
+                       ├─ /api/notifications/**→ backend/notification-service  ✅
+                       ├─ /api/academics/**    → backend/academics-service     ✅
+                       ├─ /api/feedback/**     → backend/feedback-service      ✅
+                       ├─ /api/research/**     → backend/research-service      ✅
+                       ├─ /api/services/**     → backend/student-services      ✅
+                       │
+                       └─ everything else      → monolith-fallback (still set
+                                                  via MONOLITH_URL if needed
+                                                  for emergency routes)
 ```
 
-Once a service's endpoints are implemented in `backend/`, repeat the same
-pattern: delete the matching controllers from `monolith/`, update this file,
-verify CI green, deploy.
-
-## Tracking
-
-Update this file at the same time you migrate each service. The diff
-between this file's last commit and HEAD is the migration's audit trail.
+The monolith retains entities + repositories + services that are referenced
+across domains (User, Student model, Course model, etc.). Those can be
+dropped once Feign clients land or the FK relationships are broken.
