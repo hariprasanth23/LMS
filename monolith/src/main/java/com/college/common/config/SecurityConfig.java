@@ -43,7 +43,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/logout", "/api/auth/refresh").permitAll()
+                        // /api/auth/** now lives in backend/auth-service (gateway routes /api/auth/{login,register,refresh}
+                        // directly to it). Monolith no longer exposes /api/auth/login etc. — any direct hit gets 404.
+                        // JwtAuthFilter still validates tokens issued by backend/auth-service since they use the same JWT_SECRET.
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
                         // Swagger / OpenAPI — open for API exploration
