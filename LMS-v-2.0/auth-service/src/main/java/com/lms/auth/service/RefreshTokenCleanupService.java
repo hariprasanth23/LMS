@@ -4,6 +4,7 @@ import com.lms.auth.repository.RefreshTokenRepository;
 import com.lms.auth.repository.RevokedTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,9 @@ import java.time.Instant;
  * </ul>
  *
  * <p>Redis revocation entries self-expire via TTL — no sweep needed there.
+ *
+ * <p>{@link SchedulerLock} ensures only one replica per cluster runs each
+ * cleanup tick, even if you scale auth-service horizontally.
  */
 @Slf4j
 @Service
@@ -29,6 +33,7 @@ public class RefreshTokenCleanupService {
     private final RevokedTokenRepository revokedTokenRepository;
 
     @Scheduled(fixedRateString = "${app.cleanup.refresh-tokens-ms:3600000}")
+    @SchedulerLock(name = "purgeRefreshTokens", lockAtMostFor = "5m", lockAtLeastFor = "30s")
     @Transactional
     public void purgeRefresh() {
         int deleted = refreshTokenRepository.deleteAllExpired(Instant.now());
@@ -36,6 +41,7 @@ public class RefreshTokenCleanupService {
     }
 
     @Scheduled(fixedRateString = "${app.cleanup.revoked-tokens-ms:3600000}")
+    @SchedulerLock(name = "purgeRevocations", lockAtMostFor = "5m", lockAtLeastFor = "30s")
     @Transactional
     public void purgeRevocations() {
         int deleted = revokedTokenRepository.deleteAllExpired(Instant.now());
