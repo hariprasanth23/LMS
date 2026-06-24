@@ -48,6 +48,9 @@ dependencies {
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // @ServiceConnection used by AuthFlowSmokeTest to wire MockMvc against a
+    // Testcontainers-managed Postgres without DynamicPropertySource boilerplate.
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:postgresql:1.20.1'
     testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
 }
