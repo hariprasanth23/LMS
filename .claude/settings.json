@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Read(//Users/hariprasanthsaravanan/UnknownProject/Project 2/frontend/src/pages/**)"
+      "Read(//Users/hariprasanthsaravanan/UnknownProject/Project 2/frontend/src/pages/**)",
+      "Read(//Users/hariprasanthsaravanan/UnknownProject/Project\\\\ 4/monolith/src/main/java/com/college/common/config/**)",
+      "Read(//Users/hariprasanthsaravanan/UnknownProject/Project\\\\ 4/monolith/src/main/java/com/college/auth/service/impl/**)",
+      "Read(//Users/hariprasanthsaravanan/UnknownProject/Project\\\\ 4/monolith/src/main/java/com/college/student/dto/**)",
+      "Read(//Users/hariprasanthsaravanan/UnknownProject/Project\\\\ 4/monolith/src/main/java/com/college/employee/dto/**)",
+      "Read(//Users/hariprasanthsaravanan/UnknownProject/Project 2/**)"
     ]
   }
 }

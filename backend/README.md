@@ -317,7 +317,7 @@ spring:
 ```bash
 # Clone the repo
 git clone <repo-url>
-cd LMS-v-2.0
+cd backend
 
 # Copy environment template
 cp .env.example .env
@@ -423,7 +423,7 @@ See **[MIGRATION-GUIDE.md](./MIGRATION-GUIDE.md)** for the complete phased migra
 ## Project Structure
 
 ```
-LMS-v-2.0/
+backend/
 ├── README.md                        ← This file
 ├── ARCHITECTURE.md                  ← Detailed architecture decisions
 ├── AWS-DEPLOYMENT.md                ← AWS deployment game plan

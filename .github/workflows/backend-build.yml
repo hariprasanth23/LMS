@@ -1,22 +1,22 @@
-name: LMS v2 — build & test
+name: backend — build & test
 
 on:
   push:
     branches: [ "feature/lms_v_2_0", "main" ]
     paths:
-      - "LMS-v-2.0/**"
-      - ".github/workflows/lms-v2-build.yml"
+      - "backend/**"
+      - ".github/workflows/backend-build.yml"
   pull_request:
     branches: [ "feature/lms_v_2_0", "main" ]
     paths:
-      - "LMS-v-2.0/**"
+      - "backend/**"
 
 defaults:
   run:
-    working-directory: LMS-v-2.0
+    working-directory: backend
 
 concurrency:
-  group: lms-v2-${{ github.ref }}
+  group: backend-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -55,11 +55,11 @@ jobs:
         run: chmod +x ${{ matrix.service }}/gradlew
 
       - name: Build (skip tests)
-        working-directory: LMS-v-2.0/${{ matrix.service }}
+        working-directory: backend/${{ matrix.service }}
         run: ./gradlew build -x test --no-daemon --stacktrace
 
       - name: Test
-        working-directory: LMS-v-2.0/${{ matrix.service }}
+        working-directory: backend/${{ matrix.service }}
         env:
           JWT_SECRET:      ci-test-jwt-secret-at-least-32-characters-long
           INTERNAL_SECRET: ci-test-internal-hmac-secret-at-least-32-chars
@@ -76,7 +76,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.service }}-test-reports
-          path: LMS-v-2.0/${{ matrix.service }}/build/reports/
+          path: backend/${{ matrix.service }}/build/reports/
 
   docker-build:
     name: docker build ${{ matrix.service }}
@@ -106,7 +106,7 @@ jobs:
       - name: Build image (linux/amd64)
         uses: docker/build-push-action@v6
         with:
-          context: LMS-v-2.0/${{ matrix.service }}
+          context: backend/${{ matrix.service }}
           push: false
           tags: lms/${{ matrix.service }}:ci
           cache-from: type=gha,scope=${{ matrix.service }}
@@ -118,7 +118,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate compose file
-        working-directory: LMS-v-2.0
+        working-directory: backend
         env:
           JWT_SECRET:        ci-test-jwt-secret-at-least-32-characters-long
           INTERNAL_SECRET:   ci-test-internal-hmac-secret-at-least-32-chars
