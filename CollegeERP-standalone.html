@@ -193,6 +193,36 @@
     font-size: 10px; color: var(--ink-3); letter-spacing: 0.18em; text-transform: uppercase;
     pointer-events: none;
   }
+  /* End-of-reel restart overlay */
+  #restart-overlay {
+    position: absolute; inset: 0; z-index: 60;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; background: rgba(4,8,26,0.85); backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    text-align: center; padding: 0 32px;
+  }
+  #restart-overlay.shown { display: flex; }
+  #restart-overlay .title {
+    font-size: 22px; font-weight: 800; letter-spacing: -0.01em;
+  }
+  #restart-overlay .sub {
+    font-size: 12px; color: var(--ink-3); letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  #restart-overlay button {
+    margin-top: 14px; padding: 12px 28px;
+    background: var(--ink); color: var(--bg-0); border: none; cursor: pointer;
+    border-radius: 100px; font-size: 11px; font-weight: 700; letter-spacing: 0.22em;
+    text-transform: uppercase; transition: transform .15s ease;
+  }
+  #restart-overlay button:hover { transform: scale(1.04); }
+  /* Reduced motion — kill particles, splash bounce, sweep, drift, blink */
+  @media (prefers-reduced-motion: reduce) {
+    #fx { display: none; }
+    #splash .crest { animation: none; }
+    #splash .bar::after { animation: none; }
+    .live .dot { animation: none; }
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
   /* Color stops */
   .from-i { background: linear-gradient(135deg, #6366f1, #a78bfa); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .from-g { background: linear-gradient(135deg, #34d399, #22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -223,6 +253,11 @@
     </div>
     <canvas id="fx"></canvas>
     <div id="scenes"></div>
+    <div id="restart-overlay">
+      <div class="title">That's the reel.</div>
+      <div class="sub">College ERP · MMXXVI</div>
+      <button id="restart-btn">↻ Watch again</button>
+    </div>
     <div id="overlay">
       <div class="topbar">
         <span>College ERP · Reel</span>
@@ -575,7 +610,12 @@ const springStep = (t, { omega = 14, zeta = 0.7, delay = 0 } = {}) => {
   }
   return 1 - Math.exp(-omega * x) * (1 + omega * x);
 };
-const spring = (from, to, t, opts) => from + (to - from) * springStep(t, opts);
+// Underdamped springs overshoot — clamp so counters never visibly exceed the
+// target before settling (the CGPA "9.57 → 8.74" wobble in the student scene).
+const spring = (from, to, t, opts) => {
+  const v = from + (to - from) * springStep(t, opts);
+  return to >= from ? Math.min(v, to) : Math.max(v, to);
+};
 const interp = (t, input, output, ease = Easing.linear) => {
   if (t <= input[0]) return output[0];
   if (t >= input[input.length-1]) return output[output.length-1];
@@ -594,6 +634,11 @@ const useT = () => useContext(TimelineCtx).t;
 // ── Particle field ───────────────────────────────────────────────────────────
 function ParticleFX({ active }) {
   useEffect(() => {
+    // Honour prefers-reduced-motion — also helps low-end devices.
+    if (typeof window !== 'undefined' && window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
     const canvas = document.getElementById('fx');
     const ctx = canvas.getContext('2d');
     const frame = document.getElementById('frame');
@@ -1364,9 +1409,15 @@ const STARTS = SCENES.reduce((acc, s) => {
   return acc;
 }, []);
 
+const REDUCED_MOTION = (
+  typeof window !== 'undefined' &&
+  window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+);
+
 function App() {
   const [t, setT] = useState(0);
   const [playing, setPlaying] = useState(true);
+  const [ended, setEnded] = useState(false);
   const raf = useRef(0);
   const lastT = useRef(performance.now());
 
@@ -1374,17 +1425,23 @@ function App() {
     function loop(now) {
       const dt = (now - lastT.current) / 1000;
       lastT.current = now;
-      if (playing) {
+      if (playing && !ended) {
         setT(prev => {
           const next = prev + dt;
-          return next >= TOTAL ? 0 : next;
+          // End at last scene; show restart overlay instead of autoplay loop
+          if (next >= TOTAL) {
+            setEnded(true);
+            setPlaying(false);
+            return TOTAL - 0.01;
+          }
+          return next;
         });
       }
       raf.current = requestAnimationFrame(loop);
     }
     raf.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf.current);
-  }, [playing]);
+  }, [playing, ended]);
 
   // Hide splash on first frame
   useEffect(() => {
@@ -1392,22 +1449,64 @@ function App() {
     if (splash) setTimeout(() => splash.classList.add('gone'), 600);
   }, []);
 
-  // Spacebar / tap to play-pause
+  const activeIdx = STARTS.findIndex(s => t >= s.start && t < s.end);
+  const cur = activeIdx === -1 ? STARTS.length - 1 : activeIdx;
+
+  const restart = () => { setT(0); setEnded(false); setPlaying(true); };
+  const jumpToNext = () => {
+    if (cur >= STARTS.length - 1) { setEnded(true); setPlaying(false); return; }
+    setT(STARTS[cur + 1].start); setEnded(false);
+  };
+  const jumpToPrev = () => {
+    if (ended) { setEnded(false); setPlaying(true); setT(STARTS[STARTS.length - 1].start); return; }
+    setT(STARTS[(cur - 1 + STARTS.length) % STARTS.length].start);
+  };
+
+  // Spacebar / arrow keys
   useEffect(() => {
     const onKey = (e) => {
-      if (e.code === 'Space') { e.preventDefault(); setPlaying(p => !p); }
+      if (e.code === 'Space')     { e.preventDefault(); ended ? restart() : setPlaying(p => !p); }
       if (e.code === 'ArrowRight') jumpToNext();
       if (e.code === 'ArrowLeft')  jumpToPrev();
+      if (e.code === 'KeyR' || e.code === 'Enter') restart();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const activeIdx = STARTS.findIndex(s => t >= s.start && t < s.end);
-  const cur = activeIdx === -1 ? STARTS.length - 1 : activeIdx;
+  // Swipe gestures (mobile)
+  useEffect(() => {
+    const frame = document.getElementById('frame');
+    if (!frame) return;
+    let sx = null, sy = null;
+    const onStart = e => {
+      const t0 = e.touches[0];
+      sx = t0.clientX; sy = t0.clientY;
+    };
+    const onEnd = e => {
+      if (sx === null) return;
+      const t0 = e.changedTouches[0];
+      const dx = t0.clientX - sx, dy = t0.clientY - sy;
+      sx = sy = null;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;   // tap / vertical
+      dx < 0 ? jumpToNext() : jumpToPrev();
+    };
+    frame.addEventListener('touchstart', onStart, { passive: true });
+    frame.addEventListener('touchend',   onEnd,   { passive: true });
+    return () => {
+      frame.removeEventListener('touchstart', onStart);
+      frame.removeEventListener('touchend',   onEnd);
+    };
+  }, [cur, ended]);
 
-  const jumpToNext = () => setT(STARTS[(cur + 1) % STARTS.length].start);
-  const jumpToPrev = () => setT(STARTS[(cur - 1 + STARTS.length) % STARTS.length].start);
+  // End-of-reel overlay show/hide + restart-button wiring
+  useEffect(() => {
+    const ov = document.getElementById('restart-overlay');
+    const btn = document.getElementById('restart-btn');
+    if (!ov || !btn) return;
+    if (ended) ov.classList.add('shown'); else ov.classList.remove('shown');
+    btn.onclick = restart;
+  }, [ended]);
 
   // Render progress bars in overlay
   useEffect(() => {
