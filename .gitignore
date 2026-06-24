@@ -7,6 +7,9 @@ monolith/src/main/resources/application-local.properties
 **/*.env
 **/.env
 **/.env.*
+# But DO commit the example templates
+!**/.env.example
+!**/*.env.example
 
 # Gradle build output
 monolith/.gradle/

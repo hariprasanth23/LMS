@@ -1,0 +1,93 @@
+{
+  "family": "lms-course-service",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/lms-course-service-task-role",
+  "containerDefinitions": [
+    {
+      "name": "course-service",
+      "image": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/lms/course-service:latest",
+      "portMappings": [
+        {
+          "containerPort": 8083,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "SPRING_PROFILES_ACTIVE",
+          "value": "prod"
+        },
+        {
+          "name": "SERVER_PORT",
+          "value": "8083"
+        },
+        {
+          "name": "JWT_ISSUER",
+          "value": "lms-auth-service"
+        },
+        {
+          "name": "JWT_AUDIENCE",
+          "value": "lms-gateway"
+        },
+        {
+          "name": "TRACING_SAMPLE",
+          "value": "0.1"
+        },
+        {
+          "name": "OTLP_ENDPOINT",
+          "value": "http://otel-collector.lms.internal:4318/v1/traces"
+        },
+        {
+          "name": "USER_SERVICE_URL",
+          "value": "http://user-service.lms.internal:8082"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DB_URL",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/course-service-db:DB_URL::"
+        },
+        {
+          "name": "DB_USERNAME",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/course-service-db:DB_USERNAME::"
+        },
+        {
+          "name": "DB_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/course-service-db:DB_PASSWORD::"
+        },
+        {
+          "name": "JWT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/jwt-secret:JWT_SECRET::"
+        },
+        {
+          "name": "INTERNAL_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:/lms/prod/internal-hmac:INTERNAL_SECRET::"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/lms/course-service",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "course"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8083/actuator/health/liveness || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}
