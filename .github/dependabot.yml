@@ -1,0 +1,98 @@
+version: 2
+updates:
+  # ── GitHub Actions in this repo ─────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Asia/Kolkata"
+    open-pull-requests-limit: 5
+    labels: [ "deps", "ci" ]
+
+  # ── v2 services — one entry per gradle project ─────────────────────────────
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/api-gateway
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    labels: [ "deps", "v2" ]
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/auth-service
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    labels: [ "deps", "v2" ]
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/user-service
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    labels: [ "deps", "v2" ]
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/course-service
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    labels: [ "deps", "v2" ]
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/examination-service
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    labels: [ "deps", "v2" ]
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/attendance-service
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    labels: [ "deps", "v2" ]
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/finance-service
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    labels: [ "deps", "v2", "finance" ]
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/hr-service
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    labels: [ "deps", "v2" ]
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/notification-service
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    labels: [ "deps", "v2" ]
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/academics-service
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    labels: [ "deps", "v2" ]
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/feedback-service
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    labels: [ "deps", "v2" ]
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/research-service
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    labels: [ "deps", "v2" ]
+  - package-ecosystem: gradle
+    directory: /LMS-v-2.0/student-services
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    labels: [ "deps", "v2" ]
+
+  # ── v1 monolith ────────────────────────────────────────────────────────────
+  - package-ecosystem: gradle
+    directory: /monolith
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    labels: [ "deps", "v1" ]
+
+  # ── Frontend (Vite / React) ────────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    labels: [ "deps", "frontend" ]
+    ignore:
+      - dependency-name: "react"        # major bumps: human review
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]

@@ -63,8 +63,13 @@ jobs:
         env:
           JWT_SECRET:      ci-test-jwt-secret-at-least-32-characters-long
           INTERNAL_SECRET: ci-test-internal-hmac-secret-at-least-32-chars
-        run: ./gradlew test --no-daemon --stacktrace
-        continue-on-error: true   # most services have no tests yet — don't block CI
+        # Real services: tests must pass. Others: still scaffolds, no tests yet.
+        run: |
+          if [ -d src/test/java ]; then
+            ./gradlew test --no-daemon --stacktrace
+          else
+            echo "No tests in ${{ matrix.service }} yet — skipping"
+          fi
 
       - name: Upload test reports on failure
         if: failure()
@@ -72,6 +77,40 @@ jobs:
         with:
           name: ${{ matrix.service }}-test-reports
           path: LMS-v-2.0/${{ matrix.service }}/build/reports/
+
+  docker-build:
+    name: docker build ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api-gateway
+          - auth-service
+          - user-service
+          - course-service
+          - academics-service
+          - attendance-service
+          - examination-service
+          - finance-service
+          - hr-service
+          - feedback-service
+          - notification-service
+          - research-service
+          - student-services
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build image (linux/amd64)
+        uses: docker/build-push-action@v6
+        with:
+          context: LMS-v-2.0/${{ matrix.service }}
+          push: false
+          tags: lms/${{ matrix.service }}:ci
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to:   type=gha,scope=${{ matrix.service }},mode=max
 
   compose-validate:
     name: docker-compose config check
