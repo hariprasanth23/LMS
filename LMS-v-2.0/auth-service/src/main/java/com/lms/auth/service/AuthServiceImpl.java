@@ -22,8 +22,12 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+    // 8+ chars, ≥1 lower, ≥1 upper, ≥1 digit, ≥1 ASCII printable symbol from
+    // the explicit list. Whitespace and non-printables are rejected (the old
+    // `[^a-zA-Z\d]` accepted a single space).
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(
-            "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,}$");
+            "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};:'\",.<>/?~`|\\\\])"
+                    + "[A-Za-z\\d!@#$%^&*()_+\\-=\\[\\]{};:'\",.<>/?~`|\\\\]{8,128}$");
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -166,7 +170,9 @@ public class AuthServiceImpl implements AuthService {
     private void validatePassword(String pw) {
         if (pw == null || !PASSWORD_PATTERN.matcher(pw).matches()) {
             throw new IllegalArgumentException(
-                "Password must be ≥ 8 characters with upper, lower, digit and special character");
+                "Password must be 8–128 characters with at least one uppercase letter, " +
+                "one lowercase letter, one digit, and one of these symbols: " +
+                "! @ # $ % ^ & * ( ) _ + - = [ ] { } ; : ' \" , . < > / ? ~ ` | \\");
         }
     }
 }

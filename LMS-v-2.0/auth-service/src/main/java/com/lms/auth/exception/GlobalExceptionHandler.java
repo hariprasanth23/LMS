@@ -57,7 +57,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleAny(Exception ex, HttpServletRequest req) {
-        log.error("Unhandled exception at {}: {}", req.getRequestURI(), ex.toString(), ex);
+        // Log type-name only at WARN. The stack trace goes to DEBUG so production
+        // logs don't ingest user-provided strings (JPA exceptions include bound
+        // parameter values, which can be PII).
+        log.warn("Unhandled {} at {}", ex.getClass().getSimpleName(), req.getRequestURI());
+        log.debug("Stack:", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("An unexpected error occurred"));
     }

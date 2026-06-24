@@ -27,7 +27,7 @@ public class PlaceholderController {
             @RequestHeader(value = "X-User-Id",   required = false) String userId,
             @RequestHeader(value = "X-User-Role", required = false) String role) {
 
-        log.info("Stub hit: user={} role={}", userId, role);
+        log.debug("Stub hit (user-id elided)");
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
                 .body(ApiResponse.error("Endpoint not yet implemented in v2.0",
                         Map.of("status", 501, "phase", "scaffolding")));

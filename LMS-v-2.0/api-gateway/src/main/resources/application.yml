@@ -24,6 +24,56 @@ spring:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
       routes:
 
+        # ── Public health probes — one route per service ─────────────────────
+        - id: health-auth
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/_health/auth
+        - id: health-user
+          uri: ${USER_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/_health/user
+        - id: health-course
+          uri: ${COURSE_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/_health/course
+        - id: health-exam
+          uri: ${EXAM_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/_health/exam
+        - id: health-attendance
+          uri: ${ATTENDANCE_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/_health/attendance
+        - id: health-finance
+          uri: ${FINANCE_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/_health/finance
+        - id: health-hr
+          uri: ${HR_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/_health/hr
+        - id: health-notification
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8088}
+          predicates:
+            - Path=/api/_health/notification
+        - id: health-academics
+          uri: ${ACADEMICS_SERVICE_URL:http://localhost:8089}
+          predicates:
+            - Path=/api/_health/academics
+        - id: health-feedback
+          uri: ${FEEDBACK_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/_health/feedback
+        - id: health-research
+          uri: ${RESEARCH_SERVICE_URL:http://localhost:8091}
+          predicates:
+            - Path=/api/_health/research
+        - id: health-services
+          uri: ${STUDENT_SERVICES_URL:http://localhost:8092}
+          predicates:
+            - Path=/api/_health/studentservices
+
         # ── PUBLIC auth endpoints — no JWT required, rate-limited per IP ─────
         - id: auth-public
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
