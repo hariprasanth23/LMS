@@ -82,11 +82,16 @@ public class DataInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
 
-        // ── Seed users / departments / employees / students (only on first run) ──────
-        if (userRepository.count() == 0) {
+        // ── Seed demo users / departments / employees / students ────────────────────
+        // Previously this used `userRepository.count() == 0` as the guard — but a
+        // CSV import (POST /api/students/import) populates auth.users and the demo
+        // accounts then never get seeded. That's why the deployed API audit hit
+        // "Invalid credentials" on demo@college.com despite the docs promising it.
+        // Now we check for the canonical demo admin instead.
+        if (userRepository.findByEmail("demo@college.com").isEmpty()) {
             seedCoreData();
         } else {
-            log.info("[DataInitializer] Core data already seeded — skipping user/student seed");
+            log.info("[DataInitializer] Demo accounts already present — skipping user/student seed");
         }
 
         // Look up the demo student once — passed to methods that need it,
