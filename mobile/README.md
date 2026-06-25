@@ -135,6 +135,23 @@ eas build --platform android --profile production
 
 `app.json` already has `ios.bundleIdentifier`, `android.package`, and the splash/icon plugin entries — you'll want to swap those for your real org IDs before submitting.
 
+## Backend endpoints — what mobile screens expect vs. what exists
+
+A few of the screens call paths the v2 backend hasn't shipped yet. They render the empty state and don't crash, but you'll want these wired up before going to production:
+
+| Screen | Path the mobile app calls | Backend status |
+|---|---|---|
+| Student / Faculty home, Courses list (faculty) | `GET /api/courses/my` | **Missing** — only `/api/courses` (all) exists |
+| Student timetable | `GET /api/courses/timetable/me` | **Missing** — no timetable model yet |
+| Course detail (materials list) | `GET /api/courses/{id}/materials` | **Missing** — materials controller not migrated |
+| Faculty mark attendance (roster) | `GET /api/courses/{id}/students` | Partial — use `/api/enrollments/course/{courseId}` and join via `user-service` |
+| Student attendance summary | `GET /api/attendance/student/me/summary` | Renamed — actual path is `/api/attendance/student/{studentId}/summary`. Either add `/me` aliases server-side or have the mobile client resolve `studentId` first |
+| Student results | `GET /api/examination/grades/me` | Renamed — actual path is `/api/examination/grades`. Same `/me` alias issue |
+| All 4 Parent ward endpoints (`/api/parent/ward/*`) | summary, attendance, results, fees | **Missing** — there is no parent-service. Either add a `parent` package to one of the existing services or expose the underlying data per ward via existing services |
+| Faculty announcement post | `POST /api/announcements` | Confirm it exists (only `GET /api/announcements` is in the inventory) |
+
+The rest of the calls (`/api/courses`, `/api/leaves/*`, `/api/finance/{fees,wallet}`, `/api/students`, `/api/employees`, `/api/departments`, `/api/auth/{login,me,refresh}`) all exist and return data shape the mobile client already handles.
+
 ## What's intentionally not here yet
 
 - Push notifications (Expo plugin is configured but no `useNotifications` hook yet)
@@ -142,5 +159,6 @@ eas build --platform android --profile production
 - Biometric unlock for the login screen
 - Internationalisation (English only)
 - E2E tests (Maestro or Detox)
+- Real app icons / splash — `assets/` ships with brand-coloured placeholder PNGs so `expo start` works, but you'll want to design real ones before submitting to the stores
 
 PRs welcome.

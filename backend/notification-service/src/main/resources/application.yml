@@ -65,6 +65,12 @@ management:
           include: livenessState
         readiness:
           include: readinessState,db
+  # MailHealthIndicator tries to open a connection to the SMTP host on every
+  # /actuator/health and fails with no creds, dragging the whole service
+  # DOWN. We're not relying on Spring Boot's mail starter to gate liveness.
+  health:
+    mail:
+      enabled: false
   tracing:
     sampling:
       probability: ${TRACING_SAMPLE:0.1}
