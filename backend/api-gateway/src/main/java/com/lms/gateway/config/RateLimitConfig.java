@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
@@ -48,6 +49,7 @@ public class RateLimitConfig {
     }
 
     @Bean
+    @Primary
     public KeyResolver userKeyResolver() {
         return exchange -> {
             var cookie = exchange.getRequest().getCookies().getFirst("lms_token");

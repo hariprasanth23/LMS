@@ -17,17 +17,19 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  cloud:
+    aws:
+      sqs:
+        endpoint: ${SQS_ENDPOINT:}
+      region:
+        static: ${AWS_REGION:us-east-1}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID:test}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:test}
 
 services:
   user-service:
     url: ${USER_SERVICE_URL:http://localhost:8082}
-
-cloud:
-  aws:
-    sqs:
-      endpoint: ${SQS_ENDPOINT:}
-    region:
-      static: ${AWS_REGION:us-east-1}
 
 management:
   endpoints:

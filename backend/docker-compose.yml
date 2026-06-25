@@ -5,6 +5,8 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: lms-postgres
+    # 12 services × 10-slot Hikari pools = 120 connections; default max_connections=100
+    command: ["postgres", "-c", "max_connections=300", "-c", "shared_buffers=256MB"]
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-lmsadmin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
@@ -54,6 +56,9 @@ services:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       JWT_SECRET:     ${JWT_SECRET}
@@ -86,6 +91,9 @@ services:
     container_name: lms-auth-service
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_auth_db
@@ -112,6 +120,9 @@ services:
     container_name: lms-user-service
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_user_db
@@ -129,6 +140,9 @@ services:
     container_name: lms-course-service
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_course_db
@@ -147,6 +161,9 @@ services:
     container_name: lms-examination-service
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_exam_db
@@ -166,6 +183,9 @@ services:
     container_name: lms-attendance-service
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_attendance_db
@@ -183,6 +203,9 @@ services:
     container_name: lms-finance-service
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_finance_db
@@ -201,6 +224,9 @@ services:
     container_name: lms-hr-service
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_hr_db
@@ -219,6 +245,9 @@ services:
     container_name: lms-notification-service
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_notification_db
@@ -242,6 +271,9 @@ services:
     container_name: lms-academics-service
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_academics_db
@@ -260,6 +292,9 @@ services:
     container_name: lms-feedback-service
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_feedback_db
@@ -276,6 +311,9 @@ services:
     container_name: lms-research-service
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_research_db
@@ -293,6 +331,9 @@ services:
     container_name: lms-student-services
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_services_db

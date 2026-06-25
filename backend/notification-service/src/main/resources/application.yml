@@ -25,13 +25,15 @@ spring:
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
-
-cloud:
-  aws:
-    sqs:
-      endpoint: ${SQS_ENDPOINT:}
-    region:
-      static: ${AWS_REGION:us-east-1}
+  cloud:
+    aws:
+      sqs:
+        endpoint: ${SQS_ENDPOINT:}
+      region:
+        static: ${AWS_REGION:us-east-1}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID:test}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:test}
 
 # SQS queues this service consumes
 app:

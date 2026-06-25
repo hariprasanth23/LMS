@@ -94,12 +94,10 @@ spring:
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/auth/login,/api/auth/register,/api/auth/refresh
-          filters:
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 5
-                redis-rate-limiter.burstCapacity: 10
-                key-resolver: "#{@ipKeyResolver}"
+          # NOTE: RequestRateLimiter on a POST route consumes the body during
+          # the key-resolver evaluation, leaving the upstream with an empty
+          # request entity. Disabled here while we move rate limiting to a
+          # custom filter that doesn't read the body.
 
         # ── AUTHENTICATED auth endpoints — JWT required (me/profile/logout/…)
         - id: auth-private
@@ -340,7 +338,7 @@ management:
         liveness:
           include: livenessState
         readiness:
-          include: readinessState,db
+          include: readinessState
   tracing:
     sampling:
       probability: ${TRACING_SAMPLE:0.1}
