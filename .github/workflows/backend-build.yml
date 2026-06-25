@@ -42,7 +42,7 @@ jobs:
           - student-services
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -100,7 +100,7 @@ jobs:
           - research-service
           - student-services
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build image (linux/amd64)
@@ -116,7 +116,7 @@ jobs:
     name: docker-compose config check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Validate compose file
         working-directory: backend
         env:
