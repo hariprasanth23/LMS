@@ -2,6 +2,8 @@
 
 A full-stack web application for managing all academic and administrative operations of a college or university. The system provides dedicated portals for Admins, Faculty, Students, Parents, Staff, and Alumni.
 
+> **v2.0 (June 2026):** The legacy Spring Boot monolith has been fully retired. All backend code now lives in `backend/` as 13 independent microservices behind a Spring Cloud Gateway. Schema isolation is per-service (12 Postgres DBs), JWTs are validated only at the gateway, and inter-service writes flow through SQS. See `backend/README.md` and `backend/MIGRATION-STATUS.md` for the per-service breakdown.
+
 ---
 
 ## Table of Contents
@@ -14,8 +16,7 @@ A full-stack web application for managing all academic and administrative operat
 - [API Overview](#api-overview)
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
-- [Known Issues & Areas for Improvement](#known-issues--areas-for-improvement)
-- [Roadmap](#roadmap)
+- [Open Items](#open-items)
 
 ---
 
@@ -52,15 +53,16 @@ The LMS covers end-to-end operations of a college environment across 15 function
 | Component | Technology |
 |---|---|
 | Language | Java 21 |
-| Framework | Spring Boot 3.2.5 |
-| Build Tool | Gradle 8.7 |
+| Framework | Spring Boot 3.3.4 (13 microservices) |
+| Gateway | Spring Cloud Gateway 2023.0.3 (reactive Resilience4j) |
+| Build Tool | Gradle 8.7 (one project per service) |
 | ORM | Spring Data JPA (Hibernate) |
-| Security | Spring Security + JWT (JJWT 0.12.3) |
-| Database Driver | PostgreSQL JDBC |
-| Email | Spring Mail |
-| Monitoring | Spring Actuator |
-| Utilities | Lombok |
-| Testing | JUnit 5, Spring Boot Test (configured but unused) |
+| Security | JJWT 0.12.3 (gateway-only) + HMAC inter-service signing |
+| Database | PostgreSQL 16 — one DB per service, Flyway migrations |
+| Cache / denylist | Redis (JWT revocation cache + ShedLock backing) |
+| Async | SQS (LocalStack in dev) — notification-service is the only consumer |
+| Observability | Micrometer + OTLP exporter, Logback + LogstashEncoder |
+| Testing | JUnit 5 + Testcontainers (real Postgres per test) |
 
 ### Frontend
 
@@ -86,54 +88,50 @@ The LMS covers end-to-end operations of a college environment across 15 function
 
 ## Architecture
 
-The system follows a **monolithic layered architecture** with a decoupled SPA frontend communicating via REST APIs.
+A decoupled React SPA talks to an API gateway that fans out to 13 independent Spring Boot services, each with its own Postgres database.
 
 ```
 ┌─────────────────────────────────────────┐
 │           React SPA (Vite)              │
 │         localhost:5173                  │
 │                                         │
-│  AuthContext → Axios (JWT interceptor)  │
+│  AuthContext → Axios (httpOnly cookie)  │
 └──────────────────┬──────────────────────┘
-                   │  HTTP + Bearer Token
-                   │  /api/* (proxied by Vite)
+                   │  /api/* (Vite proxy → gateway)
 ┌──────────────────▼──────────────────────┐
-│       Spring Boot Monolith              │
-│         localhost:8080                  │
-│                                         │
-│  SecurityFilter → Controller            │
-│       → Service → Repository           │
-│       → JPA Entity                     │
+│      Spring Cloud Gateway (8080)        │
+│  Validates JWT once, injects:           │
+│    X-User-Id, X-User-Role               │
+│  Circuit breakers + body cap + tracing  │
 └──────────────────┬──────────────────────┘
-                   │  JDBC
-┌──────────────────▼──────────────────────┐
-│           PostgreSQL                    │
-│   13 schemas (auth, student, lms, ...)  │
-└─────────────────────────────────────────┘
+                   │  per-route prefix
+   ┌───────────────┼─────────────────────────────┐
+   ▼               ▼                             ▼
+auth-svc      user-svc … (11 more)        notification-svc
+  │              │                            ▲ SQS
+  ▼              ▼                            │
+lms_auth_db   lms_user_db   …            queues
 ```
 
-### Backend Layering
+Each service owns its schema; no cross-database foreign keys. Cross-service reads go via Feign to `/internal/**` endpoints. Cross-service writes publish events through SQS; only `notification-service` consumes.
+
+### Per-service layout
 
 ```
-@RestController  — HTTP endpoints, request/response mapping
-      ↓
-DTOs             — Request/Response objects (data contract)
-      ↓
-@Service         — Business logic, @Transactional
-      ↓
-@Repository      — JPA data access (Spring Data)
-      ↓
-@Entity          — JPA-mapped database models
+controller/   @RestController — reads X-User-Id from header
+service/      Business logic, @Transactional
+repository/   Spring Data JPA (often bundled in <Domain>Repositories.java)
+model/        @Entity classes (often bundled in Entities.java)
+common/       ApiResponse, error mapping — copied per-service
 ```
 
-### Authentication Flow
+### Authentication flow
 
-1. Client `POST /api/auth/login` with credentials
-2. Server validates, returns a signed JWT
-3. Client stores token (currently in `localStorage`)
-4. All subsequent requests include `Authorization: Bearer <token>`
-5. `JwtAuthenticationFilter` validates token on every request
-6. `@PreAuthorize` annotations enforce role-based access per endpoint
+1. Client `POST /api/auth/login` — auth-service verifies bcrypt password, issues a JWT (iss/aud/jti claims).
+2. Gateway sets the JWT in an httpOnly `lms_token` cookie; the SPA never sees the raw token.
+3. On every protected request the gateway validates the cookie's JWT, checks Redis for revocation, then strips the cookie and injects `X-User-Id` + `X-User-Role`.
+4. Downstream services read identity from those headers — they never parse JWTs.
+5. Logout writes the JTI to a Postgres denylist; ShedLock-guarded `@Scheduled` job prunes expired entries hourly across replicas.
 
 ---
 
@@ -175,34 +173,29 @@ LMS/
 │   ├── vite.config.js              # Build config + API proxy
 │   └── package.json
 │
-├── monolith/                       # Spring Boot backend
-│   ├── src/main/java/com/college/
-│   │   ├── CollegeApplication.java # @SpringBootApplication entry point
-│   │   ├── academics/              # Conferences, MOOC, internships
-│   │   ├── attendance/             # Student & employee attendance
-│   │   ├── auth/                   # JWT security, user management
-│   │   ├── common/                 # SecurityConfig, DataInitializer, utils
-│   │   ├── employee/
-│   │   ├── examination/
-│   │   ├── feedback/
-│   │   ├── finance/
-│   │   ├── leave/
-│   │   ├── lms/                    # Courses, assignments, quizzes
-│   │   ├── notification/
-│   │   ├── payroll/
-│   │   ├── research/
-│   │   ├── services/               # Bonafide, library, health
-│   │   └── student/
-│   ├── src/main/resources/
-│   │   ├── application.properties  # Config (env var references)
-│   │   └── db/
-│   │       ├── schema-setup.sql
-│   │       └── employee-leave-payroll-schema.sql
-│   └── build.gradle
+├── backend/                        # 13 Spring Boot microservices
+│   ├── api-gateway/                # 8080 — JWT + circuit breakers + routing
+│   ├── auth-service/               # 8081 — login/register/JWT issuance + revocation
+│   ├── user-service/               # 8082 — students, employees, departments
+│   ├── course-service/             # 8083 — courses, materials, assignments, quizzes
+│   ├── examination-service/        # 8084 — exam schedule, marks, grades, arrear
+│   ├── attendance-service/         # 8085 — student + employee attendance
+│   ├── finance-service/            # 8086 — fees, receipts, wallet, refunds
+│   ├── hr-service/                 # 8087 — leave + payroll
+│   ├── notification-service/       # 8088 — SQS consumer + in-app notifications
+│   ├── academics-service/          # 8089 — MOOC, ECC, internship, conference
+│   ├── feedback-service/           # 8090 — course feedback + 24/7 anonymous
+│   ├── research-service/           # 8091 — research profiles + weekly logs
+│   ├── student-services/           # 8092 — bonafide, library, health feedback
+│   ├── docker-compose.yml          # Local stack: Postgres × 12 + Redis + LocalStack
+│   ├── infra/                      # AWS task defs, LocalStack bootstrap, deploy scripts
+│   ├── CLAUDE.md                   # Backend-specific guidance
+│   └── MIGRATION-STATUS.md         # Per-service migration ledger
 │
-├── schema-setup.sql                # Root-level DB schema init
 └── .gitignore
 ```
+
+Each service has the same shape: `build.gradle`, `Dockerfile`, `src/main/resources/application.yml`, one `Application.java`, Flyway migrations under `src/main/resources/db/migration/`, and a `common/ApiResponse.java` copy.
 
 ---
 
@@ -284,36 +277,26 @@ All endpoints are prefixed with `/api`. Protected endpoints require `Authorizati
 - PostgreSQL 14+
 - Gradle 8.7 (or use the included wrapper)
 
-### 1. Database Setup
-
-```sql
--- Run as a PostgreSQL superuser
-\i schema-setup.sql
-\i monolith/src/main/resources/db/employee-leave-payroll-schema.sql
-```
-
-### 2. Backend
-
-Create `monolith/src/main/resources/application-local.properties`:
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/lms_db
-spring.datasource.username=your_db_user
-spring.datasource.password=your_db_password
-jwt.secret=your_256bit_secret_key
-spring.mail.host=smtp.example.com
-spring.mail.username=your_email
-spring.mail.password=your_email_password
-```
-
-Then run:
+### 1. Backend (Docker Compose — recommended)
 
 ```bash
-cd monolith
+cd backend
+cp .env.example .env   # fill in JWT_SECRET at minimum
+docker-compose up --build
+```
+
+This spins up all 12 Postgres databases, Redis, LocalStack (SQS), the gateway, and every microservice. Flyway runs migrations per service on first start.
+
+Gateway is at `http://localhost:8080`. The SPA's Vite proxy points there.
+
+### 2. Backend (one service at a time, optional)
+
+```bash
+cd backend/<service>
 ./gradlew bootRun --args='--spring.profiles.active=local'
 ```
 
-Backend will start at `http://localhost:8080`.
+Each service expects its DB + Redis to be running (start them via `docker-compose up postgres redis localstack`).
 
 ### 3. Frontend
 
@@ -329,75 +312,28 @@ Frontend will start at `http://localhost:5173`. All `/api` requests are proxied 
 
 ## Environment Variables
 
-The backend reads the following from environment variables or `application-local.properties`:
+Minimum `.env` for `docker-compose up`:
 
-| Variable | Description |
-|---|---|
-| `DB_URL` | PostgreSQL JDBC URL |
-| `DB_USERNAME` | Database username |
-| `DB_PASSWORD` | Database password |
-| `JWT_SECRET` | 256-bit JWT signing secret |
-| `JWT_EXPIRATION` | Token expiry in milliseconds |
-| `MAIL_HOST` | SMTP host |
-| `MAIL_PORT` | SMTP port |
-| `MAIL_USERNAME` | SMTP username |
-| `MAIL_PASSWORD` | SMTP password |
-| `FRONTEND_URL` | Allowed CORS origin (e.g. `http://localhost:5173`) |
+```
+JWT_SECRET=any-string-at-least-32-characters-long
+POSTGRES_USER=lmsadmin
+POSTGRES_PASSWORD=changeme
+```
+
+Per-service config lives in each service's `application.yml`. Service-to-service URLs default to `http://localhost:<port>` and are overridden by Docker Compose service names in containerized runs.
+
+In production, all secrets come from **AWS Secrets Manager** paths like `/lms/prod/auth-service-db`. ECS task definitions in `backend/infra/aws/ecs/task-definitions/` reference these paths — update `ACCOUNT_ID` and image URIs before registering.
 
 ---
 
-## Known Issues & Areas for Improvement
+## Open Items
 
-### Critical
+The migration is functionally complete (every monolith controller has an owner in `backend/`), but a few cross-cutting concerns are still parked. The authoritative ledger lives in `backend/MIGRATION-STATUS.md`.
 
-| Issue | Detail |
+| Item | Status |
 |---|---|
-| **No tests** | Zero unit or integration tests exist. `spring-boot-starter-test` is a dependency but no test files are present. |
-| **No CI/CD** | No GitHub Actions, Dockerfiles, or deployment scripts. All builds and deploys are manual. |
-| **Hibernate DDL auto-update** | Using `ddl-auto=update` in production is unsafe. Should migrate to Flyway or Liquibase. |
-| **JWT in localStorage** | Tokens stored in `localStorage` are vulnerable to XSS. A comment in `AuthContext.jsx` acknowledges this. Should move to `httpOnly` cookies. |
-
-### Security
-
-| Issue | Detail |
-|---|---|
-| **XSS risk** | `localStorage` JWT storage allows token theft if XSS is exploited |
-| **No rate limiting** | Auth endpoints have no brute-force protection |
-| **No input validation layer** | Backend lacks consistent `@Valid` annotations and custom validators |
-| **Entity exposure** | Some endpoints return raw JPA entities instead of DTOs, potentially leaking sensitive fields |
-
-### Code Quality
-
-| Issue | Detail |
-|---|---|
-| **No linting** | No ESLint/Prettier config for frontend; no SpotBugs/SonarQube for backend |
-| **Inline CSS** | All frontend styling is inline; no design system, no responsive design framework |
-| **Hardcoded data** | Departments, semesters, leave types are hardcoded in React components instead of fetched from the API |
-| **No API documentation** | No Swagger/OpenAPI (SpringDoc) integration |
-| **Inconsistent logging** | No structured logging strategy; log levels and format vary by module |
-| **Missing `@Transactional`** | Some multi-step service methods lack transactional boundaries |
-
-### Infrastructure
-
-| Issue | Detail |
-|---|---|
-| **No Docker support** | No Dockerfile or `docker-compose.yml` for consistent local/production environments |
-| **No database migrations** | Schema versioning not tracked; changes are not reproducible |
-| **No environment-specific config** | No `application-prod.properties` or `application-test.properties` profiles |
-
----
-
-## Roadmap
-
-Suggested priorities for hardening this system for production:
-
-1. **Add database migration tool** — Integrate Flyway or Liquibase to replace `ddl-auto=update`
-2. **Write tests** — Start with auth and LMS service layer unit tests; add controller integration tests
-3. **Add CI pipeline** — GitHub Actions: build, lint, test on every PR
-4. **Containerize** — Add `Dockerfile` for backend and `docker-compose.yml` for full local stack
-5. **Fix JWT storage** — Move from `localStorage` to `httpOnly` cookies
-6. **Add API documentation** — Integrate SpringDoc OpenAPI (`/swagger-ui.html`)
-7. **Add linting** — ESLint + Prettier for frontend; Checkstyle for backend
-8. **Add input validation** — `@Valid` on all controller request bodies with consistent error responses
-9. **Add a UI framework** — Replace inline CSS with Tailwind CSS or Material UI
-10. **Add structured logging** — Logback JSON format + request tracing (MDC correlation ID)
+| Feign clients for cross-service reads (`course-service` ↔ `user-service`, `academics` ↔ `course`) | 🟡 some endpoints return `[]` |
+| Bulk CSV import (`/api/students/import`, `/api/employees/import`) | 🟡 not migrated — needs an admin-only `auth-service` endpoint |
+| Saga / outbox for cross-DB writes (enrollment + notification + audit) | 🟡 not implemented |
+| SQS consumers in `notification-service` | 🟡 queues exist; `@SqsListener` not wired |
+| Frontend: replace inline CSS with a design system | 🟡 ongoing |

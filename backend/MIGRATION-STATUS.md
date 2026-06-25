@@ -1,7 +1,8 @@
 # Migration Status — Monolith → Backend Microservices
 
-**HTTP-route migration: COMPLETE.** Every monolith controller has been
-deleted; all 12 backend services own their domain endpoints.
+**Migration: COMPLETE.** The legacy `monolith/` directory has been deleted in
+its entirety (304 files, ~8.9k lines). All 12 backend services own their
+domain endpoints; the monolith CI workflow has been removed.
 
 | State | Meaning |
 |---|---|
@@ -157,11 +158,9 @@ client → api-gateway ──┼─ /api/{leaves,payroll}→ backend/hr-service 
                        ├─ /api/research/**     → backend/research-service      ✅
                        ├─ /api/services/**     → backend/student-services      ✅
                        │
-                       └─ everything else      → monolith-fallback (still set
-                                                  via MONOLITH_URL if needed
-                                                  for emergency routes)
+                       └─ (no fallback — monolith deleted)
 ```
 
-The monolith retains entities + repositories + services that are referenced
-across domains (User, Student model, Course model, etc.). Those can be
-dropped once Feign clients land or the FK relationships are broken.
+The monolith is gone. Any cross-service reads that were satisfied implicitly
+by the monolith's shared JPA context (User → Student → Course FKs) now need
+explicit Feign calls — see the Cross-cutting items above.
