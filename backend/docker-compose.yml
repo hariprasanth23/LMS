@@ -89,13 +89,15 @@ services:
   auth-service:
     build: ./auth-service
     container_name: lms-auth-service
+    ports:
+      - "8081:8081"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       DB_URL: jdbc:postgresql://postgres:5432/lms_auth_db
       DB_USERNAME: ${AUTH_DB_USER:-lms_auth_user}
       DB_PASSWORD: ${AUTH_DB_PASSWORD:-changeme}
