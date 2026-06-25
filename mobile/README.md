@@ -89,9 +89,9 @@ EXPO_PUBLIC_API_BASE_URL=http://192.168.1.42:8080/api npm start
 
 (then read it from `process.env.EXPO_PUBLIC_API_BASE_URL` in `src/lib/api.ts` — wired but currently falls back to `extra.apiBaseUrl`.)
 
-### Heads-up — gateway routing bug
+### Heads-up — host port 8080 collisions
 
-The web app currently bypasses the gateway in dev by splitting `/api/auth/*` to `auth-service:8081` directly through the Vite proxy. **The mobile app cannot do that** — devices/emulators only see the gateway's port. Until the gateway routing is fixed in `backend/api-gateway/`, login from the device will return `400 must not be blank`. See `../backend/MIGRATION-STATUS.md` for the open issue.
+If `/api/*` calls return 404 `"No static resource …"` from the device, something on the host is binding port 8080 *before* Docker forwards it (we hit this when a sibling project's Spring Cloud Gateway was still running). Run `lsof -i :8080` on the host — if you see a non-Docker process, kill it and restart the gateway container.
 
 ## Demo accounts (password: `Demo@123`)
 
