@@ -5,12 +5,25 @@ server:
 spring:
   application:
     name: api-gateway
+  # Pin the web stack. Without this, Spring Boot auto-detects between
+  # WebFlux (gateway requires it) and MVC. We saw the gateway boot with
+  # Netty *and* still throw NoResourceFoundException for /api/** — the
+  # symptom of an MVC-style resource-handler getting first dibs at requests
+  # before the reactive RoutePredicateHandlerMapping. Forcing reactive
+  # disables the MVC autoconfig paths entirely.
+  main:
+    web-application-type: reactive
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
   cloud:
     gateway:
+      # Expose /actuator/gateway/routes with predicate + filter details so
+      # we can verify routes are loaded at runtime.
+      actuator:
+        verbose:
+          enabled: true
       # ── HTTP client: bound connect + response timeouts on every upstream call.
       # A slow downstream that doesn't close its connection used to tie up a
       # gateway reactor thread indefinitely. Now: 3s connect, 10s response;
@@ -294,24 +307,12 @@ spring:
                 redis-rate-limiter.burstCapacity: 40
                 key-resolver: "#{@userKeyResolver}"
 
-        # ── Strangler-fig fallback to the v1 monolith ───────────────────────
-        # Any /api/** path that isn't claimed by a more-specific v2 route above
-        # falls through to the legacy monolith. As services migrate, their
-        # routes appear above and silently take precedence (Spring Cloud
-        # Gateway picks the first matching route, evaluated top-down).
-        #
-        # Disabled by default — set MONOLITH_URL to enable. In production the
-        # ALB target group for the gateway needs egress to MONOLITH_URL.
-        - id: monolith-fallback
-          uri: ${MONOLITH_URL:http://no-monolith-configured.invalid}
-          predicates:
-            - Path=/api/**
-          filters:
-            - JwtAuthFilter
-            - name: CircuitBreaker
-              args:
-                name: cbDefault
-                fallbackUri: forward:/api/_fallback/monolith
+        # NOTE: the strangler-fig monolith-fallback route used to live here
+        # with predicate Path=/api/**. The monolith has been deleted, so it
+        # was just intercepting unmatched paths and proxying them to an
+        # invalid host (and circuit-breaking to a fallback that returned a
+        # confusing 503). Removed deliberately — unmatched /api/** now
+        # produces a proper 404 instead of a misleading "service unavailable".
 
 app:
   internal:
