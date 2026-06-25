@@ -60,7 +60,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       JWT_SECRET:     ${JWT_SECRET}
       JWT_ISSUER:     ${JWT_ISSUER:-lms-auth-service}
       JWT_AUDIENCE:   ${JWT_AUDIENCE:-lms-gateway}
@@ -120,13 +120,15 @@ services:
   user-service:
     build: ./user-service
     container_name: lms-user-service
+    ports:
+      - "8082:8082"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       DB_URL: jdbc:postgresql://postgres:5432/lms_user_db
       DB_USERNAME: ${USER_DB_USER:-lms_user_user}
       DB_PASSWORD: ${USER_DB_PASSWORD:-changeme}
@@ -140,13 +142,15 @@ services:
   course-service:
     build: ./course-service
     container_name: lms-course-service
+    ports:
+      - "8083:8083"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       DB_URL: jdbc:postgresql://postgres:5432/lms_course_db
       DB_USERNAME: ${COURSE_DB_USER:-lms_course_user}
       DB_PASSWORD: ${COURSE_DB_PASSWORD:-changeme}
@@ -161,13 +165,15 @@ services:
   examination-service:
     build: ./examination-service
     container_name: lms-examination-service
+    ports:
+      - "8084:8084"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       DB_URL: jdbc:postgresql://postgres:5432/lms_exam_db
       DB_USERNAME: ${EXAM_DB_USER:-lms_exam_user}
       DB_PASSWORD: ${EXAM_DB_PASSWORD:-changeme}
@@ -183,13 +189,15 @@ services:
   attendance-service:
     build: ./attendance-service
     container_name: lms-attendance-service
+    ports:
+      - "8085:8085"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       DB_URL: jdbc:postgresql://postgres:5432/lms_attendance_db
       DB_USERNAME: ${ATTENDANCE_DB_USER:-lms_attendance_user}
       DB_PASSWORD: ${ATTENDANCE_DB_PASSWORD:-changeme}
@@ -203,13 +211,15 @@ services:
   finance-service:
     build: ./finance-service
     container_name: lms-finance-service
+    ports:
+      - "8086:8086"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       DB_URL: jdbc:postgresql://postgres:5432/lms_finance_db
       DB_USERNAME: ${FINANCE_DB_USER:-lms_finance_user}
       DB_PASSWORD: ${FINANCE_DB_PASSWORD:-changeme}
@@ -224,13 +234,15 @@ services:
   hr-service:
     build: ./hr-service
     container_name: lms-hr-service
+    ports:
+      - "8087:8087"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       DB_URL: jdbc:postgresql://postgres:5432/lms_hr_db
       DB_USERNAME: ${HR_DB_USER:-lms_hr_user}
       DB_PASSWORD: ${HR_DB_PASSWORD:-changeme}
@@ -245,13 +257,15 @@ services:
   notification-service:
     build: ./notification-service
     container_name: lms-notification-service
+    ports:
+      - "8088:8088"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       DB_URL: jdbc:postgresql://postgres:5432/lms_notification_db
       DB_USERNAME: ${NOTIFICATION_DB_USER:-lms_notification_user}
       DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD:-changeme}
@@ -271,13 +285,15 @@ services:
   academics-service:
     build: ./academics-service
     container_name: lms-academics-service
+    ports:
+      - "8089:8089"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       DB_URL: jdbc:postgresql://postgres:5432/lms_academics_db
       DB_USERNAME: ${ACADEMICS_DB_USER:-lms_academics_user}
       DB_PASSWORD: ${ACADEMICS_DB_PASSWORD:-changeme}
@@ -292,13 +308,15 @@ services:
   feedback-service:
     build: ./feedback-service
     container_name: lms-feedback-service
+    ports:
+      - "8090:8090"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       DB_URL: jdbc:postgresql://postgres:5432/lms_feedback_db
       DB_USERNAME: ${FEEDBACK_DB_USER:-lms_feedback_user}
       DB_PASSWORD: ${FEEDBACK_DB_PASSWORD:-changeme}
@@ -311,13 +329,15 @@ services:
   research-service:
     build: ./research-service
     container_name: lms-research-service
+    ports:
+      - "8091:8091"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       DB_URL: jdbc:postgresql://postgres:5432/lms_research_db
       DB_USERNAME: ${RESEARCH_DB_USER:-lms_research_user}
       DB_PASSWORD: ${RESEARCH_DB_PASSWORD:-changeme}
@@ -331,13 +351,15 @@ services:
   student-services:
     build: ./student-services
     container_name: lms-student-services
+    ports:
+      - "8092:8092"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
+      INTERNAL_ENFORCE: false
       DB_URL: jdbc:postgresql://postgres:5432/lms_services_db
       DB_USERNAME: ${SERVICES_DB_USER:-lms_services_user}
       DB_PASSWORD: ${SERVICES_DB_PASSWORD:-changeme}

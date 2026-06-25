@@ -41,10 +41,19 @@ export function AuthProvider({ children }) {
 
   const login = async (identifier, password, portal) => {
     const response = await api.post('/auth/login', { identifier, password })
-    // Backend sets the httpOnly jwt_token cookie via Set-Cookie header.
-    // We only store non-sensitive user info locally.
-    const { userId, name, email, role, refreshToken } = response.data.data
-    const userData = { userId, name, email, role }
+    // Backend (auth-service v2) returns:
+    //   data: { accessToken, refreshToken, expiresInSeconds, user: { id, name, email, phone, role, active } }
+    // The httpOnly lms_token cookie is set via Set-Cookie. We only store the
+    // non-sensitive user info locally.
+    const payload = response.data.data
+    const u = payload.user ?? {}
+    const userData = {
+      userId: u.id,
+      name:   u.name,
+      email:  u.email,
+      role:   u.role,
+    }
+    const refreshToken = payload.refreshToken
 
     localStorage.setItem('college_user', JSON.stringify(userData))
     if (refreshToken) localStorage.setItem('college_refresh_token', refreshToken)
