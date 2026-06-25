@@ -9,8 +9,21 @@ const api = axios.create({
 // Track if a refresh is already in flight to avoid parallel refresh storms
 let refreshPromise = null
 
+// v2 microservices return Spring Page<T> for list endpoints:
+//   { success, message, data: { content: [...], pageable: {...}, totalElements, ... } }
+// Every page in this SPA reads `res.data.data` expecting an array. Unwrap the
+// Page envelope here so callers don't each need to special-case it. Page
+// metadata (totalElements, etc.) is preserved on `res.data.pageMeta`.
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const body = response.data
+    const inner = body?.data
+    if (inner && typeof inner === 'object' && Array.isArray(inner.content) && 'pageable' in inner) {
+      const { content, ...rest } = inner
+      response.data = { ...body, data: content, pageMeta: rest }
+    }
+    return response
+  },
   async (error) => {
     const original = error.config
 
