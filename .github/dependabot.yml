@@ -10,85 +10,149 @@ updates:
       timezone: "Asia/Kolkata"
     open-pull-requests-limit: 5
     labels: [ "deps", "ci" ]
+    groups:
+      actions:
+        patterns: [ "*" ]
 
-  # ── v2 services — one entry per gradle project ─────────────────────────────
+  # ── v2 microservices ────────────────────────────────────────────────────────
+  # One weekly PR per service, bundling every gradle bump for that service.
+  # Without the groups: block we'd get ~4–6 PRs per service per week (50+
+  # total). With it, we get ~13 weekly PRs — one per service — that each
+  # sweep in every dep bump they carry.
+  #
+  # Rules:
+  # - Majors → separate PR (they're breaking; deserve a solo review).
+  # - Minors + patches → one PR per service per week ("weekly-<svc>").
   - package-ecosystem: gradle
     directory: /backend/gateway
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2" ]
+    groups:
+      weekly-gateway:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
   - package-ecosystem: gradle
     directory: /backend/auth
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2" ]
+    groups:
+      weekly-auth:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
   - package-ecosystem: gradle
     directory: /backend/users
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2" ]
+    groups:
+      weekly-users:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
   - package-ecosystem: gradle
     directory: /backend/courses
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2" ]
+    groups:
+      weekly-courses:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
   - package-ecosystem: gradle
     directory: /backend/exams
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2" ]
+    groups:
+      weekly-exams:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
   - package-ecosystem: gradle
     directory: /backend/attendance
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2" ]
+    groups:
+      weekly-attendance:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
   - package-ecosystem: gradle
     directory: /backend/finance
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2", "finance" ]
+    groups:
+      weekly-finance:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
   - package-ecosystem: gradle
     directory: /backend/hr
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2" ]
+    groups:
+      weekly-hr:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
   - package-ecosystem: gradle
     directory: /backend/notifications
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2" ]
+    groups:
+      weekly-notifications:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
   - package-ecosystem: gradle
     directory: /backend/academics
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2" ]
+    groups:
+      weekly-academics:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
   - package-ecosystem: gradle
     directory: /backend/feedback
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2" ]
+    groups:
+      weekly-feedback:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
   - package-ecosystem: gradle
     directory: /backend/research
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2" ]
+    groups:
+      weekly-research:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
   - package-ecosystem: gradle
     directory: /backend/student-services
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     labels: [ "deps", "v2" ]
-
-  # (The v1 /monolith Gradle entry was removed when the monolith was
-  # deleted — the strangler-fig migration is complete.)
+    groups:
+      weekly-student-services:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
 
   # ── Frontend (Vite / React) ────────────────────────────────────────────────
   - package-ecosystem: npm
     directory: /frontend
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
     labels: [ "deps", "frontend" ]
+    groups:
+      weekly-frontend:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
     ignore:
-      - dependency-name: "react"        # major bumps: human review
+      - dependency-name: "react"
         update-types: ["version-update:semver-major"]
       - dependency-name: "react-dom"
         update-types: ["version-update:semver-major"]
@@ -97,8 +161,12 @@ updates:
   - package-ecosystem: npm
     directory: /mobile
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
     labels: [ "deps", "mobile" ]
+    groups:
+      weekly-mobile:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
     ignore:
       # Expo/RN version alignment is delicate — skip majors on the core stack.
       - dependency-name: "expo"
