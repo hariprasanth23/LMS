@@ -25,8 +25,8 @@ dependencies {
     // Distributed @Scheduled lock — only one auth replica runs the
     // cleanup at a time. Without this every replica would DELETE simultaneously
     // at the top of the hour.
-    implementation 'net.javacrumbs.shedlock:shedlock-spring:5.16.0'
-    implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:5.16.0'
+    implementation 'net.javacrumbs.shedlock:shedlock-spring:7.7.0'
+    implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.7.0'
 
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
