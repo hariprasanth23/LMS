@@ -78,12 +78,8 @@ updates:
     open-pull-requests-limit: 3
     labels: [ "deps", "v2" ]
 
-  # ── v1 monolith ────────────────────────────────────────────────────────────
-  - package-ecosystem: gradle
-    directory: /monolith
-    schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 5
-    labels: [ "deps", "v1" ]
+  # (The v1 /monolith Gradle entry was removed when the monolith was
+  # deleted — the strangler-fig migration is complete.)
 
   # ── Frontend (Vite / React) ────────────────────────────────────────────────
   - package-ecosystem: npm
@@ -95,4 +91,19 @@ updates:
       - dependency-name: "react"        # major bumps: human review
         update-types: ["version-update:semver-major"]
       - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+
+  # ── Mobile (Expo / React Native) ───────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /mobile
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    labels: [ "deps", "mobile" ]
+    ignore:
+      # Expo/RN version alignment is delicate — skip majors on the core stack.
+      - dependency-name: "expo"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-native"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
         update-types: ["version-update:semver-major"]
