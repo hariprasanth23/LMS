@@ -23,7 +23,7 @@
     "expo-system-ui": "~4.0.0",
     "expo-haptics": "~14.0.0",
     "expo-blur": "~14.0.0",
-    "expo-image": "~2.0.0",
+    "expo-image": "~57.0.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.6",
