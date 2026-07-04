@@ -26,8 +26,13 @@ public class AuthController {
     // ── Public endpoints (gateway skips JWT) ──────────────────────────────────
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<LoginResponse>> register(@Valid @RequestBody RegisterRequest request) {
-        LoginResponse resp = authService.register(request);
+    public ResponseEntity<ApiResponse<LoginResponse>> register(
+            @Valid @RequestBody RegisterRequest request,
+            @RequestHeader(value = "X-User-Role", required = false) String callerRole) {
+        // callerRole is null for anonymous self-signup (the gateway strips
+        // the header when no valid JWT is present). Only an ADMIN caller can
+        // pass a non-STUDENT role in the body — see AuthServiceImpl.resolveRole.
+        LoginResponse resp = authService.register(request, callerRole);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .header(HttpHeaders.SET_COOKIE, buildAccessCookie(resp.getAccessToken()).toString())
                 .body(ApiResponse.success("Registration successful", resp));

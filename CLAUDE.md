@@ -115,3 +115,85 @@ All endpoints return `ApiResponse<T>`:
 ```
 
 `ApiResponse` is defined per-service in `src/main/java/com/lms/<service>/common/ApiResponse.java` — not a shared library.
+
+---
+
+## Troubleshooting
+
+Everything below has bitten this project at least once.
+
+### `/api/**` returns `404 "No static resource api/..."` from the browser or a device
+
+Something on the host is bound to port 8080 *before* Docker forwards it. Almost always a stale Java process from a sibling `Project N/` workspace whose gateway is still running under launchd or a leftover Colima session.
+
+```bash
+lsof -i :8080 -P | grep LISTEN
+# If the process is NOT `com.docker.backend` / `docker-proxy` / `vpnkit`, kill it:
+kill -9 <PID>
+docker compose restart gateway
+```
+
+`scripts/dev-up.sh` does this check automatically and refuses to start if any of `:5173, :6379, :8080-:8092` is held by a non-Docker process.
+
+### Backend can't start Postgres — `bind: address already in use` on 5432
+
+A native PostgreSQL install owns the port. The EnterpriseDB installer drops `/Library/LaunchDaemons/postgresql-XX.plist` which starts a postmaster on boot. Symptoms:
+
+- `docker compose up postgres` fails with the bind error
+- `lsof -i :5432` returns empty (the daemon runs as user `postgres` and lsof needs sudo)
+- `ps aux | grep -E '/Library/PostgreSQL'` finds `postgres -D /Library/PostgreSQL/XX/data`
+
+Either stop the native install:
+
+```bash
+sudo launchctl unload -w /Library/LaunchDaemons/postgresql-*.plist
+```
+
+…or let `scripts/dev-up.sh` detect it and publish Colima's Postgres on **5433** via an auto-generated `backend/docker-compose.override.yml`. Services connect via `DB_URL=jdbc:postgresql://localhost:5433/...` in that case.
+
+### `docker compose` talks to Docker Desktop instead of Colima
+
+If you have Docker Desktop installed, its context becomes the default (`desktop-linux`) and every `docker compose up` runs there instead of Colima. Symptom: `docker compose ps` shows nothing but the containers are actually running elsewhere.
+
+```bash
+docker context ls           # look for the `*` next to `desktop-linux`
+docker context use colima   # pin the CLI to Colima
+```
+
+### Login screen returns 400 with `"must not be blank"` for every field
+
+The `AuthContext` on the SPA is destructuring the login response with the old (v1 monolith) shape. `data.user.role` moved and the interceptor needs to unwrap Spring `Page<T>` responses. If you touched `frontend/src/services/api.js` or `frontend/src/context/AuthContext.jsx`, re-verify the interceptor keeps `res.data.data` as a flat array for paged endpoints.
+
+### All admin pages render as empty tables
+
+Spring `Page<T>` envelope isn't being unwrapped. Check `frontend/src/services/api.js` — the response interceptor should transform `{ data: { content: [...], pageable: {...} } }` into `{ data: [...], pageMeta: {...} }` before hitting any page component.
+
+### Fresh clone but no data anywhere
+
+Two things need to run in order:
+
+1. `auth/DemoDataSeeder` runs on auth-service startup and inserts 12 demo users with deterministic UUIDs. Enabled by default; disable in prod with `app.demo-seed.enabled=false`.
+2. `backend/infra/db/seed-demo-data.sql` inserts departments, students, employees, courses, leave balances (referencing the same UUIDs). Auto-run by `scripts/dev-up.sh` after all services report healthy. Manual run:
+
+    ```bash
+    docker compose exec -T postgres psql -U lmsadmin -f /docker-entrypoint-initdb.d/02-seed.sql
+    ```
+
+### Everything hangs and IntelliJ won't compile
+
+You're probably out of memory. 13 Spring Boot `bootRun` processes + Colima's 6 GB VM + the IDE + Chrome + Docker Desktop is easily 25 GB of memory pressure. Either kill Docker Desktop or run in `--docker` mode where only Colima's memory is used.
+
+## Useful one-liners
+
+```bash
+# tail every backend service log at once
+tail -f /tmp/lms-logs/*.log
+
+# get a JWT cookie for scripting
+curl -c /tmp/lms.cookies -X POST http://localhost:8080/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"identifier":"admin@sample.edu","password":"Demo@123"}'
+
+# run the smoke test
+./scripts/e2e-smoke.sh
+```

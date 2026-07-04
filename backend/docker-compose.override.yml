@@ -1,0 +1,4 @@
+services:
+  postgres:
+    ports:
+      - "5433:5432"     # avoid clash with the native Postgres 18 on 5432

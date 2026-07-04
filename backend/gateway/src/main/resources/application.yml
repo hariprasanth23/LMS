@@ -5,14 +5,6 @@ server:
 spring:
   application:
     name: gateway
-  # Pin the web stack. Without this, Spring Boot auto-detects between
-  # WebFlux (gateway requires it) and MVC. We saw the gateway boot with
-  # Netty *and* still throw NoResourceFoundException for /api/** — the
-  # symptom of an MVC-style resource-handler getting first dibs at requests
-  # before the reactive RoutePredicateHandlerMapping. Forcing reactive
-  # disables the MVC autoconfig paths entirely.
-  main:
-    web-application-type: reactive
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -40,7 +32,17 @@ spring:
             allowedOrigins:
               - ${FRONTEND_URL:http://localhost:5173}
             allowedMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-            allowedHeaders: ["*"]
+            # Explicit allowlist — was "*". Preflight for anything outside
+            # this list will now fail cleanly rather than accept quietly.
+            allowedHeaders:
+              - "Content-Type"
+              - "Authorization"
+              - "X-Requested-With"
+              - "X-Correlation-Id"
+              - "Accept"
+              - "Accept-Language"
+              - "Origin"
+              - "Cache-Control"
             allowCredentials: true
             maxAge: 3600
       default-filters:

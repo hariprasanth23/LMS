@@ -1,5 +1,6 @@
 package com.lms.auth.dto;
 
+import com.lms.auth.model.User;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -19,4 +20,12 @@ public class RegisterRequest {
 
     @NotBlank(message = "Password is required")
     private String password;
+
+    /**
+     * Optional. Public registration ignores this — the service always creates
+     * STUDENT for anonymous callers. Only requests carrying an authenticated
+     * ADMIN JWT (validated at the gateway) may pass ADMIN / FACULTY / STAFF /
+     * PARENT. See {@link com.lms.auth.service.impl.AuthServiceImpl}.
+     */
+    private User.Role role;
 }

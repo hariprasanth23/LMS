@@ -43,8 +43,7 @@ public class FallbackController {
     public ResponseEntity<Map<String, Object>> research()   { return body("research-service"); }
     @RequestMapping("/services")
     public ResponseEntity<Map<String, Object>> services()   { return body("student-services"); }
-    @RequestMapping("/monolith")
-    public ResponseEntity<Map<String, Object>> monolith()   { return body("monolith"); }
+    // (the /monolith fallback used to live here; the monolith is deleted.)
 
     private ResponseEntity<Map<String, Object>> body(String svc) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(

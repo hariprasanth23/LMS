@@ -4,7 +4,7 @@ import com.lms.auth.dto.*;
 
 public interface AuthService {
 
-    LoginResponse register(RegisterRequest request);
+    LoginResponse register(RegisterRequest request, String callerRole);
 
     LoginResponse login(LoginRequest request);
 

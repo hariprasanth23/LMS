@@ -60,7 +60,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       JWT_SECRET:     ${JWT_SECRET}
       JWT_ISSUER:     ${JWT_ISSUER:-lms-auth}
       JWT_AUDIENCE:   ${JWT_AUDIENCE:-lms-gateway}
@@ -83,6 +83,12 @@ services:
       MONOLITH_URL: ${MONOLITH_URL:-http://no-monolith-configured.invalid}
     depends_on:
       - redis
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 
@@ -97,7 +103,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_auth_db
       DB_USERNAME: ${AUTH_DB_USER:-lms_auth_user}
       DB_PASSWORD: ${AUTH_DB_PASSWORD:-changeme}
@@ -114,6 +120,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 
@@ -128,7 +140,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_user_db
       DB_USERNAME: ${USER_DB_USER:-lms_user_user}
       DB_PASSWORD: ${USER_DB_PASSWORD:-changeme}
@@ -136,6 +148,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8082/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 
@@ -150,7 +168,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_course_db
       DB_USERNAME: ${COURSE_DB_USER:-lms_course_user}
       DB_PASSWORD: ${COURSE_DB_PASSWORD:-changeme}
@@ -159,6 +177,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8083/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 
@@ -173,7 +197,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_exam_db
       DB_USERNAME: ${EXAM_DB_USER:-lms_exam_user}
       DB_PASSWORD: ${EXAM_DB_PASSWORD:-changeme}
@@ -183,6 +207,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8084/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 
@@ -197,7 +227,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_attendance_db
       DB_USERNAME: ${ATTENDANCE_DB_USER:-lms_attendance_user}
       DB_PASSWORD: ${ATTENDANCE_DB_PASSWORD:-changeme}
@@ -205,6 +235,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8085/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 
@@ -219,7 +255,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_finance_db
       DB_USERNAME: ${FINANCE_DB_USER:-lms_finance_user}
       DB_PASSWORD: ${FINANCE_DB_PASSWORD:-changeme}
@@ -228,6 +264,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8086/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 
@@ -242,7 +284,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_hr_db
       DB_USERNAME: ${HR_DB_USER:-lms_hr_user}
       DB_PASSWORD: ${HR_DB_PASSWORD:-changeme}
@@ -251,6 +293,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8087/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 
@@ -265,7 +313,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_notification_db
       DB_USERNAME: ${NOTIFICATION_DB_USER:-lms_notification_user}
       DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD:-changeme}
@@ -279,6 +327,12 @@ services:
         condition: service_healthy
       localstack:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8088/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 
@@ -293,7 +347,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_academics_db
       DB_USERNAME: ${ACADEMICS_DB_USER:-lms_academics_user}
       DB_PASSWORD: ${ACADEMICS_DB_PASSWORD:-changeme}
@@ -302,6 +356,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8089/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 
@@ -316,13 +376,19 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_feedback_db
       DB_USERNAME: ${FEEDBACK_DB_USER:-lms_feedback_user}
       DB_PASSWORD: ${FEEDBACK_DB_PASSWORD:-changeme}
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8090/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 
@@ -337,7 +403,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_research_db
       DB_USERNAME: ${RESEARCH_DB_USER:-lms_research_user}
       DB_PASSWORD: ${RESEARCH_DB_PASSWORD:-changeme}
@@ -345,6 +411,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8091/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 
@@ -359,7 +431,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
-      INTERNAL_ENFORCE: false
+      INTERNAL_ENFORCE: ${INTERNAL_ENFORCE:-true}
       DB_URL: jdbc:postgresql://postgres:5432/lms_services_db
       DB_USERNAME: ${SERVICES_DB_USER:-lms_services_user}
       DB_PASSWORD: ${SERVICES_DB_PASSWORD:-changeme}
@@ -367,6 +439,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8092/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
     networks:
       - lms-net
 

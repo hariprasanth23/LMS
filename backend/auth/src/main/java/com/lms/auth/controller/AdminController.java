@@ -5,11 +5,13 @@ import com.lms.auth.dto.UserDto;
 import com.lms.auth.model.User;
 import com.lms.auth.repository.RefreshTokenRepository;
 import com.lms.auth.repository.UserRepository;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -44,11 +46,15 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}/role")
+    @Transactional
     public ResponseEntity<ApiResponse<UserDto>> changeRole(
             @RequestHeader("X-User-Role") String requesterRole,
             @PathVariable UUID id,
-            @RequestBody @NotBlank RoleChange body) {
+            @Valid @RequestBody RoleChange body) {
         requireAdmin(requesterRole);
+        if (body == null || body.role() == null || body.role().isBlank()) {
+            throw new IllegalArgumentException("role is required");
+        }
         User.Role newRole;
         try { newRole = User.Role.valueOf(body.role().toUpperCase()); }
         catch (IllegalArgumentException e) {
@@ -66,6 +72,7 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}/deactivate")
+    @Transactional
     public ResponseEntity<ApiResponse<Void>> deactivate(
             @RequestHeader("X-User-Role") String requesterRole,
             @PathVariable UUID id) {

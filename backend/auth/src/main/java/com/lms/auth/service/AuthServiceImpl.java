@@ -42,23 +42,52 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public LoginResponse register(RegisterRequest req) {
+    public LoginResponse register(RegisterRequest req, String callerRole) {
         validatePassword(req.getPassword());
         String email = req.getEmail().toLowerCase().strip();
         if (userRepository.existsByEmail(email)) {
             throw new IllegalStateException("Email already registered: " + email);
         }
+
+        User.Role role = resolveRole(req.getRole(), callerRole);
+
         User user = User.builder()
                 .name(req.getName().strip())
                 .email(email)
                 .phone(req.getPhone())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
-                .role(User.Role.STUDENT)
+                .role(role)
                 .active(true)
                 .build();
         user = userRepository.save(user);
-        log.info("Registered user id={} email={}", user.getId(), user.getEmail());
+        log.info("Registered user id={} email={} role={} caller={}",
+                 user.getId(), user.getEmail(), user.getRole(),
+                 callerRole == null ? "public" : callerRole);
         return issueTokens(user);
+    }
+
+    /**
+     * Determines what role the new user should have.
+     *
+     * <p>Rules:
+     * <ul>
+     *   <li>No role in body → STUDENT (public self-signup default)</li>
+     *   <li>STUDENT → always allowed</li>
+     *   <li>Any other role → only if the caller is authenticated as ADMIN</li>
+     * </ul>
+     *
+     * <p>The caller's role comes from the gateway's {@code X-User-Role}
+     * header — the same identity injection used by every other service.
+     */
+    private User.Role resolveRole(User.Role requested, String callerRole) {
+        if (requested == null || requested == User.Role.STUDENT) {
+            return User.Role.STUDENT;
+        }
+        if ("ADMIN".equals(callerRole)) {
+            return requested;
+        }
+        throw new IllegalStateException(
+                "Only an authenticated ADMIN can create a " + requested + " account");
     }
 
     @Override
