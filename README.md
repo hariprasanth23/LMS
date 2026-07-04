@@ -60,7 +60,7 @@ The LMS covers end-to-end operations of a college environment across 15 function
 | Security | JJWT 0.12.3 (gateway-only) + HMAC inter-service signing |
 | Database | PostgreSQL 16 — one DB per service, Flyway migrations |
 | Cache / denylist | Redis (JWT revocation cache + ShedLock backing) |
-| Async | SQS (LocalStack in dev) — notification-service is the only consumer |
+| Async | SQS (LocalStack in dev) — notifications is the only consumer |
 | Observability | Micrometer + OTLP exporter, Logback + LogstashEncoder |
 | Testing | JUnit 5 + Testcontainers (real Postgres per test) |
 
@@ -113,7 +113,7 @@ auth-svc      user-svc … (11 more)        notification-svc
 lms_auth_db   lms_user_db   …            queues
 ```
 
-Each service owns its schema; no cross-database foreign keys. Cross-service reads go via Feign to `/internal/**` endpoints. Cross-service writes publish events through SQS; only `notification-service` consumes.
+Each service owns its schema; no cross-database foreign keys. Cross-service reads go via Feign to `/internal/**` endpoints. Cross-service writes publish events through SQS; only `notifications` consumes.
 
 ### Per-service layout
 
@@ -127,7 +127,7 @@ common/       ApiResponse, error mapping — copied per-service
 
 ### Authentication flow
 
-1. Client `POST /api/auth/login` — auth-service verifies bcrypt password, issues a JWT (iss/aud/jti claims).
+1. Client `POST /api/auth/login` — auth verifies bcrypt password, issues a JWT (iss/aud/jti claims).
 2. Gateway sets the JWT in an httpOnly `lms_token` cookie; the SPA never sees the raw token.
 3. On every protected request the gateway validates the cookie's JWT, checks Redis for revocation, then strips the cookie and injects `X-User-Id` + `X-User-Role`.
 4. Downstream services read identity from those headers — they never parse JWTs.
@@ -174,18 +174,18 @@ LMS/
 │   └── package.json
 │
 ├── backend/                        # 13 Spring Boot microservices
-│   ├── api-gateway/                # 8080 — JWT + circuit breakers + routing
-│   ├── auth-service/               # 8081 — login/register/JWT issuance + revocation
-│   ├── user-service/               # 8082 — students, employees, departments
-│   ├── course-service/             # 8083 — courses, materials, assignments, quizzes
-│   ├── examination-service/        # 8084 — exam schedule, marks, grades, arrear
-│   ├── attendance-service/         # 8085 — student + employee attendance
-│   ├── finance-service/            # 8086 — fees, receipts, wallet, refunds
-│   ├── hr-service/                 # 8087 — leave + payroll
-│   ├── notification-service/       # 8088 — SQS consumer + in-app notifications
-│   ├── academics-service/          # 8089 — MOOC, ECC, internship, conference
-│   ├── feedback-service/           # 8090 — course feedback + 24/7 anonymous
-│   ├── research-service/           # 8091 — research profiles + weekly logs
+│   ├── gateway/                # 8080 — JWT + circuit breakers + routing
+│   ├── auth/               # 8081 — login/register/JWT issuance + revocation
+│   ├── users/               # 8082 — students, employees, departments
+│   ├── courses/             # 8083 — courses, materials, assignments, quizzes
+│   ├── exams/        # 8084 — exam schedule, marks, grades, arrear
+│   ├── attendance/         # 8085 — student + employee attendance
+│   ├── finance/            # 8086 — fees, receipts, wallet, refunds
+│   ├── hr/                 # 8087 — leave + payroll
+│   ├── notifications/       # 8088 — SQS consumer + in-app notifications
+│   ├── academics/          # 8089 — MOOC, ECC, internship, conference
+│   ├── feedback/           # 8090 — course feedback + 24/7 anonymous
+│   ├── research/           # 8091 — research profiles + weekly logs
 │   ├── student-services/           # 8092 — bonafide, library, health feedback
 │   ├── docker-compose.yml          # Local stack: Postgres × 12 + Redis + LocalStack
 │   ├── infra/                      # AWS task defs, LocalStack bootstrap, deploy scripts
@@ -322,7 +322,7 @@ POSTGRES_PASSWORD=changeme
 
 Per-service config lives in each service's `application.yml`. Service-to-service URLs default to `http://localhost:<port>` and are overridden by Docker Compose service names in containerized runs.
 
-In production, all secrets come from **AWS Secrets Manager** paths like `/lms/prod/auth-service-db`. ECS task definitions in `backend/infra/aws/ecs/task-definitions/` reference these paths — update `ACCOUNT_ID` and image URIs before registering.
+In production, all secrets come from **AWS Secrets Manager** paths like `/lms/prod/auth-db`. ECS task definitions in `backend/infra/aws/ecs/task-definitions/` reference these paths — update `ACCOUNT_ID` and image URIs before registering.
 
 ---
 
@@ -332,8 +332,8 @@ The migration is functionally complete (every monolith controller has an owner i
 
 | Item | Status |
 |---|---|
-| Feign clients for cross-service reads (`course-service` ↔ `user-service`, `academics` ↔ `course`) | 🟡 some endpoints return `[]` |
-| Bulk CSV import (`/api/students/import`, `/api/employees/import`) | 🟡 not migrated — needs an admin-only `auth-service` endpoint |
+| Feign clients for cross-service reads (`courses` ↔ `users`, `academics` ↔ `course`) | 🟡 some endpoints return `[]` |
+| Bulk CSV import (`/api/students/import`, `/api/employees/import`) | 🟡 not migrated — needs an admin-only `auth` endpoint |
 | Saga / outbox for cross-DB writes (enrollment + notification + audit) | 🟡 not implemented |
-| SQS consumers in `notification-service` | 🟡 queues exist; `@SqsListener` not wired |
+| SQS consumers in `notifications` | 🟡 queues exist; `@SqsListener` not wired |
 | Frontend: replace inline CSS with a design system | 🟡 ongoing |

@@ -23,7 +23,7 @@ cd backend/<service-name>
 ./gradlew test
 ```
 
-The 13 services: `api-gateway` (8080), `auth-service` (8081), `user-service` (8082), `course-service` (8083), `examination-service` (8084), `attendance-service` (8085), `finance-service` (8086), `hr-service` (8087), `notification-service` (8088), `academics-service` (8089), `feedback-service` (8090), `research-service` (8091), `student-services` (8092).
+The 13 services: `gateway` (8080), `auth` (8081), `users` (8082), `courses` (8083), `exams` (8084), `attendance` (8085), `finance` (8086), `hr` (8087), `notifications` (8088), `academics` (8089), `feedback` (8090), `research` (8091), `student-services` (8092).
 
 ### Frontend (React/Vite — run from `frontend/`)
 
@@ -38,7 +38,7 @@ npm run preview  # preview production build
 
 Each backend service owns its own PostgreSQL database (`lms_auth_db`, `lms_user_db`, …). Schema is managed via Flyway — never `ddl-auto`. Compose spins up Postgres, Redis, and LocalStack automatically.
 
-### Demo credentials (seeded by auth-service on first run)
+### Demo credentials (seeded by auth on first run)
 
 | Role | Email | Password |
 |---|---|---|
@@ -58,7 +58,7 @@ Each backend service owns its own PostgreSQL database (`lms_auth_db`, `lms_user_
 React SPA (:5173)
   → Axios (lms_token httpOnly cookie, baseURL: /api)
   → Vite dev proxy (/api → :8080)
-  → api-gateway (validates JWT, injects X-User-Id / X-User-Role)
+  → gateway (validates JWT, injects X-User-Id / X-User-Role)
   → downstream @RestController (reads identity from headers)
   → @Service → @Repository → per-service PostgreSQL
 ```
@@ -79,16 +79,16 @@ common/       ApiResponse, error handling — copied per-service, not a shared l
 
 ### Security model
 
-- `api-gateway` is the only service that parses/validates JWTs. It reads the `lms_token` httpOnly cookie and injects `X-User-Id` + `X-User-Role` headers downstream.
+- `gateway` is the only service that parses/validates JWTs. It reads the `lms_token` httpOnly cookie and injects `X-User-Id` + `X-User-Role` headers downstream.
 - Downstream services never re-parse the JWT — they trust the gateway headers.
 - The `/api/auth/**` route bypasses `JwtAuthFilter` at the gateway (public).
 - HMAC-SHA256 (`X-Internal-Ts` + `X-Internal-Sig`) signs internal gateway→service calls.
-- Redis caches the JWT revocation denylist; ShedLock serialises the cleanup `@Scheduled` job across auth-service replicas.
+- Redis caches the JWT revocation denylist; ShedLock serialises the cleanup `@Scheduled` job across auth replicas.
 
 ### Auth state (frontend)
 
 `AuthContext.jsx` is the single source of truth for auth state. It:
-- Stores the user object + portal type in `localStorage`; the JWT lives in the `lms_token` httpOnly cookie set by auth-service.
+- Stores the user object + portal type in `localStorage`; the JWT lives in the `lms_token` httpOnly cookie set by auth.
 - Runs a 15-minute inactivity timer that auto-logs-out the user.
 - Exposes `{ user, portalType, login, logout, isAuthenticated }` via `useAuth()`.
 
@@ -104,7 +104,7 @@ There are no cross-database foreign keys. When a service needs data owned by ano
 
 ### Async events (SQS)
 
-`notification-service` is the only SQS consumer. Other services publish events to queues (`lms-payment-done`, `lms-leave-approved`, etc.); they never call notification-service directly. LocalStack simulates SQS locally.
+`notifications` is the only SQS consumer. Other services publish events to queues (`lms-payment-done`, `lms-leave-approved`, etc.); they never call notifications directly. LocalStack simulates SQS locally.
 
 ### API response convention
 

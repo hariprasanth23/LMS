@@ -48,7 +48,7 @@ docker-compose up --build
 ### Deploy a single service to ECS (requires AWS credentials)
 
 ```bash
-./infra/aws/scripts/deploy.sh auth-service [optional-tag]
+./infra/aws/scripts/deploy.sh auth [optional-tag]
 ./infra/aws/scripts/deploy-all.sh           # deploys all 13 services in order
 ```
 
@@ -67,18 +67,18 @@ cd <service-name>
 ### Monorepo of 13 independent Spring Boot services
 
 ```
-api-gateway/        → Spring Cloud Gateway (port 8080) — single entry point
-auth-service/       → JWT issuance, user auth (port 8081)
-user-service/       → Students, employees, departments (port 8082)
-course-service/     → Courses, assignments, quizzes, enrollments (port 8083)
-examination-service/→ Exam schedules, marks, grades, arrears (port 8084)
-attendance-service/ → Student and employee attendance (port 8085)
-finance-service/    → Fees, payments, wallet, refunds (port 8086)
-hr-service/         → Leave requests and payroll (port 8087)
-notification-service/ → In-app notifications + email via SQS consumers (port 8088)
-academics-service/  → MOOC, ECC, internship, conference registrations (port 8089)
-feedback-service/   → Course and 24/7 feedback (port 8090)
-research-service/   → Research profiles and weekly logs (port 8091)
+gateway/        → Spring Cloud Gateway (port 8080) — single entry point
+auth/       → JWT issuance, user auth (port 8081)
+users/       → Students, employees, departments (port 8082)
+courses/     → Courses, assignments, quizzes, enrollments (port 8083)
+exams/→ Exam schedules, marks, grades, arrears (port 8084)
+attendance/ → Student and employee attendance (port 8085)
+finance/    → Fees, payments, wallet, refunds (port 8086)
+hr/         → Leave requests and payroll (port 8087)
+notifications/ → In-app notifications + email via SQS consumers (port 8088)
+academics/  → MOOC, ECC, internship, conference registrations (port 8089)
+feedback/   → Course and 24/7 feedback (port 8090)
+research/   → Research profiles and weekly logs (port 8091)
 student-services/   → Bonafide, library, health feedback (port 8092)
 ```
 
@@ -86,7 +86,7 @@ Each service is a self-contained Gradle project: `build.gradle`, `Dockerfile`, `
 
 ### JWT and user identity
 
-The `api-gateway` validates the JWT from the `lms_token` **httpOnly cookie** on every protected request. It does not forward the cookie downstream — instead it injects two headers:
+The `gateway` validates the JWT from the `lms_token` **httpOnly cookie** on every protected request. It does not forward the cookie downstream — instead it injects two headers:
 
 ```
 X-User-Id:   <uuid>
@@ -100,7 +100,7 @@ Downstream controllers read identity exclusively from these headers, never from 
 public ResponseEntity<ApiResponse<UserDto>> me(@RequestHeader("X-User-Id") String userId) { ... }
 ```
 
-Never add JWT parsing logic inside a downstream service. Only `api-gateway` and `auth-service` touch the JWT.
+Never add JWT parsing logic inside a downstream service. Only `gateway` and `auth` touch the JWT.
 
 ### Database isolation
 
@@ -112,7 +112,7 @@ Feign client URL comes from `services.<target>.url` in `application.yml`, defaul
 
 ### Async events via SQS
 
-`notification-service` is the sole SQS consumer. Other services publish events to queues (`lms-payment-done`, `lms-leave-approved`, etc.) and never call `notification-service` directly. LocalStack simulates SQS locally; `infra/localstack/setup.sh` creates the queues on container start.
+`notifications` is the sole SQS consumer. Other services publish events to queues (`lms-payment-done`, `lms-leave-approved`, etc.) and never call `notifications` directly. LocalStack simulates SQS locally; `infra/localstack/setup.sh` creates the queues on container start.
 
 ### Schema migrations
 
@@ -128,9 +128,9 @@ All endpoints return `ApiResponse<T>`:
 
 `ApiResponse` is defined per-service in `src/main/java/com/lms/<service>/common/ApiResponse.java`. It is not a shared library — each service has its own copy.
 
-### Route ownership (api-gateway)
+### Route ownership (gateway)
 
-Prefix → service mapping lives in `api-gateway/src/main/resources/application.yml`. If you add a new controller path in a downstream service, add the corresponding route predicate there too. The `/api/auth/**` route has no `JwtAuthFilter` (public); all others require it.
+Prefix → service mapping lives in `gateway/src/main/resources/application.yml`. If you add a new controller path in a downstream service, add the corresponding route predicate there too. The `/api/auth/**` route has no `JwtAuthFilter` (public); all others require it.
 
 ---
 
@@ -144,4 +144,4 @@ POSTGRES_USER=lmsadmin
 POSTGRES_PASSWORD=changeme
 ```
 
-In production, all secrets come from **AWS Secrets Manager** paths like `/lms/prod/auth-service-db`. The ECS task definitions in `infra/aws/ecs/task-definitions/` reference these paths — update `ACCOUNT_ID` and image URIs before registering them.
+In production, all secrets come from **AWS Secrets Manager** paths like `/lms/prod/auth-db`. The ECS task definitions in `infra/aws/ecs/task-definitions/` reference these paths — update `ACCOUNT_ID` and image URIs before registering them.

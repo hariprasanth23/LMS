@@ -1,11 +1,11 @@
 server:
-  port: 8092
+  port: 8089
 
 spring:
   application:
-    name: student-services
+    name: academics
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/lms_services_db}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/lms_academics_db}
     username: ${DB_USERNAME:lmsadmin}
     password: ${DB_PASSWORD:changeme}
     hikari:
@@ -21,6 +21,8 @@ spring:
 services:
   users:
     url: ${USER_SERVICE_URL:http://localhost:8082}
+  courses:
+    url: ${COURSE_SERVICE_URL:http://localhost:8083}
 
 management:
   endpoints:

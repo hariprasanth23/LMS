@@ -13,62 +13,62 @@ updates:
 
   # ── v2 services — one entry per gradle project ─────────────────────────────
   - package-ecosystem: gradle
-    directory: /backend/api-gateway
+    directory: /backend/gateway
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 5
     labels: [ "deps", "v2" ]
   - package-ecosystem: gradle
-    directory: /backend/auth-service
+    directory: /backend/auth
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 5
     labels: [ "deps", "v2" ]
   - package-ecosystem: gradle
-    directory: /backend/user-service
+    directory: /backend/users
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
     labels: [ "deps", "v2" ]
   - package-ecosystem: gradle
-    directory: /backend/course-service
+    directory: /backend/courses
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
     labels: [ "deps", "v2" ]
   - package-ecosystem: gradle
-    directory: /backend/examination-service
+    directory: /backend/exams
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
     labels: [ "deps", "v2" ]
   - package-ecosystem: gradle
-    directory: /backend/attendance-service
+    directory: /backend/attendance
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
     labels: [ "deps", "v2" ]
   - package-ecosystem: gradle
-    directory: /backend/finance-service
+    directory: /backend/finance
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
     labels: [ "deps", "v2", "finance" ]
   - package-ecosystem: gradle
-    directory: /backend/hr-service
+    directory: /backend/hr
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
     labels: [ "deps", "v2" ]
   - package-ecosystem: gradle
-    directory: /backend/notification-service
+    directory: /backend/notifications
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
     labels: [ "deps", "v2" ]
   - package-ecosystem: gradle
-    directory: /backend/academics-service
+    directory: /backend/academics
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
     labels: [ "deps", "v2" ]
   - package-ecosystem: gradle
-    directory: /backend/feedback-service
+    directory: /backend/feedback
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
     labels: [ "deps", "v2" ]
   - package-ecosystem: gradle
-    directory: /backend/research-service
+    directory: /backend/research
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
     labels: [ "deps", "v2" ]

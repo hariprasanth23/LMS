@@ -94,18 +94,18 @@ The v1 monolith has 15 domains all coupled in a single Spring Boot app sharing o
 
 | Service | Port | Domain(s) Covered | Database |
 |---|---|---|---|
-| `api-gateway` | 8080 | Routing, JWT validation, rate limiting | — |
-| `auth-service` | 8081 | auth | `lms_auth_db` |
-| `user-service` | 8082 | student, employee, department | `lms_user_db` |
-| `course-service` | 8083 | lms (courses, assignments, quizzes, materials) | `lms_course_db` |
-| `examination-service` | 8084 | examination (exams, marks, grades, arrears) | `lms_exam_db` |
-| `attendance-service` | 8085 | attendance | `lms_attendance_db` |
-| `finance-service` | 8086 | finance (fees, payments, wallet, refunds) | `lms_finance_db` |
-| `hr-service` | 8087 | leave, payroll | `lms_hr_db` |
-| `notification-service` | 8088 | notification | `lms_notification_db` |
-| `academics-service` | 8089 | academics (MOOC, internship, conference, ECC) | `lms_academics_db` |
-| `feedback-service` | 8090 | feedback | `lms_feedback_db` |
-| `research-service` | 8091 | research | `lms_research_db` |
+| `gateway` | 8080 | Routing, JWT validation, rate limiting | — |
+| `auth` | 8081 | auth | `lms_auth_db` |
+| `users` | 8082 | student, employee, department | `lms_user_db` |
+| `courses` | 8083 | lms (courses, assignments, quizzes, materials) | `lms_course_db` |
+| `exams` | 8084 | examination (exams, marks, grades, arrears) | `lms_exam_db` |
+| `attendance` | 8085 | attendance | `lms_attendance_db` |
+| `finance` | 8086 | finance (fees, payments, wallet, refunds) | `lms_finance_db` |
+| `hr` | 8087 | leave, payroll | `lms_hr_db` |
+| `notifications` | 8088 | notification | `lms_notification_db` |
+| `academics` | 8089 | academics (MOOC, internship, conference, ECC) | `lms_academics_db` |
+| `feedback` | 8090 | feedback | `lms_feedback_db` |
+| `research` | 8091 | research | `lms_research_db` |
 | `student-services` | 8092 | services (bonafide, library, health) | `lms_services_db` |
 | `frontend` | 5173 | React SPA | — |
 
@@ -175,17 +175,17 @@ The v1 monolith has 15 domains all coupled in a single Spring Boot app sharing o
 
 | Monolith Package | v2.0 Service | Reason for grouping |
 |---|---|---|
-| `com.college.auth` | `auth-service` | Identity boundary — owns JWT & user credentials |
-| `com.college.student` `com.college.employee` | `user-service` | Both are "people" entities; departments owned here |
-| `com.college.lms` | `course-service` | Full course lifecycle (materials, assignments, quizzes) |
-| `com.college.examination` | `examination-service` | Exam domain is self-contained |
-| `com.college.attendance` | `attendance-service` | High-write domain; can scale independently |
-| `com.college.finance` | `finance-service` | PCI/financial isolation |
-| `com.college.leave` `com.college.payroll` | `hr-service` | HR workflow: leave affects payroll |
-| `com.college.notification` | `notification-service` | Cross-cutting concern; consumers publish events, this service delivers |
-| `com.college.academics` | `academics-service` | Student academic activities (MOOC, ECC, internship) |
-| `com.college.feedback` | `feedback-service` | Low-traffic, isolated survey data |
-| `com.college.research` | `research-service` | Faculty research tracking |
+| `com.college.auth` | `auth` | Identity boundary — owns JWT & user credentials |
+| `com.college.student` `com.college.employee` | `users` | Both are "people" entities; departments owned here |
+| `com.college.lms` | `courses` | Full course lifecycle (materials, assignments, quizzes) |
+| `com.college.examination` | `exams` | Exam domain is self-contained |
+| `com.college.attendance` | `attendance` | High-write domain; can scale independently |
+| `com.college.finance` | `finance` | PCI/financial isolation |
+| `com.college.leave` `com.college.payroll` | `hr` | HR workflow: leave affects payroll |
+| `com.college.notification` | `notifications` | Cross-cutting concern; consumers publish events, this service delivers |
+| `com.college.academics` | `academics` | Student academic activities (MOOC, ECC, internship) |
+| `com.college.feedback` | `feedback` | Low-traffic, isolated survey data |
+| `com.college.research` | `research` | Faculty research tracking |
 | `com.college.services` | `student-services` | Student administrative requests |
 
 ---
@@ -197,12 +197,12 @@ The v1 monolith has 15 domains all coupled in a single Spring Boot app sharing o
 Used when the calling service needs an immediate response:
 
 ```
-course-service   →  auth-service        (validate user role before course creation)
-examination-svc  →  user-service        (fetch student profile for grade sheet)
-attendance-svc   →  course-service      (validate course exists before marking attendance)
-finance-svc      →  user-service        (fetch student fee category)
-hr-service       →  user-service        (fetch employee base salary for payroll)
-academics-svc    →  course-service      (validate course before wishlist add)
+courses   →  auth        (validate user role before course creation)
+examination-svc  →  users        (fetch student profile for grade sheet)
+attendance-svc   →  courses      (validate course exists before marking attendance)
+finance-svc      →  users        (fetch student fee category)
+hr       →  users        (fetch employee base salary for payroll)
+academics-svc    →  courses      (validate course before wishlist add)
 ```
 
 ### Asynchronous (Amazon SQS events)
@@ -211,12 +211,12 @@ Used for cross-cutting concerns where the publisher doesn't need to wait:
 
 | Event | Publisher | Subscriber | Queue |
 |---|---|---|---|
-| `UserRegistered` | auth-service | user-service, notification-service | `lms-user-registered` |
-| `CourseEnrolled` | course-service | notification-service, attendance-service | `lms-course-enrolled` |
-| `AssignmentGraded` | course-service | notification-service | `lms-assignment-graded` |
-| `PaymentCompleted` | finance-service | notification-service | `lms-payment-done` |
-| `LeaveApproved` | hr-service | notification-service | `lms-leave-approved` |
-| `ExamScheduled` | examination-service | notification-service | `lms-exam-scheduled` |
+| `UserRegistered` | auth | users, notifications | `lms-user-registered` |
+| `CourseEnrolled` | courses | notifications, attendance | `lms-course-enrolled` |
+| `AssignmentGraded` | courses | notifications | `lms-assignment-graded` |
+| `PaymentCompleted` | finance | notifications | `lms-payment-done` |
+| `LeaveApproved` | hr | notifications | `lms-leave-approved` |
+| `ExamScheduled` | exams | notifications | `lms-exam-scheduled` |
 
 ---
 
@@ -227,13 +227,13 @@ Used for cross-cutting concerns where the publisher doesn't need to wait:
 Each service owns its own PostgreSQL database. No shared tables. No cross-database foreign keys.
 
 ```
-auth-service      → lms_auth_db      (users, refresh_tokens)
-user-service      → lms_user_db      (students, employees, departments, bank_info)
-course-service    → lms_course_db    (courses, materials, assignments, quizzes, enrollments)
+auth      → lms_auth_db      (users, refresh_tokens)
+users      → lms_user_db      (students, employees, departments, bank_info)
+courses    → lms_course_db    (courses, materials, assignments, quizzes, enrollments)
 examination-svc   → lms_exam_db      (exam_schedule, marks, grades, arrears, makeup)
 attendance-svc    → lms_attendance_db (student_attendance, employee_attendance)
 finance-svc       → lms_finance_db   (fee_records, payments, wallet, refunds)
-hr-service        → lms_hr_db        (leave_requests, leave_balances, payroll_records)
+hr        → lms_hr_db        (leave_requests, leave_balances, payroll_records)
 notification-svc  → lms_notification_db (notifications)
 academics-svc     → lms_academics_db (wishlist, exc, mooc, internship, conference, projects)
 feedback-svc      → lms_feedback_db  (course_feedback, feedback_247)
@@ -246,15 +246,15 @@ student-services  → lms_services_db  (bonafide, library, health_feedback)
 Instead of JPA `@ManyToOne` FK across services, services store only the **UUID reference**:
 
 ```java
-// course-service: Assignment entity
+// courses: Assignment entity
 @Column(name = "course_id")
 private UUID courseId;   // local FK — course is in same service
 
 @Column(name = "student_id")
-private UUID studentId;  // cross-service reference — student lives in user-service
+private UUID studentId;  // cross-service reference — student lives in users
 ```
 
-When the full student object is needed, the service makes a Feign call to `user-service`.
+When the full student object is needed, the service makes a Feign call to `users`.
 
 ### Migrations
 
@@ -271,11 +271,11 @@ All services use **Flyway** for schema versioning:
 
 ```
 1. Client → POST /api/auth/login
-2. auth-service issues JWT (claims: userId, role, name, email)
+2. auth issues JWT (claims: userId, role, name, email)
 3. Client stores token in httpOnly cookie (NOT localStorage)
 4. Client → GET /api/courses (with cookie)
-5. api-gateway validates JWT signature
-6. api-gateway extracts userId + role, adds to headers:
+5. gateway validates JWT signature
+6. gateway extracts userId + role, adds to headers:
      X-User-Id: <uuid>
      X-User-Role: ROLE_STUDENT
 7. Downstream service trusts these headers (never re-validates JWT)
@@ -298,7 +298,7 @@ All secrets (DB passwords, JWT secret, mail credentials) stored in **AWS Secrets
 ```yaml
 spring:
   config:
-    import: "aws-secretsmanager:/lms/prod/auth-service"
+    import: "aws-secretsmanager:/lms/prod/auth"
 ```
 
 ---
@@ -335,7 +335,7 @@ docker-compose up postgres redis localstack
 Each service can run independently:
 
 ```bash
-cd auth-service
+cd auth
 ./gradlew bootRun --args='--spring.profiles.active=local'
 ```
 
@@ -411,10 +411,10 @@ HTTP status codes follow REST conventions:
 See **[MIGRATION-GUIDE.md](./MIGRATION-GUIDE.md)** for the complete phased migration plan from the monolith.
 
 **High-level migration phases:**
-1. **Phase 1** — Extract `auth-service` first (lowest risk, no cross-domain writes)
-2. **Phase 2** — Extract `user-service` (student, employee)
-3. **Phase 3** — Extract `course-service`, `examination-service` (core academic domains)
-4. **Phase 4** — Extract `finance-service`, `hr-service` (financial domains, need care)
+1. **Phase 1** — Extract `auth` first (lowest risk, no cross-domain writes)
+2. **Phase 2** — Extract `users` (student, employee)
+3. **Phase 3** — Extract `courses`, `exams` (core academic domains)
+4. **Phase 4** — Extract `finance`, `hr` (financial domains, need care)
 5. **Phase 5** — Extract remaining services (attendance, notification, academics, feedback, research, student-services)
 6. **Phase 6** — Decommission monolith
 
@@ -432,7 +432,7 @@ backend/
 ├── docker-compose.infra.yml         ← Infrastructure only (Postgres, Redis, LocalStack)
 ├── .env.example                     ← Environment variable template
 │
-├── api-gateway/                     ← Spring Cloud Gateway
+├── gateway/                     ← Spring Cloud Gateway
 │   ├── src/main/java/com/lms/gateway/
 │   │   ├── GatewayApplication.java
 │   │   ├── config/
@@ -444,7 +444,7 @@ backend/
 │   ├── src/main/resources/application.yml
 │   └── Dockerfile
 │
-├── auth-service/                    ← Authentication & JWT
+├── auth/                    ← Authentication & JWT
 │   ├── src/main/java/com/lms/auth/
 │   │   ├── AuthServiceApplication.java
 │   │   ├── controller/AuthController.java
@@ -460,16 +460,16 @@ backend/
 │   ├── Dockerfile
 │   └── build.gradle
 │
-├── user-service/                    ← Students, Employees, Departments
-├── course-service/                  ← Courses, Assignments, Quizzes
-├── examination-service/             ← Exams, Marks, Grades
-├── attendance-service/              ← Attendance tracking
-├── finance-service/                 ← Fees, Payments, Wallet
-├── hr-service/                      ← Leave, Payroll
-├── notification-service/            ← In-app + Email notifications
-├── academics-service/               ← MOOC, ECC, Internship, Conference
-├── feedback-service/                ← Course feedback, 24/7 feedback
-├── research-service/                ← Research profiles, logs
+├── users/                    ← Students, Employees, Departments
+├── courses/                  ← Courses, Assignments, Quizzes
+├── exams/             ← Exams, Marks, Grades
+├── attendance/              ← Attendance tracking
+├── finance/                 ← Fees, Payments, Wallet
+├── hr/                      ← Leave, Payroll
+├── notifications/            ← In-app + Email notifications
+├── academics/               ← MOOC, ECC, Internship, Conference
+├── feedback/                ← Course feedback, 24/7 feedback
+├── research/                ← Research profiles, logs
 ├── student-services/                ← Bonafide, Library, Health
 │
 ├── frontend/                        ← React SPA (updated for microservices)

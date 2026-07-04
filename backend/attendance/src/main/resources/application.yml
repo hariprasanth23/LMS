@@ -1,15 +1,15 @@
 server:
-  port: 8092
+  port: 8085
 
 spring:
   application:
-    name: student-services
+    name: attendance
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/lms_services_db}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/lms_attendance_db}
     username: ${DB_USERNAME:lmsadmin}
     password: ${DB_PASSWORD:changeme}
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: 20
   jpa:
     hibernate:
       ddl-auto: validate
@@ -19,8 +19,8 @@ spring:
     locations: classpath:db/migration
 
 services:
-  users:
-    url: ${USER_SERVICE_URL:http://localhost:8082}
+  courses:
+    url: ${COURSE_SERVICE_URL:http://localhost:8083}
 
 management:
   endpoints:

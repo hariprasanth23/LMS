@@ -1,15 +1,15 @@
 server:
-  port: 8092
+  port: 8091
 
 spring:
   application:
-    name: student-services
+    name: research
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/lms_services_db}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/lms_research_db}
     username: ${DB_USERNAME:lmsadmin}
     password: ${DB_PASSWORD:changeme}
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: 5
   jpa:
     hibernate:
       ddl-auto: validate

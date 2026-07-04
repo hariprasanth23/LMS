@@ -1,0 +1,106 @@
+server:
+  port: 8081
+  forward-headers-strategy: framework
+  error:
+    include-message: always
+    include-binding-errors: always
+
+spring:
+  application:
+    name: auth
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/lms_auth_db}
+    username: ${DB_USERNAME:lmsadmin}
+    password: ${DB_PASSWORD:changeme}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 5000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+spring.data.redis:
+  host: ${REDIS_HOST:localhost}
+  port: ${REDIS_PORT:6379}
+  timeout: 500ms
+  # Auth-service uses Redis only as a write-side speed layer for JWT
+  # revocation. If unavailable, the DB row in `revoked_tokens` is still
+  # written — gateway-side check just degrades gracefully.
+
+app:
+  internal:
+    secret:  ${INTERNAL_SECRET}
+    enforce: ${INTERNAL_ENFORCE:true}
+    max-age-seconds: ${INTERNAL_MAX_AGE_SEC:60}
+  jwt:
+    # Must be ≥ 32 chars. Startup fails fast if shorter (see JwtUtil).
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_ACCESS_MS:86400000}        #  24 h
+    refresh-expiration-ms: ${JWT_REFRESH_MS:604800000}  # 7 d
+    # iss + aud locked so a stolen prod secret is useless against staging/dev.
+    issuer:   ${JWT_ISSUER:lms-auth}
+    audience: ${JWT_AUDIENCE:lms-gateway}
+    # Clock-skew tolerance between auth and gateway clocks. Without
+    # this a 30s NTP drift would 401 valid tokens at the boundary.
+    clock-skew-seconds: ${JWT_CLOCK_SKEW:30}
+  cookie:
+    secure: ${COOKIE_SECURE:false}      # MUST be true in prod (HTTPS)
+    same-site: ${COOKIE_SAMESITE:Lax}   # Lax survives external link clicks
+    domain: ${COOKIE_DOMAIN:}
+    max-age-ms: ${COOKIE_MAX_AGE_MS:86400000}
+  cleanup:
+    refresh-tokens-ms:  ${CLEANUP_REFRESH_MS:3600000}  # purge expired refresh tokens hourly
+    revoked-tokens-ms:  ${CLEANUP_REVOKED_MS:3600000}  # purge expired revocations hourly
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when_authorized
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLE:0.1}
+  otlp:
+    tracing:
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    root: INFO
+    com.lms.auth: DEBUG
+    org.hibernate.SQL: WARN
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+app:
+  cookie:
+    secure: true
+    same-site: Lax

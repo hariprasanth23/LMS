@@ -49,9 +49,9 @@ services:
 
   # ── Microservices ─────────────────────────────────────────────────────────────
 
-  api-gateway:
-    build: ./api-gateway
-    container_name: lms-api-gateway
+  gateway:
+    build: ./gateway
+    container_name: lms-gateway
     ports:
       - "8080:8080"
     environment:
@@ -62,23 +62,23 @@ services:
       INTERNAL_SECRET:  ${INTERNAL_SECRET}
       INTERNAL_ENFORCE: false
       JWT_SECRET:     ${JWT_SECRET}
-      JWT_ISSUER:     ${JWT_ISSUER:-lms-auth-service}
+      JWT_ISSUER:     ${JWT_ISSUER:-lms-auth}
       JWT_AUDIENCE:   ${JWT_AUDIENCE:-lms-gateway}
       JWT_CLOCK_SKEW: ${JWT_CLOCK_SKEW:-30}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-      AUTH_SERVICE_URL: http://auth-service:8081
-      USER_SERVICE_URL: http://user-service:8082
-      COURSE_SERVICE_URL: http://course-service:8083
-      EXAM_SERVICE_URL: http://examination-service:8084
-      ATTENDANCE_SERVICE_URL: http://attendance-service:8085
-      FINANCE_SERVICE_URL: http://finance-service:8086
-      HR_SERVICE_URL: http://hr-service:8087
-      NOTIFICATION_SERVICE_URL: http://notification-service:8088
-      ACADEMICS_SERVICE_URL: http://academics-service:8089
-      FEEDBACK_SERVICE_URL: http://feedback-service:8090
-      RESEARCH_SERVICE_URL: http://research-service:8091
+      AUTH_SERVICE_URL: http://auth:8081
+      USER_SERVICE_URL: http://users:8082
+      COURSE_SERVICE_URL: http://courses:8083
+      EXAM_SERVICE_URL: http://exams:8084
+      ATTENDANCE_SERVICE_URL: http://attendance:8085
+      FINANCE_SERVICE_URL: http://finance:8086
+      HR_SERVICE_URL: http://hr:8087
+      NOTIFICATION_SERVICE_URL: http://notifications:8088
+      ACADEMICS_SERVICE_URL: http://academics:8089
+      FEEDBACK_SERVICE_URL: http://feedback:8090
+      RESEARCH_SERVICE_URL: http://research:8091
       STUDENT_SERVICES_URL: http://student-services:8092
       MONOLITH_URL: ${MONOLITH_URL:-http://no-monolith-configured.invalid}
     depends_on:
@@ -86,9 +86,9 @@ services:
     networks:
       - lms-net
 
-  auth-service:
-    build: ./auth-service
-    container_name: lms-auth-service
+  auth:
+    build: ./auth
+    container_name: lms-auth
     ports:
       - "8081:8081"
     environment:
@@ -102,7 +102,7 @@ services:
       DB_USERNAME: ${AUTH_DB_USER:-lms_auth_user}
       DB_PASSWORD: ${AUTH_DB_PASSWORD:-changeme}
       JWT_SECRET:      ${JWT_SECRET}
-      JWT_ISSUER:      ${JWT_ISSUER:-lms-auth-service}
+      JWT_ISSUER:      ${JWT_ISSUER:-lms-auth}
       JWT_AUDIENCE:    ${JWT_AUDIENCE:-lms-gateway}
       JWT_CLOCK_SKEW:  ${JWT_CLOCK_SKEW:-30}
       COOKIE_SECURE:   ${COOKIE_SECURE:-false}
@@ -117,9 +117,9 @@ services:
     networks:
       - lms-net
 
-  user-service:
-    build: ./user-service
-    container_name: lms-user-service
+  users:
+    build: ./users
+    container_name: lms-users
     ports:
       - "8082:8082"
     environment:
@@ -139,9 +139,9 @@ services:
     networks:
       - lms-net
 
-  course-service:
-    build: ./course-service
-    container_name: lms-course-service
+  courses:
+    build: ./courses
+    container_name: lms-courses
     ports:
       - "8083:8083"
     environment:
@@ -154,7 +154,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/lms_course_db
       DB_USERNAME: ${COURSE_DB_USER:-lms_course_user}
       DB_PASSWORD: ${COURSE_DB_PASSWORD:-changeme}
-      USER_SERVICE_URL: http://user-service:8082
+      USER_SERVICE_URL: http://users:8082
       SQS_ENDPOINT: http://localstack:4566
     depends_on:
       postgres:
@@ -162,9 +162,9 @@ services:
     networks:
       - lms-net
 
-  examination-service:
-    build: ./examination-service
-    container_name: lms-examination-service
+  exams:
+    build: ./exams
+    container_name: lms-exams
     ports:
       - "8084:8084"
     environment:
@@ -177,8 +177,8 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/lms_exam_db
       DB_USERNAME: ${EXAM_DB_USER:-lms_exam_user}
       DB_PASSWORD: ${EXAM_DB_PASSWORD:-changeme}
-      USER_SERVICE_URL: http://user-service:8082
-      COURSE_SERVICE_URL: http://course-service:8083
+      USER_SERVICE_URL: http://users:8082
+      COURSE_SERVICE_URL: http://courses:8083
       SQS_ENDPOINT: http://localstack:4566
     depends_on:
       postgres:
@@ -186,9 +186,9 @@ services:
     networks:
       - lms-net
 
-  attendance-service:
-    build: ./attendance-service
-    container_name: lms-attendance-service
+  attendance:
+    build: ./attendance
+    container_name: lms-attendance
     ports:
       - "8085:8085"
     environment:
@@ -201,16 +201,16 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/lms_attendance_db
       DB_USERNAME: ${ATTENDANCE_DB_USER:-lms_attendance_user}
       DB_PASSWORD: ${ATTENDANCE_DB_PASSWORD:-changeme}
-      COURSE_SERVICE_URL: http://course-service:8083
+      COURSE_SERVICE_URL: http://courses:8083
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - lms-net
 
-  finance-service:
-    build: ./finance-service
-    container_name: lms-finance-service
+  finance:
+    build: ./finance
+    container_name: lms-finance
     ports:
       - "8086:8086"
     environment:
@@ -223,7 +223,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/lms_finance_db
       DB_USERNAME: ${FINANCE_DB_USER:-lms_finance_user}
       DB_PASSWORD: ${FINANCE_DB_PASSWORD:-changeme}
-      USER_SERVICE_URL: http://user-service:8082
+      USER_SERVICE_URL: http://users:8082
       SQS_ENDPOINT: http://localstack:4566
     depends_on:
       postgres:
@@ -231,9 +231,9 @@ services:
     networks:
       - lms-net
 
-  hr-service:
-    build: ./hr-service
-    container_name: lms-hr-service
+  hr:
+    build: ./hr
+    container_name: lms-hr
     ports:
       - "8087:8087"
     environment:
@@ -246,7 +246,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/lms_hr_db
       DB_USERNAME: ${HR_DB_USER:-lms_hr_user}
       DB_PASSWORD: ${HR_DB_PASSWORD:-changeme}
-      USER_SERVICE_URL: http://user-service:8082
+      USER_SERVICE_URL: http://users:8082
       SQS_ENDPOINT: http://localstack:4566
     depends_on:
       postgres:
@@ -254,9 +254,9 @@ services:
     networks:
       - lms-net
 
-  notification-service:
-    build: ./notification-service
-    container_name: lms-notification-service
+  notifications:
+    build: ./notifications
+    container_name: lms-notifications
     ports:
       - "8088:8088"
     environment:
@@ -282,9 +282,9 @@ services:
     networks:
       - lms-net
 
-  academics-service:
-    build: ./academics-service
-    container_name: lms-academics-service
+  academics:
+    build: ./academics
+    container_name: lms-academics
     ports:
       - "8089:8089"
     environment:
@@ -297,17 +297,17 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/lms_academics_db
       DB_USERNAME: ${ACADEMICS_DB_USER:-lms_academics_user}
       DB_PASSWORD: ${ACADEMICS_DB_PASSWORD:-changeme}
-      USER_SERVICE_URL: http://user-service:8082
-      COURSE_SERVICE_URL: http://course-service:8083
+      USER_SERVICE_URL: http://users:8082
+      COURSE_SERVICE_URL: http://courses:8083
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - lms-net
 
-  feedback-service:
-    build: ./feedback-service
-    container_name: lms-feedback-service
+  feedback:
+    build: ./feedback
+    container_name: lms-feedback
     ports:
       - "8090:8090"
     environment:
@@ -326,9 +326,9 @@ services:
     networks:
       - lms-net
 
-  research-service:
-    build: ./research-service
-    container_name: lms-research-service
+  research:
+    build: ./research
+    container_name: lms-research
     ports:
       - "8091:8091"
     environment:
@@ -341,7 +341,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/lms_research_db
       DB_USERNAME: ${RESEARCH_DB_USER:-lms_research_user}
       DB_PASSWORD: ${RESEARCH_DB_PASSWORD:-changeme}
-      USER_SERVICE_URL: http://user-service:8082
+      USER_SERVICE_URL: http://users:8082
     depends_on:
       postgres:
         condition: service_healthy
@@ -363,7 +363,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/lms_services_db
       DB_USERNAME: ${SERVICES_DB_USER:-lms_services_user}
       DB_PASSWORD: ${SERVICES_DB_PASSWORD:-changeme}
-      USER_SERVICE_URL: http://user-service:8082
+      USER_SERVICE_URL: http://users:8082
     depends_on:
       postgres:
         condition: service_healthy
@@ -383,7 +383,7 @@ services:
     environment:
       VITE_API_BASE_URL: http://localhost:8080/api
     depends_on:
-      - api-gateway
+      - gateway
     networks:
       - lms-net
     profiles: ["with-frontend"]   # opt-in: `docker compose --profile with-frontend up`
