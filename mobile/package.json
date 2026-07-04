@@ -19,7 +19,7 @@
     "expo-status-bar": "~2.0.0",
     "expo-splash-screen": "~0.29.0",
     "expo-secure-store": "~14.0.0",
-    "expo-font": "~13.0.0",
+    "expo-font": "~57.0.0",
     "expo-system-ui": "~4.0.0",
     "expo-haptics": "~14.0.0",
     "expo-blur": "~14.0.0",
